@@ -117,8 +117,8 @@ $$\text{Sábados Semanais} = \frac{364 \text{ Dias Numerados}}{7 \text{ Dias / S
 
 1. Clone o repositório:
    ```bash
-   git clone https://github.com/seu-usuario/dimenueveis-calendar.git
-   cd dimenueveis-calendar
+   git clone https://github.com/dimenuvel/Evangelho-das-Dimenuveis-Calendario.git
+   cd Evangelho-das-Dimenuveis-Calendario
    ```
 
 2. Instale as dependências:
