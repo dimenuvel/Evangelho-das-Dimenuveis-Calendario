@@ -17,6 +17,12 @@ Um motor avançado de engenharia de calendários e aplicação web interativa qu
   - **Sábado Semanal Contínuo**: Ciclo ininterrupto de Sábados de 7 dias preservado através de fronteiras de meses e anos (52 Sábados semanais por ano sagrado).
   - **Sábado Anual do Dia Zero**: O Dia Zero é classificado como Sábado Anual, ou *Sábado Maior / Grão-Sábado* quando coincide com o 7º dia semanal.
 
+- **Mapa Cosmológico do Livro de Enoque (1 Enoque 72–78) · Projeção de Mercator & 6 Portas Celestes**:
+  - **As 6 Portas do Oriente e 6 Portas do Ocidente**: Projeção cilíndrica de Mercator ladeada pelas 6 Portas do Leste (`Porta 1 L` a `Porta 6 L`) e 6 Portas do Oeste (`Porta 1 O` a `Porta 6 O`), distribuídas entre o Trópico de Capricórnio (1ª Porta) e o Trópico de Câncer (6ª Porta).
+  - **Travessia de Portais Estilo Pac-Man**: O Sol e a Lua emergem pela Porta Oriental ativa à direita, percorrem o mapa de Leste para Oeste iluminando os continentes, entram na Porta Ocidental correspondente à esquerda e reaparecem simultaneamente no Oriente com efeitos visuais de transição nos portais e arco de retorno pelo Norte (1 Enoque 72:5).
+  - **Iluminação Solar Dinâmica vs. Mostrar Tudo**: Botão dedicado para alternar entre **Iluminação Solar** (máscara diurna/noturna real dimensionada pela proporção do dia na Porta ativa + brilho noturno lunar suave) e **Mostrar Tudo** (mapa totalmente iluminado sem sombra noturna).
+  - **Especificações Astronômicas de 1 Enoque 72–74**: Exibe em tempo real a **Lei das 18 Partes de Dia e Noite** (de `12/18 Dia · 6/18 Noite` na 6ª Porta até `6/18 Dia · 12/18 Noite` na 1ª Porta) e a **Luz Lunar em 14 Partes** (`0/14` a `14/14 partes`), com animação contínua, controle deslizante por toque/arraste com inércia e seleção direta das Portas 1 a 6.
+
 - **Motor de Camada Lunar Astronômica**:
   - Cálculos sinódicos de fases da Lua de alta precisão (~29,530588 dias) sobrepostos diretamente nas datas do calendário sagrado.
   - 8 fases lunares astronômicas definidas (*Lua Nova*, *Crescente Côncava*, *Quarto Crescente*, *Crescente Convexa*, *Lua Cheia*, *Minguante Convexa*, *Quarto Minguante*, *Minguante Côncava*).
@@ -77,7 +83,7 @@ $$\text{Sábados Semanais} = \frac{364 \text{ Dias Numerados}}{7 \text{ Dias / S
 │   ├── astronomy/       # Integração com SunCalc, catálogo de eclipses, cálculos lunares
 │   ├── calendar/        # Gerador do calendário sagrado, lógica de Sábados, motor de festas de Levítico 23
 │   ├── chronology/      # Conversor a.C./d.C., modelos de cronologia (Ussher, Rabínico, LXX, Dimenúveis)
-│   ├── components/      # Navbar, LanguageSelector, LunarPhaseIcon, Modais, Badges
+│   ├── components/      # Navbar, AzimuthalCosmologyMap (Mapa Enoque/Mercator), GoogleCalendarSyncModal, LunarPhaseIcon, Modais, Badges
 │   ├── dimenueveis/     # Textos canônicos do Evangelho das Dimenúveis, Árvore de 6 Camadas, Léxico
 │   ├── history/         # Linhas do tempo históricas, análise do candidato de Josué 10
 │   ├── i18n/            # Traduções (Português & Inglês)
