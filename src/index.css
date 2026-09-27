@@ -1,0 +1,611 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,500;0,600;0,700;1,400;1,600&family=EB+Garamond:ital,wght@0,500;0,600;0,700;1,400&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&display=swap');
+
+@theme {
+  --font-sans: "Lora", Georgia, Cambria, "Times New Roman", Times, serif;
+  --font-serif: "Lora", Georgia, Cambria, "Times New Roman", Times, serif;
+  --font-display: "Crimson Pro", "EB Garamond", "Lora", Georgia, serif;
+  --font-mono: "Lora", Georgia, Cambria, "Times New Roman", serif;
+
+  /* Refined traditional book type scale — calibrated for 1-line mobile labels (360px+) */
+  --text-xs: 0.78rem;
+  --text-xs--line-height: 1.45;
+  --text-sm: 0.89rem;
+  --text-sm--line-height: 1.58;
+  --text-base: 1rem;
+  --text-base--line-height: 1.68;
+  --text-lg: 1.12rem;
+  --text-lg--line-height: 1.4;
+  --text-xl: 1.24rem;
+  --text-xl--line-height: 1.32;
+  --text-2xl: 1.42rem;
+  --text-2xl--line-height: 1.25;
+  --text-3xl: 1.72rem;
+  --text-3xl--line-height: 1.2;
+  --text-4xl: 2.05rem;
+  --text-4xl--line-height: 1.16;
+}
+
+@layer base {
+  html {
+    font-size: 15.25px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  @media (min-width: 640px) {
+    html {
+      font-size: 16.5px;
+    }
+  }
+
+  body {
+    font-family: var(--font-serif);
+    background-color: #0b0e14;
+    color: #fbf8f1;
+    line-height: 1.68;
+    letter-spacing: 0.008em;
+  }
+
+  h1, h2, h3 {
+    font-family: var(--font-display);
+    letter-spacing: 0.01em;
+    line-height: 1.25;
+  }
+
+  h4, h5, h6,
+  .font-serif,
+  .font-serif-sacred,
+  .font-decorative,
+  .font-marcellus,
+  .font-canonical,
+  .font-scripture {
+    font-family: var(--font-serif);
+    letter-spacing: 0.008em;
+  }
+
+  .font-mono-code, .font-mono {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums lining-nums;
+    letter-spacing: 0.015em;
+  }
+
+  .tabular-nums {
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+}
+
+/* Custom scrollbar - book-like refined style */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+::-webkit-scrollbar-track {
+  background: #0b0e14;
+}
+::-webkit-scrollbar-thumb {
+  background: #36415e;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #52628a;
+}
+
+[data-theme="day"] ::-webkit-scrollbar-track {
+  background: #f3ede0;
+}
+[data-theme="day"] ::-webkit-scrollbar-thumb {
+  background: #b8ab93;
+}
+[data-theme="day"] ::-webkit-scrollbar-thumb:hover {
+  background: #94866d;
+}
+
+/* ========================================================================== */
+/* NIGHT MODE OPTICAL CONTRAST ENHANCEMENTS ([data-theme="night"])            */
+/* High-contrast warm ivory & gold leaf typography on deep obsidian           */
+/* ========================================================================== */
+
+[data-theme="night"] .text-slate-100,
+[data-theme="night"] .text-white {
+  color: #fbf8f1 !important;
+}
+
+[data-theme="night"] .text-slate-200 {
+  color: #f4efe2 !important;
+}
+
+[data-theme="night"] .text-slate-300 {
+  color: #e8e0ce !important;
+}
+
+[data-theme="night"] .text-slate-400 {
+  color: #d5cbb4 !important;
+}
+
+[data-theme="night"] .text-slate-500,
+[data-theme="night"] .text-slate-600 {
+  color: #bfb399 !important;
+}
+
+[data-theme="night"] .text-amber-300,
+[data-theme="night"] .text-amber-400,
+[data-theme="night"] .text-yellow-300 {
+  color: #fcd34d !important;
+}
+
+[data-theme="night"] .text-blue-200,
+[data-theme="night"] .text-blue-300,
+[data-theme="night"] .text-blue-400 {
+  color: #93c5fd !important;
+}
+
+[data-theme="night"] .text-purple-200,
+[data-theme="night"] .text-purple-300,
+[data-theme="night"] .text-purple-400 {
+  color: #d8b4fe !important;
+}
+
+[data-theme="night"] .text-emerald-200,
+[data-theme="night"] .text-emerald-300,
+[data-theme="night"] .text-emerald-400 {
+  color: #6ee7b7 !important;
+}
+
+[data-theme="night"] .border-slate-800,
+[data-theme="night"] .border-slate-800\/80,
+[data-theme="night"] .border-slate-800\/70,
+[data-theme="night"] .border-slate-800\/60,
+[data-theme="night"] .divide-slate-800 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #2e3852 !important;
+}
+
+[data-theme="night"] .border-slate-700,
+[data-theme="night"] .border-slate-700\/50 {
+  border-color: #3f4d6e !important;
+}
+
+/* ========================================================================== */
+/* DAYTIME ARCHIVAL BOOK MODE OVERRIDES ([data-theme="day"])                  */
+/* High-contrast warm parchment surfaces & deep India ink typography          */
+/* ========================================================================== */
+
+[data-theme="day"] body,
+[data-theme="day"] .bg-\[\#090b10\],
+[data-theme="day"] .bg-\[\#0b0e14\],
+[data-theme="day"] .bg-\[\#0c0e14\],
+[data-theme="day"] .bg-\[\#0b0d14\],
+[data-theme="day"] .bg-\[\#0d101b\],
+[data-theme="day"] .bg-\[\#080910\],
+[data-theme="day"] .bg-\[\#090b12\],
+[data-theme="day"] .bg-\[\#0f1422\] {
+  background-color: #f3ede0 !important;
+  color: #14110d !important;
+}
+
+/* Primary Page & Card Surfaces */
+[data-theme="day"] .bg-slate-950,
+[data-theme="day"] .bg-slate-950\/80,
+[data-theme="day"] .bg-slate-950\/90 {
+  background-color: #fcfaf5 !important;
+  color: #14110d !important;
+}
+
+/* Secondary Header & Sub-Panel Surfaces */
+[data-theme="day"] .bg-slate-900,
+[data-theme="day"] .bg-slate-900\/20,
+[data-theme="day"] .bg-slate-900\/30,
+[data-theme="day"] .bg-slate-900\/40,
+[data-theme="day"] .bg-slate-900\/50,
+[data-theme="day"] .bg-slate-900\/60,
+[data-theme="day"] .bg-slate-900\/70,
+[data-theme="day"] .bg-slate-900\/80,
+[data-theme="day"] .bg-slate-900\/90,
+[data-theme="day"] .bg-slate-800,
+[data-theme="day"] .bg-slate-800\/40 {
+  background-color: #eae1cf !important;
+  color: #14110d !important;
+}
+
+/* Hover States on Neutral Surfaces in Day Mode */
+[data-theme="day"] .hover\:bg-slate-900:hover,
+[data-theme="day"] .hover\:bg-slate-900\/40:hover,
+[data-theme="day"] .hover\:bg-slate-900\/50:hover,
+[data-theme="day"] .hover\:bg-slate-900\/60:hover,
+[data-theme="day"] .hover\:bg-slate-900\/80:hover,
+[data-theme="day"] .hover\:bg-slate-800:hover {
+  background-color: #dfd3bc !important;
+}
+
+/* Tinted Amber / Feast / Sabbath Surfaces in Day Mode */
+[data-theme="day"] .bg-amber-950\/10,
+[data-theme="day"] .bg-amber-950\/15,
+[data-theme="day"] .bg-amber-950\/20,
+[data-theme="day"] .bg-amber-950\/25,
+[data-theme="day"] .bg-amber-950\/30,
+[data-theme="day"] .bg-amber-950\/40,
+[data-theme="day"] .bg-amber-950\/80,
+[data-theme="day"] .bg-yellow-500\/20 {
+  background-color: #f8e7b8 !important;
+}
+
+[data-theme="day"] .hover\:bg-amber-950\/25:hover,
+[data-theme="day"] .hover\:bg-amber-950\/30:hover,
+[data-theme="day"] .hover\:bg-amber-950\/40:hover,
+[data-theme="day"] .hover\:bg-amber-950\/60:hover {
+  background-color: #f1d791 !important;
+}
+
+/* Tinted Purple / Day Zero / Millennial Surfaces in Day Mode */
+[data-theme="day"] .bg-purple-950\/15,
+[data-theme="day"] .bg-purple-950\/20,
+[data-theme="day"] .bg-purple-950\/30,
+[data-theme="day"] .bg-purple-950\/35,
+[data-theme="day"] .bg-purple-950\/80,
+[data-theme="day"] .bg-purple-500\/20 {
+  background-color: #ede2fc !important;
+}
+
+[data-theme="day"] .hover\:bg-purple-950\/25:hover,
+[data-theme="day"] .hover\:bg-purple-950\/40:hover {
+  background-color: #dfc9f9 !important;
+}
+
+/* Tinted Blue / Lunar Surfaces in Day Mode */
+[data-theme="day"] .bg-blue-950\/15,
+[data-theme="day"] .bg-blue-950\/20,
+[data-theme="day"] .bg-blue-950\/25,
+[data-theme="day"] .bg-blue-950\/30,
+[data-theme="day"] .bg-blue-950\/35,
+[data-theme="day"] .bg-blue-950\/40,
+[data-theme="day"] .bg-blue-950\/80,
+[data-theme="day"] .bg-blue-500\/20 {
+  background-color: #ddecfc !important;
+}
+
+[data-theme="day"] .hover\:bg-blue-950\/30:hover,
+[data-theme="day"] .hover\:bg-blue-950\/35:hover {
+  background-color: #c7dffb !important;
+}
+
+/* Tinted Emerald / Scriptural Surfaces in Day Mode */
+[data-theme="day"] .bg-emerald-950\/30,
+[data-theme="day"] .bg-emerald-950\/40 {
+  background-color: #d3f2df !important;
+}
+
+/* Tinted Rose / Alert Surfaces in Day Mode */
+[data-theme="day"] .bg-rose-950\/20,
+[data-theme="day"] .bg-rose-950\/30 {
+  background-color: #ffe0e5 !important;
+}
+
+/* Borders & Dividers in Day Mode */
+[data-theme="day"] .border-slate-800,
+[data-theme="day"] .border-slate-800\/80,
+[data-theme="day"] .border-slate-800\/70,
+[data-theme="day"] .border-slate-800\/60,
+[data-theme="day"] .border-slate-700,
+[data-theme="day"] .border-slate-700\/50,
+[data-theme="day"] .divide-slate-800 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #b8ab93 !important;
+}
+
+[data-theme="day"] .border-amber-500\/50,
+[data-theme="day"] .border-amber-500\/40 {
+  border-color: #9a3412 !important;
+}
+
+[data-theme="day"] .border-purple-500\/50,
+[data-theme="day"] .border-purple-500\/40 {
+  border-color: #5b21b6 !important;
+}
+
+[data-theme="day"] .border-blue-500\/40 {
+  border-color: #1e40af !important;
+}
+
+[data-theme="day"] .border-emerald-500\/50,
+[data-theme="day"] .border-emerald-500\/40,
+[data-theme="day"] .border-emerald-500\/30 {
+  border-color: #065f46 !important;
+}
+
+/* Primary & Secondary Ink Colors in Day Mode */
+[data-theme="day"] .text-white,
+[data-theme="day"] .text-slate-100,
+[data-theme="day"] .text-slate-200 {
+  color: #14110d !important;
+}
+
+[data-theme="day"] .text-slate-300 {
+  color: #221d16 !important;
+}
+
+[data-theme="day"] .text-slate-400 {
+  color: #362e23 !important;
+}
+
+[data-theme="day"] .text-slate-500,
+[data-theme="day"] .text-slate-600,
+[data-theme="day"] .text-slate-700 {
+  color: #4a3f31 !important;
+}
+
+/* High-Contrast Semantic Accent Inks in Day Mode */
+[data-theme="day"] .text-\[\#f3e3a2\],
+[data-theme="day"] .text-amber-100,
+[data-theme="day"] .text-amber-200,
+[data-theme="day"] .text-amber-300,
+[data-theme="day"] .text-amber-400,
+[data-theme="day"] .text-amber-500,
+[data-theme="day"] .text-yellow-300 {
+  color: #7c2d12 !important;
+}
+
+[data-theme="day"] .text-blue-200,
+[data-theme="day"] .text-blue-300,
+[data-theme="day"] .text-blue-400 {
+  color: #1e3a8a !important;
+}
+
+[data-theme="day"] .text-purple-200,
+[data-theme="day"] .text-purple-300,
+[data-theme="day"] .text-purple-400 {
+  color: #4c1d95 !important;
+}
+
+[data-theme="day"] .text-emerald-200,
+[data-theme="day"] .text-emerald-300,
+[data-theme="day"] .text-emerald-400 {
+  color: #064e3b !important;
+}
+
+[data-theme="day"] .text-rose-400 {
+  color: #881337 !important;
+}
+
+/* Solid CTA Buttons in Day Mode */
+[data-theme="day"] .bg-amber-500,
+[data-theme="day"] .bg-amber-500.text-slate-950 {
+  background-color: #853a06 !important;
+  color: #fcfaf5 !important;
+}
+[data-theme="day"] .bg-amber-500:hover {
+  background-color: #6c2e04 !important;
+}
+
+[data-theme="day"] .bg-emerald-500,
+[data-theme="day"] .bg-emerald-500.text-slate-950 {
+  background-color: #065f46 !important;
+  color: #fcfaf5 !important;
+}
+[data-theme="day"] .bg-emerald-500:hover {
+  background-color: #064e3b !important;
+}
+
+/* Form Selects and Inputs in Day Mode */
+[data-theme="day"] select,
+[data-theme="day"] input[type="text"],
+[data-theme="day"] input[type="number"] {
+  background-color: #fcfaf5 !important;
+  color: #14110d !important;
+  border-color: #a8997e !important;
+}
+
+[data-theme="day"] select option {
+  background-color: #fcfaf5 !important;
+  color: #14110d !important;
+}
+
+/* ========================================================================== */
+/* ARCHIVAL PAPER PRINT STYLESHEET (@media print & @page)                     */
+/* High-resolution paper typography, margins, and month page-break rules      */
+/* ========================================================================== */
+
+.print-only {
+  display: none;
+}
+
+@page {
+  size: A4 portrait;
+  margin: 12mm 11mm 14mm 11mm;
+}
+
+@media print {
+  html,
+  body {
+    font-family: "Lora", "Crimson Pro", "EB Garamond", Georgia, "Times New Roman", Times, serif !important;
+    font-size: 10pt !important;
+    line-height: 1.38 !important;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #111111 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Hide navigation chrome, footers, interactive controls, and modals during print */
+  header,
+  nav,
+  footer,
+  .no-print,
+  [role="dialog"] {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  span.print-only {
+    display: inline !important;
+  }
+
+  /* Expand main workspace to full printable page width */
+  main {
+    max-width: 100% !important;
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .min-h-screen {
+    min-height: auto !important;
+    background: #ffffff !important;
+    color: #111111 !important;
+  }
+
+  /* Archival Print Masthead */
+  .print-masthead {
+    border-bottom: 1.5pt solid #111111 !important;
+    padding-bottom: 6pt !important;
+    margin-bottom: 10pt !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  .print-masthead-kicker {
+    font-family: "Crimson Pro", "EB Garamond", Georgia, serif !important;
+    font-size: 8pt !important;
+    letter-spacing: 0.14em !important;
+    text-transform: uppercase !important;
+    color: #44403c !important;
+    font-weight: 600 !important;
+  }
+
+  .print-masthead-title {
+    font-family: "Crimson Pro", "EB Garamond", Georgia, serif !important;
+    font-size: 18pt !important;
+    font-weight: 700 !important;
+    color: #0a0a0a !important;
+    margin: 2pt 0 3pt 0 !important;
+    font-variant-numeric: tabular-nums lining-nums !important;
+  }
+
+  .print-masthead-meta {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 6pt !important;
+    font-size: 8.5pt !important;
+    font-style: italic !important;
+    color: #292524 !important;
+  }
+
+  /* Day Zero Threshold Banner in Print */
+  .print-day-zero-banner {
+    background: #f8f5ee !important;
+    color: #111111 !important;
+    border: 1pt solid #292524 !important;
+    margin-bottom: 10pt !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  .print-day-zero-banner * {
+    color: #111111 !important;
+    border-color: #78716c !important;
+    background: transparent !important;
+  }
+
+  /* 13-Month Grid Layout for Paper */
+  .print-months-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10pt !important;
+    align-items: start !important;
+  }
+
+  /* Prevent any individual 28-day month from splitting across a page break */
+  .print-month-card {
+    background: #ffffff !important;
+    color: #111111 !important;
+    border: 0.85pt solid #1c1917 !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  /* Explicit page break after every 4th month (2x2 matrix per page) */
+  .print-page-break-after {
+    break-after: page !important;
+    page-break-after: always !important;
+  }
+
+  .print-month-header {
+    background: #efeae0 !important;
+    border-bottom: 0.75pt solid #1c1917 !important;
+    padding: 4pt 6pt !important;
+  }
+
+  .print-month-header * {
+    color: #0a0a0a !important;
+  }
+
+  .print-weekday-header {
+    background: #f7f4ee !important;
+    border-bottom: 0.6pt solid #44403c !important;
+    font-size: 7.5pt !important;
+  }
+
+  .print-weekday-header > div {
+    padding: 2.5pt 1pt !important;
+    color: #1c1917 !important;
+    border-color: #78716c !important;
+  }
+
+  .print-sabbath-col {
+    background: #ede4cf !important;
+    font-weight: 700 !important;
+  }
+
+  .print-hide-mobile-abbr {
+    display: none !important;
+  }
+
+  .print-show-full-weekday {
+    display: inline !important;
+  }
+
+  /* 28-Day Cells on Paper */
+  .print-day-cell {
+    min-height: 30pt !important;
+    padding: 2.5pt 3pt !important;
+    background: #ffffff !important;
+    color: #111111 !important;
+    border-color: #78716c !important;
+    opacity: 1 !important;
+  }
+
+  .print-day-cell * {
+    color: #111111 !important;
+  }
+
+  /* Subtle archival shading for Sabbaths and Appointed Feasts on paper */
+  .print-cell-sabbath {
+    background: #f5efe2 !important;
+  }
+
+  .print-cell-feast {
+    background: #ebdcb9 !important;
+    font-weight: 700 !important;
+  }
+
+  .print-cell-lunar {
+    background: #f3f6fa !important;
+  }
+
+  /* Archival Colophon Footer */
+  .print-colophon {
+    margin-top: 12pt !important;
+    padding-top: 6pt !important;
+    border-top: 0.75pt solid #44403c !important;
+    font-size: 8pt !important;
+    font-style: italic !important;
+    color: #44403c !important;
+    text-align: center !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+}
