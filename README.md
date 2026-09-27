@@ -1,4 +1,4 @@
-# DIMENÚVEIS — Calendário Bíblico Lunar & Milenar
+# Evangelho das Dimenúveis — Calendário Bíblico Lunar & Milenar
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-19.x-61dafb.svg)](https://react.dev/)
