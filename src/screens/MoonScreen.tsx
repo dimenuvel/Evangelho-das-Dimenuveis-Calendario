@@ -16,6 +16,7 @@ import {
 } from '../astronomy/moon';
 import { LunarPhaseIcon } from '../components/LunarPhaseIcon';
 import { DataSourceBadge } from '../components/DataSourceBadge';
+import { AzimuthalCosmologyMap } from '../components/AzimuthalCosmologyMap';
 
 interface MoonScreenProps {
   systemDate: Date;
@@ -120,6 +121,16 @@ export const MoonScreen: React.FC<MoonScreenProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Interactive Azimuthal Equidistant Cosmology Dial */}
+      <AzimuthalCosmologyMap
+        systemDate={systemDate}
+        lunarAnchorMode={config.lunarAnchorMode}
+        language={language}
+        observerLat={config.userLocation?.latitude}
+        observerLon={config.userLocation?.longitude}
+        observerCity={config.userLocation?.cityName}
+      />
 
       {/* 8 DEFINED ASTRONOMICAL LUNAR PHASES CATALOG */}
       <div className="border border-slate-800 bg-slate-950 overflow-hidden">

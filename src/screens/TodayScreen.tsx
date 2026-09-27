@@ -16,6 +16,7 @@ import { getMonthDisplayTitle } from '../calendar/months';
 import { getCurrentOrNextFeast, getObservancesForDay } from '../calendar/feastEngine';
 import { LunarPhaseIcon } from '../components/LunarPhaseIcon';
 import { DataSourceBadge } from '../components/DataSourceBadge';
+import { AzimuthalCosmologyMap } from '../components/AzimuthalCosmologyMap';
 import { ArrowRight, MapPin } from 'lucide-react';
 
 interface TodayScreenProps {
@@ -290,6 +291,17 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Interactive Flat Earth Azimuthal Equidistant Cosmology Map */}
+      <AzimuthalCosmologyMap
+        systemDate={systemDate}
+        lunarAnchorMode={config.lunarAnchorMode}
+        language={language}
+        observerLat={config.userLocation?.latitude}
+        observerLon={config.userLocation?.longitude}
+        observerCity={config.userLocation?.cityName}
+        onOpenGpsModal={onOpenGpsModal}
+      />
 
       {/* Editorial 3-Column Chapter Index */}
       <div className="grid grid-cols-1 md:grid-cols-3 border border-slate-800 bg-slate-950 divide-y md:divide-y-0 md:divide-x divide-slate-800">
