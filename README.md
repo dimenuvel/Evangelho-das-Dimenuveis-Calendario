@@ -1,4 +1,4 @@
-# Evangelho das Dimenúveis — Calendário Bíblico Lunar & Milenar
+# DIMENÚVEIS — Calendário Bíblico Lunar & Milenar
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-19.x-61dafb.svg)](https://react.dev/)
@@ -117,8 +117,8 @@ $$\text{Sábados Semanais} = \frac{364 \text{ Dias Numerados}}{7 \text{ Dias / S
 
 1. Clone o repositório:
    ```bash
-   git clone https://github.com/dimenuvel/Evangelho-das-Dimenuveis-Calendario.git
-   cd Evangelho-das-Dimenuveis-Calendario
+   git clone https://github.com/seu-usuario/dimenueveis-calendar.git
+   cd dimenueveis-calendar
    ```
 
 2. Instale as dependências:
