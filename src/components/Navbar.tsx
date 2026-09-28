@@ -192,7 +192,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               <button
                 type="button"
                 onClick={onToggleTheme}
-                className="inline-flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 bg-slate-900 border border-slate-700 hover:border-amber-500/60 text-slate-200 transition-colors cursor-pointer shrink-0"
+                className="inline-flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-900 border border-slate-700 hover:border-amber-500/60 text-slate-200 transition-colors cursor-pointer shrink-0"
                 title={
                   theme === 'day'
                     ? isPt
@@ -223,7 +223,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <button
                   type="button"
                   onClick={onOpenTour}
-                  className="inline-flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 bg-slate-900 border border-slate-700 hover:border-amber-500/60 text-amber-400 transition-colors cursor-pointer shrink-0"
+                  className="inline-flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-900 border border-slate-700 hover:border-amber-500/60 text-amber-400 transition-colors cursor-pointer shrink-0"
                   title={
                     isPt
                       ? 'Abrir Guia de Instruções e Recursos'
