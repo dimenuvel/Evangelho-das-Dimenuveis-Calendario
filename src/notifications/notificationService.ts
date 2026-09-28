@@ -178,15 +178,17 @@ export function sendFeastNotification(title: string, body: string, forceSend = f
         if (reg && typeof reg.showNotification === 'function') {
           return reg.showNotification(title, {
             body,
+            icon: '/app-icon.svg',
+            badge: '/app-icon.svg',
             tag: `dimenueveis-${Date.now()}`,
           });
         }
         // Desktop browser fallback when no SW is active
-        new Notification(title, { body });
+        new Notification(title, { body, icon: '/app-icon.svg' });
       })
       .catch(() => {
         try {
-          new Notification(title, { body });
+          new Notification(title, { body, icon: '/app-icon.svg' });
         } catch {
           // ignore
         }
@@ -201,7 +203,7 @@ export function sendFeastNotification(title: string, body: string, forceSend = f
     Notification.permission === 'granted'
   ) {
     try {
-      new Notification(title, { body });
+      new Notification(title, { body, icon: '/app-icon.svg' });
     } catch {
       // ignore
     }

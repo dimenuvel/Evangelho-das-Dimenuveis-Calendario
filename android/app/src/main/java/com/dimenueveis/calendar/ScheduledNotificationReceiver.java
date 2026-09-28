@@ -7,6 +7,9 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 
 import androidx.core.app.NotificationCompat;
@@ -18,6 +21,22 @@ public class ScheduledNotificationReceiver extends BroadcastReceiver {
     public static final String EXTRA_NOTIFICATION_ID = "extra_notification_id";
     public static final String EXTRA_TITLE = "extra_title";
     public static final String EXTRA_BODY = "extra_body";
+
+    public static Bitmap renderAppIconBitmap(Context context) {
+        try {
+            Drawable drawable = ContextCompat.getDrawable(context, R.mipmap.ic_launcher);
+            if (drawable == null) return null;
+            int width = drawable.getIntrinsicWidth() > 0 ? drawable.getIntrinsicWidth() : 192;
+            int height = drawable.getIntrinsicHeight() > 0 ? drawable.getIntrinsicHeight() : 192;
+            Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+            Canvas canvas = new Canvas(bitmap);
+            drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+            drawable.draw(canvas);
+            return bitmap;
+        } catch (Exception e) {
+            return null;
+        }
+    }
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -56,8 +75,11 @@ public class ScheduledNotificationReceiver extends BroadcastReceiver {
         }
         PendingIntent contentIntent = PendingIntent.getActivity(context, notificationId, launchIntent, flags);
 
+        Bitmap appIconBitmap = renderAppIconBitmap(context);
+
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
-                .setSmallIcon(R.mipmap.ic_launcher)
+                .setSmallIcon(R.drawable.ic_stat_notification)
+                .setColor(0xFFF59E0B)
                 .setContentTitle(title)
                 .setContentText(body != null ? body : "")
                 .setStyle(new NotificationCompat.BigTextStyle().bigText(body != null ? body : ""))
@@ -65,6 +87,10 @@ public class ScheduledNotificationReceiver extends BroadcastReceiver {
                 .setDefaults(NotificationCompat.DEFAULT_ALL)
                 .setContentIntent(contentIntent)
                 .setAutoCancel(true);
+
+        if (appIconBitmap != null) {
+            builder.setLargeIcon(appIconBitmap);
+        }
 
         manager.notify(notificationId, builder.build());
     }

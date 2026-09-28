@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108" width="192" height="192">
+  <rect width="108" height="108" rx="22" fill="#0C0E14"/>
+  <circle cx="54" cy="54" r="40" fill="#131722"/>
+  <g fill="none" stroke-width="5.5" stroke-linecap="round">
+    <path stroke="#FF2E4C" d="M60,54 A7,7 0 0,1 54,62"/>
+    <path stroke="#FF7A00" d="M54,62 A9,9 0 0,1 44,54"/>
+    <path stroke="#FFD600" d="M44,54 A11,11 0 0,1 54,42"/>
+    <path stroke="#00E676" d="M54,42 A13,13 0 0,1 68,54"/>
+    <path stroke="#00E5FF" d="M68,54 A15,15 0 0,1 54,70"/>
+    <path stroke="#2979FF" d="M54,70 A17,17 0 0,1 36,54"/>
+    <path stroke="#D500F9" d="M36,54 A19,19 0 0,1 54,34"/>
+    <path stroke="#FF2E4C" d="M54,34 A21,21 0 0,1 76,54"/>
+    <path stroke="#FF7A00" d="M76,54 A23,23 0 0,1 54,78"/>
+    <path stroke="#FFD600" d="M54,78 A25,25 0 0,1 28,54"/>
+    <path stroke="#00E676" d="M28,54 A27,27 0 0,1 54,26"/>
+    <path stroke="#00E5FF" d="M54,26 A29,29 0 0,1 84,54"/>
+    <path stroke="#2979FF" d="M84,54 A31,31 0 0,1 54,86"/>
+    <path stroke="#D500F9" d="M54,86 A33,33 0 0,1 20,54"/>
+  </g>
+  <path fill="none" stroke="#0C0E14" stroke-width="11.5" stroke-linecap="round" stroke-linejoin="round"
+    d="M35.5,43.5 L43.5,37 L43.5,71 M53.5,42.5 C55.5,38.2 59.2,36.8 63.5,36.8 C68.8,36.8 72,40.2 72,44.8 C72,49.2 68.5,52.2 63.2,53 L59.5,53 M63.2,53 C69.2,53.8 73,57.2 73,62.5 C73,67.8 68.8,71.5 63,71.5 C58,71.5 54.2,69.5 52.5,65.2"/>
+  <path fill="none" stroke="#F59E0B" stroke-width="8.2" stroke-linecap="round" stroke-linejoin="round"
+    d="M35.5,43.5 L43.5,37 L43.5,71 M53.5,42.5 C55.5,38.2 59.2,36.8 63.5,36.8 C68.8,36.8 72,40.2 72,44.8 C72,49.2 68.5,52.2 63.2,53 L59.5,53 M63.2,53 C69.2,53.8 73,57.2 73,62.5 C73,67.8 68.8,71.5 63,71.5 C58,71.5 54.2,69.5 52.5,65.2"/>
+  <path fill="none" stroke="#FFFFFF" stroke-width="5.4" stroke-linecap="round" stroke-linejoin="round"
+    d="M35.5,43.5 L43.5,37 L43.5,71 M53.5,42.5 C55.5,38.2 59.2,36.8 63.5,36.8 C68.8,36.8 72,40.2 72,44.8 C72,49.2 68.5,52.2 63.2,53 L59.5,53 M63.2,53 C69.2,53.8 73,57.2 73,62.5 C73,67.8 68.8,71.5 63,71.5 C58,71.5 54.2,69.5 52.5,65.2"/>
+</svg>

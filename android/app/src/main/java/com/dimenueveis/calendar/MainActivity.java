@@ -9,6 +9,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationManager;
@@ -288,8 +289,11 @@ public class MainActivity extends AppCompatActivity {
                         }
                         PendingIntent contentIntent = PendingIntent.getActivity(MainActivity.this, notifId, launchIntent, flags);
 
+                        Bitmap appIconBitmap = ScheduledNotificationReceiver.renderAppIconBitmap(MainActivity.this);
+
                         NotificationCompat.Builder builder = new NotificationCompat.Builder(MainActivity.this, NOTIFICATION_CHANNEL_ID)
-                                .setSmallIcon(R.mipmap.ic_launcher)
+                                .setSmallIcon(R.drawable.ic_stat_notification)
+                                .setColor(0xFFF59E0B)
                                 .setContentTitle(title)
                                 .setContentText(body)
                                 .setStyle(new NotificationCompat.BigTextStyle().bigText(body))
@@ -297,6 +301,9 @@ public class MainActivity extends AppCompatActivity {
                                 .setDefaults(NotificationCompat.DEFAULT_ALL)
                                 .setContentIntent(contentIntent)
                                 .setAutoCancel(true);
+                        if (appIconBitmap != null) {
+                            builder.setLargeIcon(appIconBitmap);
+                        }
                         manager.notify(notifId, builder.build());
                     }
                 } catch (Exception ignored) {

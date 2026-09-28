@@ -46,7 +46,7 @@ export function buildFeastCalendarEventPayload(
   const exclusiveEndYMD = addDaysYMD(occ.gregorianStartDate, duration);
 
   const summary = isPt
-    ? `${f.name} (${f.hebrewName}) — Calendário Dimenúveis`
+    ? `${f.name} (${f.hebrewName}) — Calendário das Dimenúveis`
     : `${f.name} (${f.hebrewName}) — Dimenuous Calendar`;
 
   const descriptionLines = isPt
@@ -190,7 +190,7 @@ export function exportFeastsToIcs(
   const lines: string[] = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//Calendario Dimenuvel//Biblical Feasts//PT',
+    'PRODID:-//Calendario das Dimenuveis//Biblical Feasts//PT',
     'CALSCALE:GREGORIAN',
   ];
 

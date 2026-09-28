@@ -305,7 +305,7 @@ export default function App() {
             </div>
           </div>
           <div className="text-sm font-serif font-semibold text-amber-300 tabular-nums shrink-0">
-            {language === 'pt' ? 'Versão 1.5' : 'Version 1.5'}
+            {language === 'pt' ? 'Versão 1.8' : 'Version 1.8'}
           </div>
         </div>
       </footer>

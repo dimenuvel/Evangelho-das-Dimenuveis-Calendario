@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Transparent background so Android status bar never renders a blank white block -->
+    <!-- Outer & Middle Spiral Arcs of the App Icon with clear spacing around center "13" -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="6.5"
+        android:strokeLineCap="round"
+        android:pathData="M78,54 A24,24 0 0,1 54,78 A26,26 0 0,1 28,54 A28,28 0 0,1 54,26 A30,30 0 0,1 84,54" />
+
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="6.5"
+        android:strokeLineCap="round"
+        android:pathData="M84,54 A32,32 0 0,1 54,86 A34,34 0 0,1 20,54 A36,36 0 0,1 54,18 A38,38 0 0,1 92,54" />
+
+    <!-- Crisp Number "13" Centered Inside the Spiral (matching ic_launcher_foreground) -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="8.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M35.5,43.5 L43.5,37 L43.5,71 M53.5,42.5 C55.5,38.2 59.2,36.8 63.5,36.8 C68.8,36.8 72,40.2 72,44.8 C72,49.2 68.5,52.2 63.2,53 L59.5,53 M63.2,53 C69.2,53.8 73,57.2 73,62.5 C73,67.8 68.8,71.5 63,71.5 C58,71.5 54.2,69.5 52.5,65.2" />
+</vector>
