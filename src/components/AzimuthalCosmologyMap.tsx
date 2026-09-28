@@ -579,35 +579,31 @@ export const AzimuthalCosmologyMap: React.FC<AzimuthalCosmologyMapProps> = ({
     }
   };
 
-  // Jump directly to one of the 6 Enochian Portals
+  // Jump directly to one of the 6 Enochian Portals (exact inverse-sine dayOfYear for each Portal's centerLat)
   const jumpToEnochPortal = (portalNum: 1 | 2 | 3 | 4 | 5 | 6) => {
     setIsPlaying(false);
-    // Representative dates in the solar year where the Sun is centered in each Enochian Portal:
-    // Portal 4 (Spring start): April 4 (month 3, day 4)
-    // Portal 5: May 5 (month 4, day 5)
-    // Portal 6 (Summer Solstice): June 21 (month 5, day 21)
-    // Portal 3 (Autumn Equinox): October 5 (month 9, day 5)
-    // Portal 2: November 5 (month 10, day 5)
-    // Portal 1 (Winter Solstice): December 21 (month 11, day 21)
-    const portalDateMap: Record<number, [number, number]> = {
-      4: [3, 4],
-      5: [4, 5],
-      6: [5, 21],
-      3: [9, 5],
-      2: [10, 5],
-      1: [11, 21],
-    };
-    const [m, d] = portalDateMap[portalNum];
-    const target = new Date(
-      Date.UTC(
-        simulatedDate.getUTCFullYear(),
-        m,
-        d,
-        simulatedDate.getUTCHours(),
-        simulatedDate.getUTCMinutes()
-      )
-    );
-    setTimeOffsetMs(target.getTime() - systemDate.getTime());
+    const portalSpec = ENOCH_PORTALS.find((p) => p.portalNumber === portalNum);
+    if (!portalSpec) return;
+
+    // In getEnochCelestialState:
+    // sunDeclination = 23.44 * Math.sin(((2 * Math.PI) / 365.2422) * (dayOfYear - 79.25))
+    // Solve for dayOfYear so sunDeclination === portalSpec.centerLat:
+    const sinVal = Math.max(-1, Math.min(1, portalSpec.centerLat / 23.44));
+    const baseAngleRad = Math.asin(sinVal); // in [-PI/2, +PI/2]
+    // Portals 4, 5, 6 (North) use ascending spring/summer arc; Portals 3, 2, 1 (South) use autumn/winter arc
+    const targetRad = portalNum >= 4 ? baseAngleRad : Math.PI - baseAngleRad;
+    const targetDayOfYear = Math.round(79.25 + (targetRad / (2 * Math.PI)) * 365.2422);
+
+    const startOfYearMs = Date.UTC(simulatedDate.getUTCFullYear(), 0, 1, 0, 0, 0);
+    const currentTimeOfDayMs =
+      simulatedDate.getUTCHours() * 3600000 +
+      simulatedDate.getUTCMinutes() * 60000 +
+      simulatedDate.getUTCSeconds() * 1000;
+
+    const targetTimestamp =
+      startOfYearMs + targetDayOfYear * 86400000 + currentTimeOfDayMs;
+
+    setTimeOffsetMs(targetTimestamp - systemDate.getTime());
   };
 
   // Sliders
@@ -730,7 +726,7 @@ export const AzimuthalCosmologyMap: React.FC<AzimuthalCosmologyMapProps> = ({
       {/* Main Split: Mercator Portal Map (Left 7 cols) + Enochian Controls & Telemetry (Right 5 cols) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-slate-800">
         {/* Left 7 Cols: Interactive Mercator Map with 6 Western Portals (Left) & 6 Eastern Portals (Right) */}
-        <div className="lg:col-span-7 p-2 sm:p-4 flex flex-col items-center justify-center bg-[#060911] relative select-none">
+        <div className="lg:col-span-7 p-2 sm:p-4 flex flex-col items-center justify-center bg-slate-950 relative select-none">
           <div className="w-full relative">
             <svg
               ref={svgRef}
@@ -1355,6 +1351,7 @@ export const AzimuthalCosmologyMap: React.FC<AzimuthalCosmologyMapProps> = ({
                   <g key={`gates-${portal.portalNumber}`}>
                     {/* LEFT SIDE: WESTERN PORTAL (EXIT / ENTRY INTO WEST) */}
                     <g
+                      onPointerDown={(e) => e.stopPropagation()}
                       onClick={(e) => {
                         e.stopPropagation();
                         jumpToEnochPortal(portal.portalNumber);
@@ -1395,6 +1392,7 @@ export const AzimuthalCosmologyMap: React.FC<AzimuthalCosmologyMapProps> = ({
 
                     {/* RIGHT SIDE: EASTERN PORTAL (EMERGENCE / RISING FROM EAST) */}
                     <g
+                      onPointerDown={(e) => e.stopPropagation()}
                       onClick={(e) => {
                         e.stopPropagation();
                         jumpToEnochPortal(portal.portalNumber);
@@ -1463,7 +1461,7 @@ export const AzimuthalCosmologyMap: React.FC<AzimuthalCosmologyMapProps> = ({
           </div>
 
           {/* Bottom Caption under Map */}
-          <div className="mt-2 text-center text-xs font-serif italic text-slate-300">
+          <div className="mt-2.5 w-full px-3 py-2 border border-slate-800 bg-slate-900/70 text-center text-xs font-serif italic text-slate-100 leading-relaxed">
             {isPt
               ? 'Toque e arraste horizontalmente para fazer o Sol e a Lua entrarem nas Portas do Ocidente (esquerda) e saírem pelas Portas do Oriente (direita). Toque em qualquer Porta 1–6 para alternar.'
               : 'Touch and drag horizontally to send the Sun and Moon into the Western Portals (left) and out of the Eastern Portals (right). Tap any Portal 1–6 to jump.'}
