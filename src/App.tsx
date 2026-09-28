@@ -153,15 +153,6 @@ export default function App() {
         onNavigateTab={setActiveTab}
       />
 
-      {/* Android & Web GPS Location Permission Dialog */}
-      <GpsPermissionModal
-        isOpen={isGpsModalOpen}
-        onClose={() => setIsGpsModalOpen(false)}
-        language={language}
-        currentLocation={config.userLocation}
-        onLocationResolved={handleGpsLocationResolved}
-      />
-
       {/* Main Workspace Container */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {activeTab === 'TODAY' && (
@@ -263,6 +254,15 @@ export default function App() {
         config={config}
         language={language}
         onOpenGpsModal={() => setIsGpsModalOpen(true)}
+      />
+
+      {/* Android & Web GPS Location Permission Dialog (rendered above DayDetailModal) */}
+      <GpsPermissionModal
+        isOpen={isGpsModalOpen}
+        onClose={() => setIsGpsModalOpen(false)}
+        language={language}
+        currentLocation={config.userLocation}
+        onLocationResolved={handleGpsLocationResolved}
       />
 
       {/* Editorial Colophon Footer (padded for fixed bottom icon navbar) */}
