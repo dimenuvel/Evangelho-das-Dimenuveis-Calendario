@@ -37,6 +37,10 @@ export default function App() {
   const [systemDate] = useState<Date>(new Date());
   const [config, setConfig] = useState<CalendarConfiguration>(loadStoredConfiguration());
   const [selectedDayModal, setSelectedDayModal] = useState<CalendarDay | null>(null);
+  const [calendarFocusRequest, setCalendarFocusRequest] = useState<{
+    day: CalendarDay;
+    timestamp: number;
+  } | null>(null);
   const [isTourOpen, setIsTourOpen] = useState<boolean>(() => {
     return localStorage.getItem(TOUR_STORAGE_KEY) !== 'true';
   });
@@ -129,6 +133,11 @@ export default function App() {
     });
   };
 
+  const handleJumpToCalendarDay = (day: CalendarDay) => {
+    setCalendarFocusRequest({ day, timestamp: Date.now() });
+    setActiveTab('CALENDAR');
+  };
+
   // Evaluate Sunrise and Moon Phase Change notifications on launch and every 60 seconds
   useEffect(() => {
     const runCheck = () => {
@@ -179,6 +188,7 @@ export default function App() {
             config={config}
             onOpenDayDetail={setSelectedDayModal}
             onNavigateTab={setActiveTab}
+            onJumpToCalendarDay={handleJumpToCalendarDay}
             language={language}
             onOpenGpsModal={() => setIsGpsModalOpen(true)}
           />
@@ -190,6 +200,7 @@ export default function App() {
             config={config}
             onOpenDayDetail={setSelectedDayModal}
             language={language}
+            focusDayRequest={calendarFocusRequest}
           />
         )}
 
@@ -305,7 +316,7 @@ export default function App() {
             </div>
           </div>
           <div className="text-sm font-serif font-semibold text-amber-300 tabular-nums shrink-0">
-            {language === 'pt' ? 'Versão 1.8' : 'Version 1.8'}
+            {language === 'pt' ? 'Versão 1.9' : 'Version 1.9'}
           </div>
         </div>
       </footer>

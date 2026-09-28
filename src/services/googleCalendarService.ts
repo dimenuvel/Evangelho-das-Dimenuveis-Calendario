@@ -235,9 +235,13 @@ export function exportFeastsToIcs(
 
   const icsContent = lines.join('\r\n');
   const fileName =
-    language === 'pt'
-      ? `Festas-Biblicas-Ano-Sagrado-${sacredYear}.ics`
-      : `Biblical-Feasts-Sacred-Year-${sacredYear}.ics`;
+    occurrences.length === 1
+      ? language === 'pt'
+        ? `Festa-Biblica-${occurrences[0].feast.id}-Ano-${sacredYear}.ics`
+        : `Biblical-Feast-${occurrences[0].feast.id}-Year-${sacredYear}.ics`
+      : language === 'pt'
+        ? `Festas-Biblicas-Ano-Sagrado-${sacredYear}.ics`
+        : `Biblical-Feasts-Sacred-Year-${sacredYear}.ics`;
 
   if (typeof window !== 'undefined' && window.AndroidBridge?.saveIcsFile) {
     window.AndroidBridge.saveIcsFile(fileName, icsContent);

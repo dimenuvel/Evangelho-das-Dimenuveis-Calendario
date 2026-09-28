@@ -17,6 +17,7 @@ import { getCurrentOrNextFeast, getObservancesForDay } from '../calendar/feastEn
 import { LunarPhaseIcon } from '../components/LunarPhaseIcon';
 import { DataSourceBadge } from '../components/DataSourceBadge';
 import { AzimuthalCosmologyMap } from '../components/AzimuthalCosmologyMap';
+import { SabbathIndicatorWidget } from '../components/SabbathIndicatorWidget';
 import { ArrowRight, MapPin } from 'lucide-react';
 
 interface TodayScreenProps {
@@ -24,6 +25,7 @@ interface TodayScreenProps {
   config: CalendarConfiguration;
   onOpenDayDetail: (day: CalendarDay) => void;
   onNavigateTab: (tab: any) => void;
+  onJumpToCalendarDay?: (day: CalendarDay) => void;
   language: Language;
   onOpenGpsModal?: () => void;
 }
@@ -33,6 +35,7 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
   config,
   onOpenDayDetail,
   onNavigateTab,
+  onJumpToCalendarDay,
   language,
   onOpenGpsModal,
 }) => {
@@ -90,7 +93,15 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
+      {/* Persistent Small-Footprint Sabbath Indicator Widget */}
+      <SabbathIndicatorWidget
+        systemDate={systemDate}
+        config={config}
+        language={language}
+        onNavigateToSabbath={() => onNavigateTab('SABBATH')}
+      />
+
       {/* Primary Book Almanac Readout */}
       <div className="border border-slate-800 bg-slate-950">
         {/* Top Epigraph Header Bar */}
@@ -121,11 +132,27 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
                 </span>
               </div>
 
-              <h1 className="text-xl sm:text-3xl md:text-4xl font-serif font-bold tracking-normal text-slate-100 tabular-nums whitespace-nowrap">
-                {isZero
-                  ? t.today.dayZeroTitle
-                  : `${getMonthDisplayTitle((currentSacredDay as any).month, config.customMonthNames, language)}, ${isPt ? 'Dia' : 'Day'} ${(currentSacredDay as any).dayOfMonth}`}
-              </h1>
+              <button
+                type="button"
+                onClick={() =>
+                  onJumpToCalendarDay
+                    ? onJumpToCalendarDay(currentSacredDay)
+                    : onNavigateTab('CALENDAR')
+                }
+                title={
+                  isPt
+                    ? 'Toque para abrir e destacar este dia no Calendário de 13 Meses'
+                    : 'Tap to open and highlight this day on the 13-Month Calendar'
+                }
+                className="group inline-flex items-center gap-2 text-left cursor-pointer focus:outline-none"
+              >
+                <h1 className="text-xl sm:text-3xl md:text-4xl font-serif font-bold tracking-normal text-slate-100 group-hover:text-amber-300 underline decoration-amber-500/50 group-hover:decoration-amber-400 decoration-2 underline-offset-4 transition-colors tabular-nums whitespace-nowrap">
+                  {isZero
+                    ? t.today.dayZeroTitle
+                    : `${getMonthDisplayTitle((currentSacredDay as any).month, config.customMonthNames, language)}, ${isPt ? 'Dia' : 'Day'} ${(currentSacredDay as any).dayOfMonth}`}
+                </h1>
+                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400 opacity-80 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all shrink-0" />
+              </button>
 
               {isZero && (
                 <p className="text-sm sm:text-base text-purple-300 font-serif italic whitespace-nowrap">

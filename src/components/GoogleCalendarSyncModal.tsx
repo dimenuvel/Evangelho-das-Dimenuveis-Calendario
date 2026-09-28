@@ -106,9 +106,13 @@ export const GoogleCalendarSyncModal: React.FC<GoogleCalendarSyncModalProps> = (
                   : `Biblical Feasts · Sacred Year ${sacredYear}`}
             </h3>
             <p className="text-xs text-slate-300 leading-relaxed break-words">
-              {isPt
-                ? 'Toque em "Incluir no Google Agenda" ao lado de qualquer festa para abrir diretamente no aplicativo Google Agenda da sua conta no celular, ou baixe o arquivo .ICS com todas as festas e alertas de Pôr do Sol.'
-                : 'Tap "Add to Google Calendar" next to any feast to open it directly in your mobile Google Calendar app for your Google account, or download the .ICS file with all feasts and Sunset alerts.'}
+              {occurrences.length === 1
+                ? isPt
+                  ? 'Toque em "Incluir no Google Agenda" para abrir esta festa diretamente no aplicativo Google Agenda da sua conta no celular, ou baixe o arquivo .ICS desta festa com alertas de 24h e Pôr do Sol.'
+                  : 'Tap "Add to Google Calendar" to open this feast directly in your mobile Google Calendar app for your Google account, or download the .ICS file for this feast with 24h and Sunset alerts.'
+                : isPt
+                  ? 'Toque em "Incluir no Google Agenda" ao lado de qualquer festa para abrir diretamente no aplicativo Google Agenda da sua conta no celular, ou baixe o arquivo .ICS com todas as festas e alertas de Pôr do Sol.'
+                  : 'Tap "Add to Google Calendar" next to any feast to open it directly in your mobile Google Calendar app for your Google account, or download the .ICS file with all feasts and Sunset alerts.'}
             </p>
           </div>
 
@@ -116,7 +120,11 @@ export const GoogleCalendarSyncModal: React.FC<GoogleCalendarSyncModalProps> = (
           <div className="border border-slate-800 bg-slate-900/40 divide-y divide-slate-800 max-h-72 overflow-y-auto">
             <div className="px-3.5 py-2.5 bg-slate-900/80 text-xs font-semibold text-amber-400 uppercase tracking-wider flex flex-wrap items-center justify-between gap-2">
               <span className="break-words">
-                {isPt ? 'Festas Bíblicas Descritas' : 'Described Biblical Feasts'} ({occurrences.length})
+                {occurrences.length === 1
+                  ? isPt
+                    ? 'Festa Bíblica Selecionada (1)'
+                    : 'Selected Biblical Feast (1)'
+                  : `${isPt ? 'Festas Bíblicas Descritas' : 'Described Biblical Feasts'} (${occurrences.length})`}
               </span>
               <span className="text-slate-400 italic font-normal normal-case">
                 {isPt ? 'Toque para incluir' : 'Tap to add'}
@@ -168,17 +176,25 @@ export const GoogleCalendarSyncModal: React.FC<GoogleCalendarSyncModalProps> = (
             })}
           </div>
 
-          {/* Bulk .ICS Export for All 8 Feasts */}
+          {/* .ICS Export (Single Feast vs All Feasts) */}
           <div className="border border-slate-800 bg-slate-900/30 p-4 space-y-2.5 overflow-hidden">
             <div className="text-xs uppercase tracking-wider font-semibold text-amber-400 break-words leading-snug">
-              {isPt
-                ? 'Importar Todas as Festas de Uma Vez (.ICS)'
-                : 'Import All Feasts at Once (.ICS)'}
+              {occurrences.length === 1
+                ? isPt
+                  ? 'Importar Esta Festa via Arquivo (.ICS)'
+                  : 'Import This Feast via File (.ICS)'
+                : isPt
+                  ? 'Importar Todas as Festas de Uma Vez (.ICS)'
+                  : 'Import All Feasts at Once (.ICS)'}
             </div>
             <p className="text-xs text-slate-300 leading-relaxed break-words">
-              {isPt
-                ? 'Baixe o pacote .ICS contendo todas as festas selecionadas com lembretes de 24h e Pôr do Sol. Ao abrir o arquivo .ICS no celular, o aplicativo Google Agenda importa todas as festas para sua conta Google.'
-                : 'Download the .ICS bundle containing all selected feasts with 24h and Sunset reminders. Opening the .ICS file on your phone imports all feasts into your Google Calendar account.'}
+              {occurrences.length === 1
+                ? isPt
+                  ? `Baixe o arquivo .ICS contendo ${occurrences[0].feast.name} com lembretes de 24h e Pôr do Sol. Ao abrir o arquivo .ICS no celular, o aplicativo Google Agenda importa esta festa para sua conta Google.`
+                  : `Download the .ICS file containing ${occurrences[0].feast.name} with 24h and Sunset reminders. Opening the .ICS file on your phone imports this feast into your Google Calendar account.`
+                : isPt
+                  ? 'Baixe o pacote .ICS contendo todas as festas selecionadas com lembretes de 24h e Pôr do Sol. Ao abrir o arquivo .ICS no celular, o aplicativo Google Agenda importa todas as festas para sua conta Google.'
+                  : 'Download the .ICS bundle containing all selected feasts with 24h and Sunset reminders. Opening the .ICS file on your phone imports all feasts into your Google Calendar account.'}
             </p>
             <div className="flex flex-wrap items-center gap-2.5 pt-1 text-xs">
               <button
@@ -188,9 +204,13 @@ export const GoogleCalendarSyncModal: React.FC<GoogleCalendarSyncModalProps> = (
               >
                 <Download className="w-3.5 h-3.5 shrink-0" />
                 <span>
-                  {isPt
-                    ? `Baixar Arquivo .ICS (${occurrences.length} Festas)`
-                    : `Download .ICS File (${occurrences.length} Feasts)`}
+                  {occurrences.length === 1
+                    ? isPt
+                      ? 'Baixar Arquivo .ICS (1 Festa)'
+                      : 'Download .ICS File (1 Feast)'
+                    : isPt
+                      ? `Baixar Arquivo .ICS (${occurrences.length} Festas)`
+                      : `Download .ICS File (${occurrences.length} Feasts)`}
                 </span>
               </button>
 

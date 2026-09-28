@@ -4,10 +4,10 @@
  * Biblical Appointed Times indicators, and 8-phase astronomical lunar overlays.
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { CalendarConfiguration, CalendarDay } from '../types/calendar';
 import { Language, TRANSLATIONS } from '../i18n/translations';
-import { generateSacredYearDays } from '../calendar/sacredCalendar';
+import { generateSacredYearDays, solarDateToSacredDate } from '../calendar/sacredCalendar';
 import { getMonthDisplayTitle } from '../calendar/months';
 import { getLunarPhaseInfo, getLocalizedPhaseName, getPhaseCategory, MajorLunarCategory } from '../astronomy/moon';
 import { getObservancesForDay, calculateFeastOccurrences } from '../calendar/feastEngine';
@@ -27,6 +27,7 @@ interface CalendarScreenProps {
   config: CalendarConfiguration;
   onOpenDayDetail: (day: CalendarDay) => void;
   language: Language;
+  focusDayRequest?: { day: CalendarDay; timestamp: number } | null;
 }
 
 const ROMAN_MONTHS = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII', 'XIII'];
@@ -36,15 +37,52 @@ export const CalendarScreen: React.FC<CalendarScreenProps> = ({
   config,
   onOpenDayDetail,
   language,
+  focusDayRequest,
 }) => {
   const t = TRANSLATIONS[language];
   const isPt = language === 'pt';
+  const currentSacredDay = useMemo(
+    () => solarDateToSacredDate(systemDate, config.lunarAnchorMode),
+    [systemDate, config.lunarAnchorMode]
+  );
   const [selectedSacredYear, setSelectedSacredYear] = useState<number>(
-    systemDate.getFullYear() + 4024
+    () => currentSacredDay.calendarYear
   );
   const [activeMonthFilter, setActiveMonthFilter] = useState<number | 'ALL'>('ALL');
   const [activeLunarPhaseFilter, setActiveLunarPhaseFilter] = useState<'ALL' | MajorLunarCategory>('ALL');
   const [paperSize, setPaperSize] = useState<PrintPaperSize>('AUTO');
+  const [highlightedJumpId, setHighlightedJumpId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!focusDayRequest) return;
+    const targetDay = focusDayRequest.day;
+    setSelectedSacredYear(targetDay.calendarYear);
+    setActiveMonthFilter('ALL');
+    setActiveLunarPhaseFilter('ALL');
+
+    const targetDomId =
+      targetDay.kind === 'DAY_ZERO'
+        ? 'sacred-day-zero-banner'
+        : `sacred-day-cell-${targetDay.dayOfYear}`;
+
+    setHighlightedJumpId(targetDomId);
+
+    const scrollTimer = setTimeout(() => {
+      const el = document.getElementById(targetDomId);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 120);
+
+    const clearPulseTimer = setTimeout(() => {
+      setHighlightedJumpId(null);
+    }, 4500);
+
+    return () => {
+      clearTimeout(scrollTimer);
+      clearTimeout(clearPulseTimer);
+    };
+  }, [focusDayRequest]);
 
   const annualFeasts = useMemo(
     () =>
@@ -723,11 +761,23 @@ export const CalendarScreen: React.FC<CalendarScreenProps> = ({
 
       {/* DAY ZERO THRESHOLD RECORD ROW (Screen Only) */}
       <div
+        id="sacred-day-zero-banner"
         onClick={() => onOpenDayDetail(dayZero)}
-        className="no-print border border-purple-500/50 bg-slate-950 hover:bg-slate-900/80 transition-colors cursor-pointer grid grid-cols-1 md:grid-cols-12 divide-y md:divide-y-0 md:divide-x divide-slate-800"
+        className={`no-print border transition-colors cursor-pointer grid grid-cols-1 md:grid-cols-12 divide-y md:divide-y-0 md:divide-x divide-slate-800 ${
+          currentSacredDay.kind === 'DAY_ZERO' &&
+          selectedSacredYear === currentSacredDay.calendarYear
+            ? 'border-amber-400 ring-2 ring-amber-400 bg-amber-950/25 hover:bg-amber-950/35'
+            : 'border-purple-500/50 bg-slate-950 hover:bg-slate-900/80'
+        }`}
       >
         <div className="md:col-span-9 p-4 sm:p-5 space-y-1.5">
           <div className="flex items-center gap-2 text-xs font-serif uppercase tracking-wider whitespace-nowrap">
+            {currentSacredDay.kind === 'DAY_ZERO' &&
+              selectedSacredYear === currentSacredDay.calendarYear && (
+                <span className="px-1.5 py-0.5 bg-amber-400 text-slate-950 font-bold text-[10px] uppercase tracking-wider">
+                  {isPt ? 'Hoje' : 'Today'}
+                </span>
+              )}
             <span className="text-purple-300 font-semibold">
               {isPt ? 'Dia Zero' : 'Day Zero'}
             </span>
@@ -775,13 +825,17 @@ export const CalendarScreen: React.FC<CalendarScreenProps> = ({
             // Insert a clean page break after every 4th month when printing all months (so Page 1 has Day Zero + Months I–IV, Page 2 has Months V–VIII, Page 3 has Months IX–XII, Page 4 has Month XIII + Colophon)
             const shouldBreakPageAfter =
               activeMonthFilter === 'ALL' && (visibleIdx === 3 || visibleIdx === 7 || visibleIdx === 11);
+            const isCurrentMonthCard =
+              currentSacredDay.kind === 'NUMBERED_DAY' &&
+              selectedSacredYear === currentSacredDay.calendarYear &&
+              m.monthNum === currentSacredDay.month;
 
             return (
               <div
                 key={m.monthNum}
-                className={`border border-slate-800 bg-slate-950 print-month-card ${
-                  shouldBreakPageAfter ? 'print-page-break-after' : ''
-                }`}
+                className={`border bg-slate-950 print-month-card ${
+                  isCurrentMonthCard ? 'border-amber-500/70' : 'border-slate-800'
+                } ${shouldBreakPageAfter ? 'print-page-break-after' : ''}`}
               >
                 {/* Month Header Bar */}
                 <div className="flex items-center justify-between px-4 py-3 bg-slate-900/70 border-b border-slate-800 print-month-header">
@@ -792,6 +846,11 @@ export const CalendarScreen: React.FC<CalendarScreenProps> = ({
                     <h3 className="text-base sm:text-lg font-serif font-bold text-slate-100">
                       {m.title}
                     </h3>
+                    {isCurrentMonthCard && (
+                      <span className="no-print ml-1 px-1.5 py-0.5 text-[10px] font-serif font-bold uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/50">
+                        {isPt ? 'Mês Atual' : 'Current Month'}
+                      </span>
+                    )}
                   </div>
                   <div className="flex items-center gap-2 text-xs font-serif italic text-slate-200 tabular-nums whitespace-nowrap">
                     <span className="print-only text-[10px] not-italic">
@@ -837,17 +896,28 @@ export const CalendarScreen: React.FC<CalendarScreenProps> = ({
                     const colIdx = cellIdx % 7;
                     const rowIdx = Math.floor(cellIdx / 7);
                     const gregShort = numDay.gregorianDate.toISOString().slice(5, 10);
+                    const cellDomId = `sacred-day-cell-${numDay.dayOfYear}`;
+                    const isCurrentDay =
+                      currentSacredDay.kind === 'NUMBERED_DAY' &&
+                      selectedSacredYear === currentSacredDay.calendarYear &&
+                      numDay.dayOfYear === currentSacredDay.dayOfYear;
+                    const isJumpedTarget = highlightedJumpId === cellDomId;
 
                     return (
                       <div
+                        id={cellDomId}
                         key={numDay.dayOfYear}
                         onClick={() => onOpenDayDetail(numDay)}
-                        className={`print-day-cell p-1.5 sm:p-2.5 min-h-[4.25rem] sm:min-h-[5rem] h-auto flex flex-col justify-between gap-1 cursor-pointer transition-colors ${
+                        className={`print-day-cell p-1.5 sm:p-2.5 min-h-[4.25rem] sm:min-h-[5rem] h-auto flex flex-col justify-between gap-1 cursor-pointer transition-all ${
                           colIdx < 6 ? 'border-r border-slate-800' : ''
                         } ${rowIdx < 3 ? 'border-b border-slate-800' : ''} ${
                           !matchesPhaseFilter ? 'opacity-35' : 'opacity-100'
                         } ${
-                          observancesInfo.isDoubleObservance
+                          isCurrentDay
+                            ? `ring-2 ring-inset ring-amber-400 bg-amber-500/25 hover:bg-amber-500/35 text-amber-100 shadow-[inset_0_0_16px_rgba(245,158,11,0.32)] relative z-10 ${
+                                isJumpedTarget ? 'ring-4 ring-amber-300' : ''
+                              }`
+                            : observancesInfo.isDoubleObservance
                             ? 'bg-amber-950/40 hover:bg-amber-950/60 text-amber-200 print-cell-feast'
                             : feastObs
                             ? 'bg-amber-950/25 hover:bg-amber-950/40 text-amber-200 print-cell-feast'
@@ -858,19 +928,30 @@ export const CalendarScreen: React.FC<CalendarScreenProps> = ({
                             : 'bg-slate-950 hover:bg-slate-900 text-slate-100'
                         }`}
                       >
-                        {/* Cell Top Row: Day Number + Moon Phase Icon */}
+                        {/* Cell Top Row: Day Number (with Today Badge beneath) + Moon Phase Icon */}
                         <div className="flex items-start justify-between gap-0.5">
-                          <div className="flex items-baseline gap-1">
-                            <span
-                              className={`font-serif font-bold text-sm sm:text-base tabular-nums leading-none ${
-                                isSabbath ? 'text-amber-400' : 'text-slate-100'
-                              }`}
-                            >
-                              {numDay.dayOfMonth}
-                            </span>
-                            <span className="print-only text-[8.5px] tabular-nums text-slate-500">
-                              {gregShort}
-                            </span>
+                          <div className="flex flex-col items-start gap-1 min-w-0">
+                            <div className="flex items-baseline gap-1">
+                              <span
+                                className={`font-serif font-bold text-sm sm:text-base tabular-nums leading-none ${
+                                  isCurrentDay
+                                    ? 'text-amber-300'
+                                    : isSabbath
+                                    ? 'text-amber-400'
+                                    : 'text-slate-100'
+                                }`}
+                              >
+                                {numDay.dayOfMonth}
+                              </span>
+                              <span className="print-only text-[8.5px] tabular-nums text-slate-500">
+                                {gregShort}
+                              </span>
+                            </div>
+                            {isCurrentDay && (
+                              <span className="no-print inline-block px-1 py-0.5 bg-amber-400 text-slate-950 font-serif font-bold text-[8px] sm:text-[9px] uppercase tracking-tight leading-none">
+                                {isPt ? 'Hoje' : 'Today'}
+                              </span>
+                            )}
                           </div>
 
                           <LunarPhaseIcon
