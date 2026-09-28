@@ -96,10 +96,10 @@ export default function App() {
     document.body.scrollTop = 0;
   }, [activeTab]);
 
-  // Theme state ('night' vs 'day')
+  // Theme state ('night' vs 'day' — defaults to 'day' on first launch)
   const [theme, setTheme] = useState<'night' | 'day'>(() => {
     const saved = localStorage.getItem('dimenueveis_theme');
-    return (saved === 'day' || saved === 'night') ? saved : 'night';
+    return (saved === 'day' || saved === 'night') ? saved : 'day';
   });
 
   useEffect(() => {

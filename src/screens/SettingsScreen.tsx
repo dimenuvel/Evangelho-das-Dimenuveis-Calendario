@@ -254,20 +254,40 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
 
           {/* Observer Coordinates */}
           <div className="p-4 sm:p-5 space-y-2.5">
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <label className="text-xs font-serif text-slate-200 uppercase tracking-wider font-semibold block whitespace-nowrap">
                 {t.settings.locationLabel}
               </label>
-              {onOpenGpsModal && (
+              <div className="flex flex-wrap items-center gap-1.5">
                 <button
                   type="button"
-                  onClick={onOpenGpsModal}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/50 text-xs font-serif font-semibold text-amber-300 transition-colors cursor-pointer whitespace-nowrap shrink-0"
+                  onClick={() => {
+                    const updated: CalendarConfiguration = {
+                      ...localConfig,
+                      userLocation: {
+                        latitude: 31.7683,
+                        longitude: 35.2137,
+                        cityName: 'Jerusalem (Default)',
+                      },
+                    };
+                    setLocalConfig(updated);
+                    onUpdateConfig(updated);
+                  }}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-900 hover:bg-slate-800 border border-slate-700 hover:border-amber-500/50 text-xs font-serif text-slate-200 transition-colors cursor-pointer whitespace-nowrap shrink-0"
                 >
-                  <MapPin className="w-3.5 h-3.5 shrink-0" />
-                  <span>{isPt ? 'Usar GPS Local' : 'Use Local GPS'}</span>
+                  <span>{isPt ? 'Jerusalém (Padrão)' : 'Jerusalem (Default)'}</span>
                 </button>
-              )}
+                {onOpenGpsModal && (
+                  <button
+                    type="button"
+                    onClick={onOpenGpsModal}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/50 text-xs font-serif font-semibold text-amber-300 transition-colors cursor-pointer whitespace-nowrap shrink-0"
+                  >
+                    <MapPin className="w-3.5 h-3.5 shrink-0" />
+                    <span>{isPt ? 'Usar GPS Local' : 'Use Local GPS'}</span>
+                  </button>
+                )}
+              </div>
             </div>
             <div className="text-xs font-serif italic text-amber-300/90 whitespace-nowrap truncate">
               {isPt ? 'Local Ativo:' : 'Active Location:'}{' '}

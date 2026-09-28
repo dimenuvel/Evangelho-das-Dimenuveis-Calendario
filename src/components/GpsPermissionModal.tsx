@@ -70,8 +70,22 @@ export const GpsPermissionModal: React.FC<GpsPermissionModalProps> = ({
     }
   };
 
+  const handleDismiss = () => {
+    markGpsPromptDecided();
+    setStatus('IDLE');
+    setErrorMessage('');
+    onClose();
+  };
+
   const handleKeepJerusalem = () => {
     markGpsPromptDecided();
+    const jerusalemLoc: ResolvedUserLocation = {
+      latitude: 31.7683,
+      longitude: 35.2137,
+      cityName: 'Jerusalem (Default)',
+    };
+    setResolvedLoc(jerusalemLoc);
+    onLocationResolved(jerusalemLoc);
     setStatus('IDLE');
     setErrorMessage('');
     onClose();
@@ -103,7 +117,7 @@ export const GpsPermissionModal: React.FC<GpsPermissionModalProps> = ({
           </div>
           <button
             type="button"
-            onClick={handleKeepJerusalem}
+            onClick={handleDismiss}
             className="inline-flex items-center justify-center w-7 h-7 border border-slate-700 bg-slate-950 hover:border-amber-500/60 text-slate-300 hover:text-slate-100 transition-colors cursor-pointer shrink-0"
             title={isPt ? 'Fechar' : 'Close'}
             aria-label={isPt ? 'Fechar' : 'Close'}
@@ -198,7 +212,7 @@ export const GpsPermissionModal: React.FC<GpsPermissionModalProps> = ({
             disabled={status === 'REQUESTING'}
             className="px-3.5 py-2 border border-slate-700 bg-slate-950 hover:bg-slate-800 text-slate-300 hover:text-slate-100 transition-colors cursor-pointer whitespace-nowrap text-center"
           >
-            {isPt ? 'Manter Jerusalém (Padrão)' : 'Keep Jerusalem (Default)'}
+            {isPt ? 'Usar Jerusalém (Padrão)' : 'Use Jerusalem (Default)'}
           </button>
 
           <button
