@@ -126,68 +126,66 @@ export const SabbathIndicatorWidget: React.FC<SabbathIndicatorWidgetProps> = ({
           ? 'Toque para abrir a página do Sábado e Contagem Regressiva do Pôr do Sol'
           : 'Tap to open the Sabbath page and Sunset Countdown'
       }
-      className={`w-full text-left px-3.5 sm:px-4 py-2.5 border transition-all cursor-pointer flex flex-wrap items-center justify-between gap-2 font-serif group ${
+      className={`w-full text-left px-3.5 sm:px-5 py-2.5 sm:py-3 border transition-all cursor-pointer flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 font-serif group ${
         isSabbathActive
           ? 'border-amber-400 bg-amber-500/20 hover:bg-amber-500/25 shadow-[0_0_22px_rgba(245,158,11,0.38)] ring-1 ring-amber-400/70'
           : 'border-amber-500/40 bg-slate-950 hover:bg-slate-900/90 hover:border-amber-400/70'
       }`}
     >
-      {/* Left Side: Status Pill + Sabbath Date */}
-      <div className="flex items-center gap-2 min-w-0 flex-wrap">
+      {/* Row 1 (Mobile) / Left Side (Desktop): Status Label + Full Sacred Date */}
+      <div className="flex items-center justify-between sm:justify-start gap-2 sm:gap-3">
         {isSabbathActive ? (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-400 text-slate-950 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider shrink-0">
-            <Sparkles className="w-3 h-3 fill-slate-950" />
+          <div className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-amber-400 text-slate-950 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider shrink-0">
+            <Sparkles className="w-3 h-3 fill-slate-950 shrink-0" />
             <span>{isPt ? 'Sábado Ativo' : 'Sabbath Active'}</span>
-          </span>
+          </div>
         ) : (
-          <span className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-amber-400 shrink-0">
+          <div className="inline-flex items-center gap-1.5 text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-amber-400 shrink-0">
             <Sunset className="w-3.5 h-3.5 text-amber-400 shrink-0" />
             <span>{isPt ? 'Próximo Sábado' : 'Next Sabbath'}</span>
-          </span>
+          </div>
         )}
 
-        <span className="text-slate-500 hidden sm:inline">·</span>
+        <span className="text-slate-600 hidden sm:inline">·</span>
 
         <span
-          className={`text-xs sm:text-sm font-bold truncate ${
+          className={`text-xs sm:text-sm font-bold whitespace-nowrap ${
             isSabbathActive ? 'text-amber-200' : 'text-slate-100 group-hover:text-amber-300'
           }`}
         >
           {formatDayLabel(targetDay)}
         </span>
-
-        <span className="text-[11px] text-slate-400 italic hidden md:inline tabular-nums">
-          ({isSabbathActive ? (isPt ? 'Término' : 'Ends') : isPt ? 'Pôr do Sol' : 'Sunset'} {sunsetTimeStr})
-        </span>
       </div>
 
-      {/* Right Side: Live Compact Countdown + Arrow */}
-      <div className="flex items-center gap-2 shrink-0 ml-auto">
-        <span className="text-[11px] sm:text-xs text-slate-300 hidden sm:inline">
+      {/* Row 2 (Mobile) / Right Side (Desktop): Sunset Time + Countdown Badge + Arrow */}
+      <div className="flex items-center justify-between sm:justify-end gap-2.5 pt-1.5 sm:pt-0 border-t border-slate-800/80 sm:border-t-0">
+        <span className="text-[11px] sm:text-xs text-slate-300 italic tabular-nums whitespace-nowrap">
           {isSabbathActive
             ? isPt
-              ? 'Restam:'
-              : 'Ends in:'
+              ? `Término ao Pôr do Sol: ${sunsetTimeStr}`
+              : `Ends at Sunset: ${sunsetTimeStr}`
             : isPt
-              ? 'Inicia em:'
-              : 'Starts in:'}
+              ? `Pôr do Sol: ${sunsetTimeStr}`
+              : `Sunset: ${sunsetTimeStr}`}
         </span>
 
-        <span
-          className={`px-2 py-0.5 text-xs sm:text-sm font-bold tabular-nums border ${
-            isSabbathActive
-              ? 'bg-amber-400/25 border-amber-300 text-amber-200'
-              : 'bg-slate-900 border-amber-500/40 text-amber-400'
-          }`}
-        >
-          {compactCountdown}
-        </span>
+        <div className="flex items-center gap-1.5 shrink-0">
+          <span
+            className={`px-2.5 py-1 text-xs sm:text-sm font-bold tabular-nums border whitespace-nowrap leading-none ${
+              isSabbathActive
+                ? 'bg-amber-400/25 border-amber-300 text-amber-200'
+                : 'bg-slate-900 border-amber-500/40 text-amber-400'
+            }`}
+          >
+            {compactCountdown}
+          </span>
 
-        <ArrowRight
-          className={`w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5 ${
-            isSabbathActive ? 'text-amber-300' : 'text-amber-400'
-          }`}
-        />
+          <ArrowRight
+            className={`w-4 h-4 shrink-0 transition-transform group-hover:translate-x-0.5 ${
+              isSabbathActive ? 'text-amber-300' : 'text-amber-400'
+            }`}
+          />
+        </div>
       </div>
     </button>
   );
