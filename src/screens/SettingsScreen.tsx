@@ -15,12 +15,14 @@ import {
   saveNotificationSettings,
   requestNotificationPermission,
   sendFeastNotification,
+  sendSunriseAlertPreview,
+  sendMoonPhaseAlertPreview,
   NotificationSettings,
 } from '../notifications/notificationService';
 import { calculateFeastOccurrences } from '../calendar/feastEngine';
 import { GoogleCalendarSyncModal } from '../components/GoogleCalendarSyncModal';
 import { exportFeastsToIcs } from '../services/googleCalendarService';
-import { RotateCcw, Save, CheckCircle2, MapPin, Bell, Calendar, Download } from 'lucide-react';
+import { RotateCcw, Save, CheckCircle2, MapPin, Bell, Sun, Moon, Calendar, Download } from 'lucide-react';
 
 interface SettingsScreenProps {
   config: CalendarConfiguration;
@@ -57,6 +59,14 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   React.useEffect(() => {
     setLocalConfig(config);
   }, [config]);
+
+  React.useEffect(() => {
+    const syncHandler = () => {
+      setNotifSettings(loadStoredNotificationSettings());
+    };
+    window.addEventListener('dimenueveisNotificationSettingsChanged', syncHandler);
+    return () => window.removeEventListener('dimenueveisNotificationSettingsChanged', syncHandler);
+  }, []);
 
   const localizedModels = getLocalizedChronologyModels(language);
 
@@ -127,6 +137,33 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       isPt
         ? `Alerta de teste enviado: ${nextFeast.feast.name} (${nextFeast.gregorianStartDate.toISOString().split('T')[0]})`
         : `Test alert sent: ${nextFeast.feast.name} (${nextFeast.gregorianStartDate.toISOString().split('T')[0]})`
+    );
+    setTimeout(() => setNotifStatusMessage(''), 4500);
+  };
+
+  const handleSendTestSunriseNotification = () => {
+    sendSunriseAlertPreview(
+      new Date(),
+      localConfig.userLocation?.latitude ?? 31.7683,
+      localConfig.userLocation?.longitude ?? 35.2137,
+      localConfig.userLocation?.cityName ?? 'Jerusalem (Default)',
+      language,
+      true
+    );
+    setNotifStatusMessage(
+      isPt
+        ? 'Notificação de teste do Nascer do Sol enviada!'
+        : 'Test Sunrise notification sent!'
+    );
+    setTimeout(() => setNotifStatusMessage(''), 4500);
+  };
+
+  const handleSendTestMoonPhaseNotification = () => {
+    sendMoonPhaseAlertPreview(new Date(), language, true);
+    setNotifStatusMessage(
+      isPt
+        ? 'Notificação de teste de Mudança de Fase da Lua enviada!'
+        : 'Test Moon Phase Change notification sent!'
     );
     setTimeout(() => setNotifStatusMessage(''), 4500);
   };
@@ -344,22 +381,11 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         <div className="divide-y divide-slate-800">
           {/* Notifications & Google Calendar Module */}
           <div className="p-4 sm:p-5 space-y-3.5">
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="text-xs font-serif font-bold uppercase tracking-wider text-amber-400 whitespace-nowrap">
-                II. {isPt ? 'Notificações de Festas' : 'Feast Notifications'}
+                II. {isPt ? 'Notificações: Sol, Lua & Festas' : 'Notifications: Sun, Moon & Feasts'}
               </span>
-              <div className="flex items-center gap-2 shrink-0">
-                {notifSettings.enabled && (
-                  <button
-                    type="button"
-                    onClick={handleSendTestNotification}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-serif border border-amber-500/50 bg-amber-950/30 hover:bg-amber-950/50 text-amber-300 transition-colors cursor-pointer whitespace-nowrap"
-                  >
-                    <Bell className="w-3 h-3 shrink-0" />
-                    <span>{isPt ? 'Testar Alerta' : 'Test Alert'}</span>
-                  </button>
-                )}
-
+              <div className="flex flex-wrap items-center gap-1.5 shrink-0">
                 <button
                   type="button"
                   onClick={() => handleToggleNotifications(!notifSettings.enabled)}
@@ -383,9 +409,39 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
 
             <p className="text-xs text-slate-300 font-serif italic leading-relaxed">
               {isPt
-                ? 'Ative para receber alertas antes do início e término de Festas Bíblicas, Sábados e Fases Lunares, ou sincronize com o Google Agenda do seu celular.'
-                : 'Enable to receive alerts prior to Biblical Feasts, Sabbath days, and Lunar anchors, or sync directly with your mobile Google Calendar.'}
+                ? 'Ative para receber alertas automáticos no Nascer do Sol diário, em cada Mudança de Fase da Lua (8 fases), nas Festas Bíblicas e Sábados, ou sincronize com o Google Agenda.'
+                : 'Enable to receive automatic alerts at daily Local Sunrise, on every Moon Phase Change (8 phases), and prior to Biblical Feasts and Sabbaths, or sync with Google Calendar.'}
             </p>
+
+            {/* Quick Test Buttons for Sunrise, Moon Phase & Feast */}
+            <div className="flex flex-wrap items-center gap-2 text-xs font-serif">
+              <button
+                type="button"
+                onClick={handleSendTestSunriseNotification}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 border border-amber-500/50 bg-amber-950/25 hover:bg-amber-950/45 text-amber-300 transition-colors cursor-pointer whitespace-nowrap"
+              >
+                <Sun className="w-3.5 h-3.5 shrink-0" />
+                <span>{isPt ? 'Testar Nascer do Sol' : 'Test Sunrise'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleSendTestMoonPhaseNotification}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 border border-blue-400/50 bg-blue-950/25 hover:bg-blue-950/45 text-blue-300 transition-colors cursor-pointer whitespace-nowrap"
+              >
+                <Moon className="w-3.5 h-3.5 shrink-0" />
+                <span>{isPt ? 'Testar Fase da Lua' : 'Test Moon Phase'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleSendTestNotification}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 border border-slate-700 bg-slate-900 hover:bg-slate-800 text-slate-200 transition-colors cursor-pointer whitespace-nowrap"
+              >
+                <Bell className="w-3.5 h-3.5 shrink-0" />
+                <span>{isPt ? 'Testar Festa' : 'Test Feast'}</span>
+              </button>
+            </div>
 
             {notifStatusMessage && (
               <div className="p-2.5 bg-emerald-950/40 border border-emerald-500/40 text-xs font-serif text-emerald-200 flex items-center gap-2">
@@ -397,6 +453,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             {notifSettings.enabled && (
               <div className="grid grid-cols-1 sm:grid-cols-2 border border-slate-700 divide-y sm:divide-y-0 sm:divide-x divide-slate-700 bg-slate-900/30 text-xs font-serif">
                 {[
+                  { key: 'sunriseAlert', label: isPt ? '☀️ Nascer do Sol Diário' : '☀️ Daily Sunrise' },
+                  { key: 'moonPhaseChangeAlert', label: isPt ? '🌙 Mudança de Fase da Lua (8 Fases)' : '🌙 Moon Phase Change (8 Phases)' },
                   { key: 'upcomingFeastAlert', label: isPt ? 'Festa Próxima (24h)' : '24h Upcoming Feast' },
                   { key: 'feastBeginningAlert', label: isPt ? 'Início de Festa' : 'Feast Beginning' },
                   { key: 'feastEndingAlert', label: isPt ? 'Término de Festa' : 'Feast Ending' },

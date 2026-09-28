@@ -157,6 +157,6 @@ export function sacredDateToSolarDate(
   }
 
   const dayOfYear = (month - 1) * 28 + dayOfMonth;
-  const resultDate = new Date(dayZeroDate.getTime() + dayOfYear * 86400 * 1000);
+  const resultDate = new Date(dayZeroDate.getFullYear(), dayZeroDate.getMonth(), dayZeroDate.getDate() + dayOfYear, 0, 0, 0, 0);
   return resultDate;
 }

@@ -16,6 +16,7 @@ import {
   isUsingDefaultJerusalem,
   ResolvedUserLocation,
 } from './services/geolocationService';
+import { evaluateSolarAndLunarNotifications } from './notifications/notificationService';
 
 import { TodayScreen } from './screens/TodayScreen';
 import { CalendarScreen } from './screens/CalendarScreen';
@@ -128,6 +129,22 @@ export default function App() {
     });
   };
 
+  // Evaluate Sunrise and Moon Phase Change notifications on launch and every 60 seconds
+  useEffect(() => {
+    const runCheck = () => {
+      evaluateSolarAndLunarNotifications(
+        new Date(),
+        config.userLocation?.latitude ?? 31.7683,
+        config.userLocation?.longitude ?? 35.2137,
+        config.userLocation?.cityName ?? 'Jerusalem (Default)',
+        language
+      );
+    };
+    runCheck();
+    const interval = setInterval(runCheck, 60000);
+    return () => clearInterval(interval);
+  }, [config.userLocation, language]);
+
   return (
     <div className="min-h-screen bg-[#0c0e14] text-[#f5f2eb] flex flex-col font-sans selection:bg-amber-500/30 selection:text-amber-200 transition-colors">
       {/* Top Classical Book Navigation Header */}
@@ -151,6 +168,7 @@ export default function App() {
         theme={theme}
         onToggleTheme={toggleTheme}
         onNavigateTab={setActiveTab}
+        userLocation={config.userLocation}
       />
 
       {/* Main Workspace Container */}

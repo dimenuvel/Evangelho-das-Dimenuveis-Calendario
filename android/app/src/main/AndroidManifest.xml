@@ -28,6 +28,10 @@
             </intent-filter>
         </activity>
 
+        <receiver
+            android:name=".ScheduledNotificationReceiver"
+            android:exported="false" />
+
     </application>
 
 </manifest>

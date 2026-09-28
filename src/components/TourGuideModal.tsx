@@ -4,12 +4,22 @@
  * architectural feature walkthrough, and usage instructions (Bilingual EN/PT).
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Language, TRANSLATIONS } from '../i18n/translations';
 import { NavTab } from './Navbar';
 import {
+  loadStoredNotificationSettings,
+  saveNotificationSettings,
+  requestNotificationPermission,
+  markNotificationPromptDecided,
+  sendSunriseAlertPreview,
+  sendMoonPhaseAlertPreview,
+  NotificationSettings,
+} from '../notifications/notificationService';
+import {
   Sun,
   Moon,
+  Bell,
   BookOpen,
   Calendar,
   Compass,
@@ -29,6 +39,11 @@ interface TourGuideModalProps {
   theme: 'night' | 'day';
   onToggleTheme: () => void;
   onNavigateTab: (tab: NavTab) => void;
+  userLocation?: {
+    latitude: number;
+    longitude: number;
+    cityName?: string;
+  };
 }
 
 export const TourGuideModal: React.FC<TourGuideModalProps> = ({
@@ -39,10 +54,55 @@ export const TourGuideModal: React.FC<TourGuideModalProps> = ({
   theme,
   onToggleTheme,
   onNavigateTab,
+  userLocation,
 }) => {
   const [stepIndex, setStepIndex] = useState(0);
+  const [notifSettings, setNotifSettings] = useState<NotificationSettings>(
+    loadStoredNotificationSettings()
+  );
+  const [hasAutoTriggeredOnStep3, setHasAutoTriggeredOnStep3] = useState(false);
   const isPt = language === 'pt';
   const t = TRANSLATIONS[language];
+
+  useEffect(() => {
+    const syncHandler = () => {
+      setNotifSettings(loadStoredNotificationSettings());
+    };
+    window.addEventListener('dimenueveisNotificationSettingsChanged', syncHandler);
+    return () => window.removeEventListener('dimenueveisNotificationSettingsChanged', syncHandler);
+  }, []);
+
+  const handleActivateAndroidSystemNotifications = async () => {
+    markNotificationPromptDecided();
+    const granted = await requestNotificationPermission();
+    const current = loadStoredNotificationSettings();
+    const updated: NotificationSettings = {
+      ...current,
+      enabled: true,
+      sunriseAlert: true,
+      moonPhaseChangeAlert: true,
+    };
+    saveNotificationSettings(updated);
+    setNotifSettings(updated);
+    if (granted) {
+      sendSunriseAlertPreview(
+        new Date(),
+        userLocation?.latitude ?? 31.7683,
+        userLocation?.longitude ?? 35.2137,
+        userLocation?.cityName ?? 'Jerusalem (Default)',
+        language,
+        true
+      );
+    }
+  };
+
+  // Automatically trigger the native Android / OS notification permission dialog when entering Section III (stepIndex === 2)
+  useEffect(() => {
+    if (isOpen && stepIndex === 2 && !hasAutoTriggeredOnStep3) {
+      setHasAutoTriggeredOnStep3(true);
+      handleActivateAndroidSystemNotifications();
+    }
+  }, [isOpen, stepIndex, hasAutoTriggeredOnStep3]);
 
   if (!isOpen) return null;
 
@@ -242,13 +302,13 @@ export const TourGuideModal: React.FC<TourGuideModalProps> = ({
     {
       roman: 'III',
       icon: Compass,
-      badge: isPt ? 'Lua & Festas' : 'Moon & Feasts',
+      badge: isPt ? 'Lua, Sol & Alertas' : 'Moon, Sun & Alerts',
       title: isPt
-        ? 'Camada Lunar & Levítico 23'
-        : 'Lunar Overlay & Leviticus 23',
+        ? 'Camada Lunar, Nascer do Sol & Notificações Móveis'
+        : 'Lunar Overlay, Sunrise & Mobile Notifications',
       subtitle: isPt
-        ? '8 fases astronômicas e 8 tempos nomeados'
-        : '8 astronomical phases and 8 appointed times',
+        ? '8 fases da Lua, alvorada solar local e alertas das Festas de Levítico 23'
+        : '8 lunar phases, local solar dawn, and Leviticus 23 Feast alerts',
       content: (
         <div className="space-y-4 font-serif">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -258,8 +318,8 @@ export const TourGuideModal: React.FC<TourGuideModalProps> = ({
               </h4>
               <p className="text-xs text-slate-300 leading-relaxed">
                 {isPt
-                  ? 'O mês sinódico astronômico (~29,53 dias) é calculado em tempo real e sobreposto ao calendário de 28 dias sem deformar os meses. Você pode alternar a âncora do Dia Zero entre Conjunção Astronômica, Crescente Visível e Modelo Observacional.'
-                  : 'The astronomical synodic month (~29.53 days) is calculated in real time and overlaid onto the 28-day calendar without deforming month boundaries. You can switch the Day Zero anchor between Astronomical Conjunction, Visible Crescent, and Observational.'}
+                  ? 'O mês sinódico astronômico (~29,53 dias) é calculado em tempo real e sobreposto ao calendário de 28 dias sem deformar os meses. Receba notificações automáticas em cada Mudança de Fase da Lua.'
+                  : 'The astronomical synodic month (~29.53 days) is calculated in real time and overlaid onto the 28-day calendar without deforming month boundaries. Receive automatic notifications on every Moon Phase Change.'}
               </p>
             </div>
 
@@ -272,6 +332,87 @@ export const TourGuideModal: React.FC<TourGuideModalProps> = ({
                   ? 'Calcula dinamicamente Páscoa, Pães Asmos, Primícias, Pentecostes (Shavuot), Trombetas, Dia da Expiação, Tabernáculos (7 dias) e Oitavo Dia (1 dia), identificando quando coincidem com o Sábado semanal.'
                   : 'Dynamically calculates Passover, Unleavened Bread, Firstfruits, Pentecost (Shavuot), Trumpets, Day of Atonement, Tabernacles (7 days), and Eighth Day (1 day), highlighting Sabbath overlaps.'}
               </p>
+            </div>
+          </div>
+
+          {/* Mobile Notifications Highlight: Sunrise + Moon Phase Change + Feasts */}
+          <div className="border border-amber-500/40 bg-amber-950/15 p-4 space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <Bell className="w-4 h-4 text-amber-400 shrink-0" />
+                <span className="text-xs font-bold uppercase tracking-wider text-amber-400">
+                  {isPt
+                    ? 'Notificações Móveis: Nascer do Sol & Mudança de Fase da Lua'
+                    : 'Mobile Notifications: Local Sunrise & Moon Phase Change'}
+                </span>
+              </div>
+              <span
+                className={`px-2 py-0.5 text-xs font-bold border ${
+                  notifSettings.enabled
+                    ? 'bg-emerald-950/60 border-emerald-500/60 text-emerald-300'
+                    : 'bg-slate-900 border-slate-700 text-slate-300'
+                }`}
+              >
+                {notifSettings.enabled
+                  ? isPt
+                    ? '● Alertas Ativos'
+                    : '● Alerts Active'
+                  : isPt
+                    ? '○ Permissão Pendente'
+                    : '○ Permission Pending'}
+              </span>
+            </div>
+
+            <p className="text-xs text-slate-200 leading-relaxed">
+              {isPt
+                ? 'Na barra de status do seu celular Android, receba notificações nativas do sistema para: (1) Nascer do Sol diário na sua localização GPS (ou Jerusalém), informando também o Meio-Dia Solar e o Pôr do Sol; (2) Mudança de Fase da Lua sempre que a Lua entra em uma nova fase das 8 fases astronômicas; e (3) Lembretes de Festas Bíblicas e Sábados.'
+                : 'In your Android phone status bar, receive native system notifications for: (1) Daily Local Sunrise at your GPS coordinates (or Jerusalem), including Solar Noon and Sunset times; (2) Moon Phase Change whenever the Moon enters any of the 8 astronomical phases; and (3) Biblical Feast and Sabbath reminders.'}
+            </p>
+
+            <div className="flex flex-wrap items-center gap-2 pt-1 text-xs">
+              <button
+                type="button"
+                onClick={handleActivateAndroidSystemNotifications}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold transition-colors cursor-pointer"
+              >
+                <Bell className="w-3.5 h-3.5 shrink-0" />
+                <span>
+                  {notifSettings.enabled
+                    ? isPt
+                      ? 'Notificações da Barra de Status Ativas'
+                      : 'Status Bar Notifications Active'
+                    : isPt
+                      ? 'Permitir Notificações no Android'
+                      : 'Allow Android Status Bar Notifications'}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() =>
+                  sendSunriseAlertPreview(
+                    new Date(),
+                    userLocation?.latitude ?? 31.7683,
+                    userLocation?.longitude ?? 35.2137,
+                    userLocation?.cityName ?? 'Jerusalem (Default)',
+                    language,
+                    true
+                  )
+                }
+                className="inline-flex items-center gap-1.5 px-3 py-2 border border-amber-500/50 bg-slate-950 hover:bg-slate-900 text-amber-300 transition-colors cursor-pointer"
+              >
+                <Sun className="w-3.5 h-3.5 shrink-0" />
+                <span>{isPt ? 'Testar Nascer do Sol' : 'Test Sunrise Alert'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => sendMoonPhaseAlertPreview(new Date(), language, true)}
+                className="inline-flex items-center gap-1.5 px-3 py-2 border border-blue-400/50 bg-slate-950 hover:bg-slate-900 text-blue-300 transition-colors cursor-pointer"
+              >
+                <Moon className="w-3.5 h-3.5 shrink-0" />
+                <span>{isPt ? 'Testar Fase da Lua' : 'Test Moon Phase Alert'}</span>
+              </button>
             </div>
           </div>
         </div>

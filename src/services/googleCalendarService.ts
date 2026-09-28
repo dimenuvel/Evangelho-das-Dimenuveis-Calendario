@@ -9,17 +9,27 @@ import { CalculatedFeastOccurrence } from '../types/feasts';
 import { Language } from '../i18n/translations';
 
 function formatDateYMD(date: Date): string {
-  return date.toISOString().split('T')[0];
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
 }
 
 function addDaysYMD(date: Date, daysToAdd: number): string {
-  const d = new Date(date.getTime());
-  d.setUTCDate(d.getUTCDate() + daysToAdd);
+  const d = new Date(date.getFullYear(), date.getMonth(), date.getDate() + daysToAdd, 12, 0, 0);
   return formatDateYMD(d);
 }
 
 function formatDateCompact(ymd: string): string {
   return ymd.replace(/-/g, '');
+}
+
+function escapeIcsText(text: string): string {
+  return text
+    .replace(/\\/g, '\\\\')
+    .replace(/;/g, '\\;')
+    .replace(/,/g, '\\,')
+    .replace(/\r?\n/g, '\\n');
 }
 
 export function buildFeastCalendarEventPayload(
@@ -28,13 +38,16 @@ export function buildFeastCalendarEventPayload(
 ) {
   const isPt = language === 'pt';
   const f = occ.feast;
+  const duration = Math.max(1, f.durationDays);
   const startYMD = formatDateYMD(occ.gregorianStartDate);
-  // Google Calendar all-day end date is exclusive, so add durationDays to start date
-  const exclusiveEndYMD = addDaysYMD(occ.gregorianStartDate, Math.max(1, f.durationDays));
+  // Inclusive end date (last day of the feast)
+  const inclusiveEndYMD = addDaysYMD(occ.gregorianStartDate, duration - 1);
+  // Google Calendar all-day template URL end date is exclusive (day after last day)
+  const exclusiveEndYMD = addDaysYMD(occ.gregorianStartDate, duration);
 
   const summary = isPt
-    ? `🕯️ ${f.name} (${f.hebrewName}) — Calendário Dimenúveis`
-    : `🕯️ ${f.name} (${f.hebrewName}) — Dimenuous Calendar`;
+    ? `${f.name} (${f.hebrewName}) — Calendário Dimenúveis`
+    : `${f.name} (${f.hebrewName}) — Dimenuous Calendar`;
 
   const descriptionLines = isPt
     ? [
@@ -42,6 +55,7 @@ export function buildFeastCalendarEventPayload(
         `Calendário Sagrado (Ano ${occ.sacredYear}): Mês ${f.sacredMonth}, Dia ${f.sacredDay}${
           f.durationDays > 1 ? `–${f.sacredDay + f.durationDays - 1}` : ''
         }`,
+        `Data Gregoriana: ${startYMD}${duration > 1 ? ` a ${inclusiveEndYMD}` : ''}`,
         `Duração: ${f.durationDays} dia(s) · Observância inicia ao Pôr do Sol da véspera.`,
         `Referências Bíblicas: ${f.biblicalReferences.join(', ')}`,
         '',
@@ -52,19 +66,38 @@ export function buildFeastCalendarEventPayload(
         `Sacred Calendar (Year ${occ.sacredYear}): Month ${f.sacredMonth}, Day ${f.sacredDay}${
           f.durationDays > 1 ? `–${f.sacredDay + f.durationDays - 1}` : ''
         }`,
+        `Gregorian Date: ${startYMD}${duration > 1 ? ` to ${inclusiveEndYMD}` : ''}`,
         `Duration: ${f.durationDays} day(s) · Observance begins at Sunset on the prior evening.`,
         `Biblical References: ${f.biblicalReferences.join(', ')}`,
         '',
         f.description,
       ];
 
+  const startLocal = new Date(
+    occ.gregorianStartDate.getFullYear(),
+    occ.gregorianStartDate.getMonth(),
+    occ.gregorianStartDate.getDate(),
+    6,
+    0,
+    0
+  );
+  const endLocal = new Date(
+    occ.gregorianStartDate.getFullYear(),
+    occ.gregorianStartDate.getMonth(),
+    occ.gregorianStartDate.getDate() + duration - 1,
+    18,
+    0,
+    0
+  );
+
   return {
     summary,
     description: descriptionLines.join('\n'),
     startDateYMD: startYMD,
+    inclusiveEndDateYMD: inclusiveEndYMD,
     endDateYMD: exclusiveEndYMD,
-    startMillis: occ.gregorianStartDate.getTime(),
-    endMillis: occ.gregorianStartDate.getTime() + Math.max(1, f.durationDays) * 86400000,
+    startMillis: startLocal.getTime(),
+    endMillis: endLocal.getTime(),
   };
 }
 
@@ -154,31 +187,36 @@ export function exportFeastsToIcs(
   sacredYear: number,
   language: Language
 ): void {
-  const nowStamp = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
   const lines: string[] = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
     'PRODID:-//Calendario Dimenuvel//Biblical Feasts//PT',
     'CALSCALE:GREGORIAN',
-    'METHOD:PUBLISH',
   ];
 
   for (const occ of occurrences) {
     const payload = buildFeastCalendarEventPayload(occ, language);
-    const dtStart = formatDateCompact(payload.startDateYMD);
-    const dtEnd = formatDateCompact(payload.endDateYMD);
-    const uid = `feast-${occ.feast.id}-${sacredYear}@dimenueveis.calendar`;
-    const escapedDesc = payload.description.replace(/\n/g, '\\n').replace(/,/g, '\\,');
-    const escapedSummary = payload.summary.replace(/,/g, '\\,');
+    const dtStartDay = formatDateCompact(payload.startDateYMD);
+    const dtEndDayInclusive = formatDateCompact(payload.inclusiveEndDateYMD);
+    // Use explicit local date-time format (YYYYMMDDTHHMMSS) without parameter qualifiers before ':'
+    // so all mobile and desktop .ICS parsers (Google Calendar, Samsung, AOSP, Apple, Outlook)
+    // parse each festival's exact month and day and never fall back to today's date/month.
+    const dtStart = `${dtStartDay}T060000`;
+    const dtEnd = `${dtEndDayInclusive}T180000`;
+    const dtStamp = `${dtStartDay}T060000Z`;
+    const uid = `feast-${occ.feast.id}-${sacredYear}-${dtStartDay}@dimenueveis.calendar`;
+    const escapedDesc = escapeIcsText(payload.description);
+    const escapedSummary = escapeIcsText(payload.summary);
 
     lines.push(
       'BEGIN:VEVENT',
       `UID:${uid}`,
-      `DTSTAMP:${nowStamp}`,
-      `DTSTART;VALUE=DATE:${dtStart}`,
-      `DTEND;VALUE=DATE:${dtEnd}`,
+      `DTSTART:${dtStart}`,
+      `DTEND:${dtEnd}`,
+      `DTSTAMP:${dtStamp}`,
       `SUMMARY:${escapedSummary}`,
       `DESCRIPTION:${escapedDesc}`,
+      'STATUS:CONFIRMED',
       'BEGIN:VALARM',
       'TRIGGER:-PT24H',
       'ACTION:DISPLAY',

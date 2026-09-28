@@ -2,8 +2,10 @@ package com.dimenueveis.calendar;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.AlarmManager;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -277,14 +279,54 @@ public class MainActivity extends AppCompatActivity {
                     createNotificationChannelIfNeeded();
                     NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
                     if (manager != null && isNotificationPermissionGranted()) {
+                        int notifId = (int) (System.currentTimeMillis() & 0xfffffff);
+                        Intent launchIntent = new Intent(MainActivity.this, MainActivity.class);
+                        launchIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        int flags = PendingIntent.FLAG_UPDATE_CURRENT;
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                            flags |= PendingIntent.FLAG_IMMUTABLE;
+                        }
+                        PendingIntent contentIntent = PendingIntent.getActivity(MainActivity.this, notifId, launchIntent, flags);
+
                         NotificationCompat.Builder builder = new NotificationCompat.Builder(MainActivity.this, NOTIFICATION_CHANNEL_ID)
                                 .setSmallIcon(R.mipmap.ic_launcher)
                                 .setContentTitle(title)
                                 .setContentText(body)
                                 .setStyle(new NotificationCompat.BigTextStyle().bigText(body))
                                 .setPriority(NotificationCompat.PRIORITY_HIGH)
+                                .setDefaults(NotificationCompat.DEFAULT_ALL)
+                                .setContentIntent(contentIntent)
                                 .setAutoCancel(true);
-                        manager.notify((int) (System.currentTimeMillis() & 0xfffffff), builder.build());
+                        manager.notify(notifId, builder.build());
+                    }
+                } catch (Exception ignored) {
+                }
+            });
+        }
+
+        @JavascriptInterface
+        public void scheduleStatusBarNotification(int notificationId, long triggerAtMillis, String title, String body) {
+            runOnUiThread(() -> {
+                try {
+                    if (triggerAtMillis <= System.currentTimeMillis()) return;
+                    AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+                    if (alarmManager == null) return;
+
+                    Intent intent = new Intent(MainActivity.this, ScheduledNotificationReceiver.class);
+                    intent.putExtra(ScheduledNotificationReceiver.EXTRA_NOTIFICATION_ID, notificationId);
+                    intent.putExtra(ScheduledNotificationReceiver.EXTRA_TITLE, title);
+                    intent.putExtra(ScheduledNotificationReceiver.EXTRA_BODY, body);
+
+                    int flags = PendingIntent.FLAG_UPDATE_CURRENT;
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        flags |= PendingIntent.FLAG_IMMUTABLE;
+                    }
+                    PendingIntent pendingIntent = PendingIntent.getBroadcast(MainActivity.this, notificationId, intent, flags);
+
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAtMillis, pendingIntent);
+                    } else {
+                        alarmManager.set(AlarmManager.RTC_WAKEUP, triggerAtMillis, pendingIntent);
                     }
                 } catch (Exception ignored) {
                 }

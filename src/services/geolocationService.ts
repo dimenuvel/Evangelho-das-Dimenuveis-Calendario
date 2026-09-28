@@ -16,6 +16,12 @@ declare global {
       hasNotificationPermission?: () => boolean;
       requestNotificationPermission?: () => void;
       showNotification?: (title: string, body: string) => void;
+      scheduleStatusBarNotification?: (
+        notificationId: number,
+        triggerAtMillis: number,
+        title: string,
+        body: string
+      ) => void;
       openExternalUrl?: (url: string) => void;
       printPage?: (documentTitle: string) => void;
       saveIcsFile?: (fileName: string, icsContent: string) => void;
