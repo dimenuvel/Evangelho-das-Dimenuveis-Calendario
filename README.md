@@ -76,42 +76,6 @@ $$\text{Sábados Semanais} = \frac{364 \text{ Dias Numerados}}{7 \text{ Dias / S
 
 ---
 
-## 📂 Estrutura do Projeto
-
-```
-├── src/
-│   ├── astronomy/       # Integração com SunCalc, catálogo de eclipses, cálculos lunares
-│   ├── calendar/        # Gerador do calendário sagrado, lógica de Sábados, motor de festas de Levítico 23
-│   ├── chronology/      # Conversor a.C./d.C., modelos de cronologia (Ussher, Rabínico, LXX, Dimenúveis)
-│   ├── components/      # Navbar, AzimuthalCosmologyMap (Mapa Enoque/Mercator), GoogleCalendarSyncModal, LunarPhaseIcon, Modais, Badges
-│   ├── dimenueveis/     # Textos canônicos do Evangelho das Dimenúveis, Árvore de 6 Camadas, Léxico
-│   ├── history/         # Linhas do tempo históricas, análise do candidato de Josué 10
-│   ├── i18n/            # Traduções (Português & Inglês)
-│   ├── screens/         # Telas principais da aplicação:
-│   │   ├── TodayScreen.tsx
-│   │   ├── CalendarScreen.tsx
-│   │   ├── SabbathScreen.tsx
-│   │   ├── AppointedTimesScreen.tsx
-│   │   ├── MoonScreen.tsx
-│   │   ├── GreatWeekScreen.tsx
-│   │   ├── ChronologyLabScreen.tsx
-│   │   ├── ScriptureHistoryScreen.tsx
-│   │   ├── DimenueveisScreen.tsx
-│   │   ├── SettingsScreen.tsx
-│   │   └── TestsScreen.tsx
-│   ├── tests/           # Bateria de testes unitários automatizados (13 testes)
-│   ├── types/           # Interfaces TypeScript e modelos de domínio
-│   ├── App.tsx          # Roteador principal e contêiner de estado
-│   ├── main.tsx         # Ponto de entrada da aplicação
-│   └── index.css        # Importações do Tailwind CSS e estilos globais
-├── index.html           # Ponto de entrada HTML com fontes serifadas do Google Fonts
-├── package.json         # Dependências do Node e scripts de build
-├── vite.config.ts       # Configuração do bundler Vite
-└── LICENSE              # Licença MIT
-```
-
----
-
 ## 🚀 Como Executar o Projeto
 
 ### Pré-requisitos
@@ -184,9 +148,9 @@ O projeto inclui uma estrutura nativa Android para o aplicativo **Calendário Di
 Ao enviar código para a branch `main`/`master` (ou acionar manualmente em **Actions → Build Android APK → Run workflow** no GitHub):
 1. O GitHub Actions instala o Node.js 22, compila o aplicativo Vite (`npm run build`) e sincroniza o bundle em `android/app/src/main/assets/public/`.
 2. Configura automaticamente o **Java JDK 17 (Temurin)**, **Android SDK 34** e **Gradle 8.7**, baixando todas as dependências Maven/Gradle na nuvem.
-3. Gera e assina os arquivos sincronizados com a versão do rodapé (`v1.5`):
-   - `Calendario-Dimenuvel-v1.5-release.apk` (Artifact: `Calendario-Dimenuvel-v1.5-release-apk` — APK Release assinado pronto para instalação)
-   - `Calendario-Dimenuvel-v1.5-debug.apk` (Artifact: `Calendario-Dimenuvel-v1.5-debug-apk` — APK Debug)
+3. Gera e assina os arquivos sincronizados com a versão do rodapé (`v1.9`):
+   - `Calendario-Dimenuvel-v1.9-release.apk` (Artifact: `Calendario-Dimenuvel-v1.9-release-apk` — APK Release assinado pronto para instalação)
+   - `Calendario-Dimenuvel-v1.9-debug.apk` (Artifact: `Calendario-Dimenuvel-v1.9-debug-apk` — APK Debug)
 4. Disponibiliza ambos os APKs para download direto na seção **Artifacts** da execução do workflow no GitHub.
 
 ---
