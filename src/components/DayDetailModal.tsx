@@ -10,7 +10,7 @@ import { Language, TRANSLATIONS } from '../i18n/translations';
 import { getLunarPhaseInfo, getLocalizedPhaseName } from '../astronomy/moon';
 import { getSunTimes } from '../astronomy/sun';
 import { getSabbathBadgeLabel } from '../calendar/sabbath';
-import { getMonthDisplayTitle } from '../calendar/months';
+import { getMonthDisplayTitle, getZodiacForSacredMonth } from '../calendar/months';
 import { getFeastOccurrenceForDay, getObservancesForDay } from '../calendar/feastEngine';
 import { getLocalizedBiblicalEvents } from '../history/biblicalEvents';
 import { getLocalizedCanonicalSections } from '../dimenueveis/canonical';
@@ -153,6 +153,19 @@ export const DayDetailModal: React.FC<DayDetailModalProps> = ({
                   <span className="text-slate-400">{t.modal.dayOfWeek}</span>
                   <strong className="text-amber-300">{isPt ? 'Dia' : 'Day'} {(day as any).dayOfWeek} / 7</strong>
                 </div>
+                {(() => {
+                  const z = getZodiacForSacredMonth((day as any).month);
+                  return (
+                    <div className="flex justify-between pt-1 border-t border-slate-800/80">
+                      <span className="text-slate-400">
+                        {isPt ? 'Signo do Mês (13 Signos):' : 'Month Zodiac (13 Signs):'}
+                      </span>
+                      <strong className={z.isThirteenthDragonSign ? 'text-emerald-300' : 'text-amber-300'}>
+                        {z.symbol} {isPt ? z.namePt : z.nameEn}
+                      </strong>
+                    </div>
+                  );
+                })()}
               </div>
             )}
           </div>

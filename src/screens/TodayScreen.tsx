@@ -12,13 +12,14 @@ import { getLunarPhaseInfo, getLocalizedPhaseName } from '../astronomy/moon';
 import { getSunTimes } from '../astronomy/sun';
 import { calculateMillennialPosition } from '../chronology/chronologyEngine';
 import { getSabbathBadgeLabel } from '../calendar/sabbath';
+import { getDailyPrayerForSacredDay } from '../calendar/dailyPrayer';
 import { getMonthDisplayTitle } from '../calendar/months';
 import { getCurrentOrNextFeast, getObservancesForDay } from '../calendar/feastEngine';
 import { LunarPhaseIcon } from '../components/LunarPhaseIcon';
 import { DataSourceBadge } from '../components/DataSourceBadge';
 import { AzimuthalCosmologyMap } from '../components/AzimuthalCosmologyMap';
 import { SabbathIndicatorWidget } from '../components/SabbathIndicatorWidget';
-import { ArrowRight, MapPin } from 'lucide-react';
+import { ArrowRight, MapPin, BookOpen } from 'lucide-react';
 
 interface TodayScreenProps {
   systemDate: Date;
@@ -66,6 +67,11 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
   );
 
   const sabbathBadge = getSabbathBadgeLabel(currentSacredDay.sabbathType, language);
+  const dailyPrayer = getDailyPrayerForSacredDay(
+    currentSacredDay,
+    config.customMonthNames,
+    language
+  );
   const observancesInfo = getObservancesForDay(
     currentSacredDay,
     config.lunarAnchorMode,
@@ -314,6 +320,61 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
                   <span>GPS</span>
                 </button>
               )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Daily Prayer & Scripture-Based Reflection Section */}
+      <div className="border border-slate-800 bg-slate-950 divide-y divide-slate-800 font-serif">
+        {/* Section Header Bar */}
+        <div className="px-4 sm:px-5 py-3 bg-slate-900/60 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <BookOpen className="w-4 h-4 text-amber-400 shrink-0" />
+            <h2 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-amber-400">
+              {isPt ? 'Oração Diária & Reflexão Bíblica' : 'Daily Prayer & Scriptural Reflection'}
+            </h2>
+          </div>
+          <span className="text-xs italic text-slate-300 tabular-nums">
+            {dailyPrayer.positionLabel}
+          </span>
+        </div>
+
+        {/* Main Prayer & Reflection Body */}
+        <div className="p-4 sm:p-6 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-1">
+            <div>
+              <div className="text-xs uppercase tracking-wider text-purple-300 font-semibold">
+                {isPt ? 'Tema do Mês:' : 'Monthly Theme:'} {dailyPrayer.monthTheme}
+              </div>
+              <h3 className="text-base sm:text-lg font-bold text-slate-100 mt-0.5">
+                {dailyPrayer.title}
+              </h3>
+            </div>
+            <span className="text-xs font-semibold text-emerald-400 italic shrink-0">
+              {dailyPrayer.scriptureRef}
+            </span>
+          </div>
+
+          {/* Scripture Verse Blockquote */}
+          <blockquote className="pl-3.5 sm:pl-4 border-l-2 border-amber-500/60 italic text-xs sm:text-sm text-amber-200 leading-relaxed">
+            {dailyPrayer.scriptureQuote}
+          </blockquote>
+
+          {/* Reflection & Prayer Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1 text-xs leading-relaxed">
+            <div className="p-3.5 bg-slate-900/40 border border-slate-800 space-y-1">
+              <span className="font-bold uppercase tracking-wider text-slate-200 block text-[11px]">
+                {isPt ? 'Reflexão do Ciclo de 13 Meses' : '13-Month Cycle Reflection'}
+              </span>
+              <p className="text-slate-300">{dailyPrayer.reflection}</p>
+            </div>
+
+            <div className="p-3.5 bg-amber-950/15 border border-amber-500/30 space-y-1">
+              <span className="font-bold uppercase tracking-wider text-amber-400 block text-[11px]">
+                {isPt ? 'Oração do Dia' : 'Prayer of the Day'}
+              </span>
+              <p className="text-slate-200 italic">{dailyPrayer.prayer}</p>
             </div>
           </div>
         </div>

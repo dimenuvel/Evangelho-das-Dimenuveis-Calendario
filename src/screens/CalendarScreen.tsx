@@ -8,11 +8,11 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { CalendarConfiguration, CalendarDay } from '../types/calendar';
 import { Language, TRANSLATIONS } from '../i18n/translations';
 import { generateSacredYearDays, solarDateToSacredDate, resolveSacredBirthday } from '../calendar/sacredCalendar';
-import { getMonthDisplayTitle } from '../calendar/months';
+import { getMonthDisplayTitle, getZodiacForSacredMonth, SACRED_13_ZODIAC_SIGNS } from '../calendar/months';
 import { getLunarPhaseInfo, getLocalizedPhaseName, getPhaseCategory, MajorLunarCategory } from '../astronomy/moon';
 import { getObservancesForDay, calculateFeastOccurrences } from '../calendar/feastEngine';
 import { LunarPhaseIcon } from '../components/LunarPhaseIcon';
-import { ChevronLeft, ChevronRight, Printer } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Printer, Sparkles } from 'lucide-react';
 
 type PrintPaperSize =
   | 'AUTO'
@@ -153,6 +153,7 @@ export const CalendarScreen: React.FC<CalendarScreenProps> = ({
         monthNum,
         roman: ROMAN_MONTHS[idx],
         title: getMonthDisplayTitle(monthNum, config.customMonthNames, language),
+        zodiac: getZodiacForSacredMonth(monthNum),
         days: daysInMonth,
       };
     });
@@ -850,21 +851,40 @@ export const CalendarScreen: React.FC<CalendarScreenProps> = ({
             return (
               <div
                 key={m.monthNum}
+                id={`sacred-month-card-${m.monthNum}`}
                 className={`border bg-slate-950 print-month-card ${
-                  isCurrentMonthCard ? 'border-amber-500/70' : 'border-slate-800'
+                  isCurrentMonthCard
+                    ? 'border-amber-500/70'
+                    : m.zodiac.isThirteenthDragonSign
+                    ? 'border-emerald-500/60'
+                    : 'border-slate-800'
                 } ${shouldBreakPageAfter ? 'print-page-break-after' : ''}`}
               >
                 {/* Month Header Bar */}
-                <div className="flex items-center justify-between px-4 py-3 bg-slate-900/70 border-b border-slate-800 print-month-header">
-                  <div className="flex items-baseline gap-2 whitespace-nowrap">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 px-4 py-3 bg-slate-900/70 border-b border-slate-800 print-month-header">
+                  <div className="flex flex-wrap items-baseline gap-2 min-w-0">
                     <span className="font-serif italic text-base font-bold text-amber-400">
                       {m.roman}.
                     </span>
                     <h3 className="text-base sm:text-lg font-serif font-bold text-slate-100">
                       {m.title}
                     </h3>
+                    <span className="text-slate-500">·</span>
+                    <span
+                      className={`text-xs font-serif font-semibold ${
+                        m.zodiac.isThirteenthDragonSign ? 'text-emerald-300' : 'text-amber-300'
+                      }`}
+                      title={isPt ? m.zodiac.meaningPt : m.zodiac.meaningEn}
+                    >
+                      {m.zodiac.symbol} {isPt ? m.zodiac.namePt : m.zodiac.nameEn}
+                    </span>
+                    {m.zodiac.isThirteenthDragonSign && (
+                      <span className="no-print px-1.5 py-0.5 text-[10px] font-serif font-bold uppercase tracking-wider bg-emerald-500 text-slate-950">
+                        {isPt ? '13º Signo: O Dragão' : '13th Sign: The Dragon'}
+                      </span>
+                    )}
                     {isCurrentMonthCard && (
-                      <span className="no-print ml-1 px-1.5 py-0.5 text-[10px] font-serif font-bold uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/50">
+                      <span className="no-print px-1.5 py-0.5 text-[10px] font-serif font-bold uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/50">
                         {isPt ? 'Mês Atual' : 'Current Month'}
                       </span>
                     )}
@@ -1032,6 +1052,159 @@ export const CalendarScreen: React.FC<CalendarScreenProps> = ({
               </div>
             );
           })}
+      </div>
+
+      {/* ================================================================== */}
+      {/* 13-MONTH ZODIAC CORRELATION MATRIX (MAZZAROTH & 13TH DRAGON SIGN)  */}
+      {/* ================================================================== */}
+      <div className="no-print border border-slate-800 bg-slate-950 divide-y divide-slate-800 font-serif">
+        {/* Section Header */}
+        <div className="p-4 sm:p-5 bg-slate-900/60 space-y-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-amber-400 font-bold">
+              <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
+              <span>
+                {isPt
+                  ? 'Roda Eclíptica de 13 Meses (Mazzaroth · Jó 38:32) & O 13º Signo do Dragão'
+                  : '13-Month Ecliptic Wheel (Mazzaroth · Job 38:32) & The 13th Sign of the Dragon'}
+              </span>
+            </div>
+            <span className="text-xs italic text-emerald-400 font-semibold">
+              {isPt
+                ? '13 Meses × 28 Dias = 13 Constelações Eclípticas'
+                : '13 Months × 28 Days = 13 Ecliptic Constellations'}
+            </span>
+          </div>
+
+          <h3 className="text-lg sm:text-xl font-bold text-slate-100">
+            {isPt
+              ? 'Correlação dos 13 Signos do Zodíaco e a Restauração do Signo do Dragão (Mês IX)'
+              : 'Correlation of the 13 Zodiac Signs & Restoration of the Sign of the Dragon (Month IX)'}
+          </h3>
+
+          <p className="text-xs text-slate-300 leading-relaxed max-w-4xl">
+            {isPt
+              ? 'Na astronomia real da eclíptica solar (Mazzaroth, Jó 38:32), o Sol atravessa 13 constelações ao longo do ano — e não apenas 12. Quando o antigo calendário de 13 meses de 28 dias foi comprimido em 12 meses greco-romanos irregulares, o 13º signo — O Dragão / Serpentário (Ofiúco · Draco, situado no Mês IX entre Escorpião e Sagitário) — foi omitido. Abaixo está o mapeamento integral dos 13 signos nos 13 meses sagrados.'
+              : 'In true solar ecliptic astronomy (Mazzaroth, Job 38:32), the Sun traverses 13 constellations over the year — not merely 12. When the ancient 13-month × 28-day calendar was compressed into 12 irregular Greco-Roman months, the 13th sign — The Dragon / Serpent-Bearer (Ophiuchus · Draco, positioned in Month IX between Scorpio and Sagittarius) — was omitted. Below is the complete mapping of all 13 signs across the 13 sacred months.'}
+          </p>
+        </div>
+
+        {/* Highlight Banner for the 13th Sign of the Dragon */}
+        <div className="p-4 sm:p-5 bg-emerald-950/25 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-emerald-400">
+              <span>⛎ {isPt ? 'O 13º Signo Oculto Restaurado' : 'The Restored 13th Hidden Sign'}</span>
+              <span>·</span>
+              <span>{isPt ? 'Mês IX (Dias 225–252 do Ano)' : 'Month IX (Days 225–252 of Year)'}</span>
+            </div>
+            <h4 className="text-base sm:text-lg font-bold text-slate-100">
+              {isPt
+                ? 'O Dragão / Serpentário (Ofiúco · Draco — Arco Eclíptico 221,5° a 249,2°)'
+                : 'The Dragon / Serpent-Bearer (Ophiuchus · Draco — Ecliptic Arc 221.5° to 249.2°)'}
+            </h4>
+            <p className="text-xs text-slate-200 leading-relaxed max-w-3xl">
+              {isPt
+                ? 'Situado entre Escorpião (Mês VIII) e Sagitário (Mês X), o 9º Mês Sagrado corresponde à constelação de Ofiúco/Draco sobre a linha da eclíptica, restaurando a proporção exata de 1 signo para cada mês de 28 dias (4 semanas perfeitas).'
+                : 'Positioned between Scorpio (Month VIII) and Sagittarius (Month X), the 9th Sacred Month corresponds to the Ophiuchus/Draco constellation intersecting the ecliptic, restoring the exact 1-to-1 ratio of 1 sign per 28-day month (4 perfect weeks).'}
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              setActiveMonthFilter(9);
+              const el = document.getElementById('sacred-month-card-9');
+              if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }}
+            className="px-3.5 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold transition-colors cursor-pointer shrink-0 self-start md:self-center"
+          >
+            {isPt ? 'Ver Mês IX (Signo do Dragão)' : 'View Month IX (Dragon Sign)'}
+          </button>
+        </div>
+
+        {/* 13-Month Zodiac Correlation Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-slate-800">
+          {SACRED_13_ZODIAC_SIGNS.map((z) => {
+            const mInfo = monthsData[z.monthNumber - 1];
+            const startDayOfYear = (z.monthNumber - 1) * 28 + 1;
+            const endDayOfYear = z.monthNumber * 28;
+            const startGreg = mInfo?.days[0]?.numDay.gregorianDate.toISOString().split('T')[0] || '';
+            const endGreg =
+              mInfo?.days[mInfo.days.length - 1]?.numDay.gregorianDate
+                .toISOString()
+                .split('T')[0] || '';
+            const isDragon = Boolean(z.isThirteenthDragonSign);
+
+            return (
+              <div
+                key={z.monthNumber}
+                onClick={() => {
+                  setActiveMonthFilter(z.monthNumber);
+                  setTimeout(() => {
+                    const el = document.getElementById(`sacred-month-card-${z.monthNumber}`);
+                    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  }, 60);
+                }}
+                className={`p-4 flex flex-col justify-between space-y-3 cursor-pointer transition-colors ${
+                  isDragon
+                    ? 'bg-emerald-950/30 hover:bg-emerald-950/40 ring-1 ring-inset ring-emerald-500/50'
+                    : 'bg-slate-950 hover:bg-slate-900/70'
+                }`}
+              >
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between gap-2 text-xs tabular-nums">
+                    <span className="font-bold text-amber-400">
+                      {ROMAN_MONTHS[z.monthNumber - 1]}.{' '}
+                      {getMonthDisplayTitle(z.monthNumber, config.customMonthNames, language)}
+                    </span>
+                    <span className="text-slate-400 italic">
+                      {isPt
+                        ? `Dias ${startDayOfYear}–${endDayOfYear}`
+                        : `Days ${startDayOfYear}–${endDayOfYear}`}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-2">
+                    <h4 className="text-base font-bold text-slate-100 flex items-center gap-1.5">
+                      <span className="text-lg text-amber-300">{z.symbol}</span>
+                      <span>{isPt ? z.namePt : z.nameEn}</span>
+                    </h4>
+                    {isDragon && (
+                      <span className="px-1.5 py-0.5 bg-emerald-500 text-slate-950 text-[10px] font-bold uppercase tracking-wider">
+                        {isPt ? '13º Signo' : '13th Sign'}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="text-xs italic text-purple-300">
+                    {isPt ? z.archetypePt : z.archetypeEn} · {z.constellationLatin}
+                  </div>
+
+                  <p className="text-xs text-slate-300 leading-relaxed pt-1">
+                    {isPt ? z.meaningPt : z.meaningEn}
+                  </p>
+                </div>
+
+                <div className="pt-2.5 border-t border-slate-800/80 text-[11px] text-slate-400 space-y-1 tabular-nums">
+                  <div className="flex justify-between">
+                    <span>{isPt ? 'Arco Eclíptico:' : 'Ecliptic Arc:'}</span>
+                    <span className="text-slate-200 font-semibold">{z.eclipticArc}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>{isPt ? 'Elemento:' : 'Element:'}</span>
+                    <span className="text-amber-300">{isPt ? z.elementPt : z.elementEn}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>{isPt ? 'Gregoriano:' : 'Gregorian:'}</span>
+                    <span className="text-slate-300">
+                      {startGreg} → {endGreg}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
