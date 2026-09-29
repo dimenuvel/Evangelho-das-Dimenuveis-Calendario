@@ -151,14 +151,14 @@ export const TourGuideModal: React.FC<TourGuideModalProps> = ({
         ? 'Evangelho das Dimenúveis'
         : 'Gospel of Dimenuous',
       subtitle: isPt
-        ? 'Almanaque Bíblico Lunar, Sagrado e Milenar'
-        : 'Biblical Lunar, Sacred & Millennial Almanac',
+        ? 'Almanaque Bíblico Lunar, Sagrado e Milenar · Versão 2.0'
+        : 'Biblical Lunar, Sacred & Millennial Almanac · Version 2.0',
       content: (
         <div className="space-y-5">
           <p className="text-sm font-serif text-slate-200 leading-relaxed">
             {isPt
-              ? 'Este instrumento editorial e astronômico integra o Calendário Sagrado de 13 Meses × 28 Dias (364 dias + Dia Zero), o cálculo sinódico real das 8 fases da Lua, as Festas de Levítico 23 e o Relógio Milenar da Grande Semana de 7.000 anos.'
-              : 'This editorial and astronomical instrument integrates the 13-Month × 28-Day Sacred Calendar (364 days + Day Zero), real synodic calculations of the 8 lunar phases, Leviticus 23 Appointed Times, and the 7,000-Year Great Week Millennial Clock.'}
+              ? 'Este instrumento editorial e astronômico (v2.0) integra o Calendário Sagrado de 13 Meses × 28 Dias (364 dias + Dia Zero), os 13 Signos Eclípticos (incluindo o 13º Signo restaurado do Dragão no Mês IX), o Indicador Ao Vivo do Sábado, a Oração Diária Bíblica, as Festas de Levítico 23 e o Relógio Milenar de 7.000 anos.'
+              : 'This editorial and astronomical instrument (v2.0) integrates the 13-Month × 28-Day Sacred Calendar (364 days + Day Zero), the 13 Ecliptic Zodiac Signs (including the restored 13th Sign of the Dragon in Month IX), the Live Sabbath Indicator, the Daily Scriptural Prayer, Leviticus 23 Feasts, and the 7,000-Year Millennial Clock.'}
           </p>
 
           {/* Interactive Language & Theme Switcher Cards */}
@@ -310,13 +310,13 @@ export const TourGuideModal: React.FC<TourGuideModalProps> = ({
     {
       roman: 'II',
       icon: Calendar,
-      badge: isPt ? 'Estrutura' : 'Structure',
+      badge: isPt ? '13 Meses & 13 Signos' : '13 Months & 13 Signs',
       title: isPt
-        ? 'Dia Zero + 13 × 28 Dias'
-        : 'Day Zero + 13 × 28 Days',
+        ? 'Dia Zero + 13 × 28 Dias & O 13º Signo do Dragão'
+        : 'Day Zero + 13 × 28 Days & The 13th Sign of the Dragon',
       subtitle: isPt
-        ? 'Simetria perpétua de 364 dias e 52 semanas'
-        : 'Perpetual symmetry of 364 days and 52 weeks',
+        ? 'Simetria perpétua de 364 dias, 52 semanas e as 13 constelações eclípticas (Mazzaroth)'
+        : 'Perpetual symmetry of 364 days, 52 weeks, and the 13 ecliptic constellations (Mazzaroth)',
       content: (
         <div className="space-y-4 font-serif">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-px bg-slate-700 border border-slate-700">
@@ -335,39 +335,39 @@ export const TourGuideModal: React.FC<TourGuideModalProps> = ({
             </div>
             <div className="bg-slate-950 p-4 space-y-1">
               <span className="text-xs italic text-amber-400 block whitespace-nowrap">
-                {isPt ? '13 Meses Iguais' : '13 Equal Months'}
+                {isPt ? '13 Meses × 28 Dias' : '13 Months × 28 Days'}
               </span>
               <strong className="text-base text-slate-100 block whitespace-nowrap">
-                {isPt ? '28 Dias por Mês' : '28 Days per Month'}
+                {isPt ? '13 Signos (Mazzaroth)' : '13 Signs (Mazzaroth)'}
               </strong>
               <p className="text-xs text-slate-300 leading-relaxed">
                 {isPt
-                  ? 'Cada mês possui exatamente 4 semanas perfeitas (Dias 1 a 28), totalizando 364 dias numerados.'
-                  : 'Every month has 4 exact weeks (Days 1 to 28), totaling 364 numbered days.'}
+                  ? 'Cada mês de 28 dias correlaciona-se a 1 das 13 constelações eclípticas (Jó 38:32), de Áries (Mês I) a Peixes (Mês XIII).'
+                  : 'Every 28-day month correlates to 1 of the 13 ecliptic constellations (Job 38:32), from Aries (Month I) to Pisces (Month XIII).'}
               </p>
             </div>
             <div className="bg-slate-950 p-4 space-y-1">
               <span className="text-xs italic text-emerald-300 block whitespace-nowrap">
-                {isPt ? 'Ciclo Perpétuo' : 'Perpetual Cycle'}
+                {isPt ? 'Mês IX Restaurado' : 'Restored Month IX'}
               </span>
               <strong className="text-base text-slate-100 block whitespace-nowrap">
-                {isPt ? '52 Sábados Semanais' : '52 Weekly Sabbaths'}
+                ⛎ {isPt ? '13º Signo: O Dragão' : '13th Sign: The Dragon'}
               </strong>
               <p className="text-xs text-slate-300 leading-relaxed">
                 {isPt
-                  ? 'Os Sábados semanais caem sempre nos Dias 7, 14, 21 e 28 de todos os 13 meses.'
-                  : 'Weekly Sabbaths always fall on Days 7, 14, 21, and 28 of all 13 months.'}
+                  ? 'Restaura o 13º signo eclíptico do Dragão / Serpentário (Ofiúco · Draco) no Mês IX, entre Escorpião e Sagitário.'
+                  : 'Restores the 13th ecliptic sign of the Dragon / Serpent-Bearer (Ophiuchus · Draco) in Month IX, between Scorpio and Sagittarius.'}
               </p>
             </div>
           </div>
 
           <div className="p-4 border border-slate-800 bg-slate-900/40 text-xs text-slate-300 leading-relaxed">
             <strong className="text-amber-300">
-              {isPt ? 'Dica Interativa: ' : 'Interactive Tip: '}
+              {isPt ? 'Tags de Hoje e Aniversário no Cap. II: ' : 'Today & Birthday Tags on Ch. II: '}
             </strong>
             {isPt
-              ? 'Na aba II (Calendário), clique em qualquer célula dos 364 dias ou no banner do Dia Zero para abrir a Ficha Completa do Dia com conversão gregoriana, iluminação lunar e leituras.'
-              : 'In Tab II (Calendar), click any of the 364 day cells or the Day Zero banner to open the Full Day Dossier with Gregorian conversion, lunar illumination, and readings.'}
+              ? 'Na aba II (Calendário), o dia atual é destacado com o selo HOJE e o seu aniversário de 13 meses recebe o selo ANIV. em todos os anos sagrados, além da matriz completa dos 13 signos do zodíaco.'
+              : 'In Tab II (Calendar), the current day is highlighted with a TODAY badge and your 13-month birthday is tagged with a BDAY badge across every sacred year, alongside the complete 13-sign zodiac matrix.'}
           </div>
         </div>
       ),
@@ -375,35 +375,46 @@ export const TourGuideModal: React.FC<TourGuideModalProps> = ({
     {
       roman: 'III',
       icon: Compass,
-      badge: isPt ? 'Lua, Sol & Alertas' : 'Moon, Sun & Alerts',
+      badge: isPt ? 'Sábado, Oração & Alertas' : 'Sabbath, Prayer & Alerts',
       title: isPt
-        ? 'Camada Lunar, Nascer do Sol & Notificações Móveis'
-        : 'Lunar Overlay, Sunrise & Mobile Notifications',
+        ? 'Indicador do Sábado, Oração Diária & Notificações'
+        : 'Sabbath Indicator, Daily Prayer & Notifications',
       subtitle: isPt
-        ? '8 fases da Lua, alvorada solar local e alertas das Festas de Levítico 23'
-        : '8 lunar phases, local solar dawn, and Leviticus 23 Feast alerts',
+        ? 'Contagem regressiva do pôr do sol, reflexão bíblica diária e alertas na barra de status'
+        : 'Live sunset countdown, daily scriptural reflection, and status bar alerts',
       content: (
         <div className="space-y-4 font-serif">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="border border-slate-800 bg-slate-900/40 p-4 space-y-2">
-              <h4 className="text-sm font-bold text-blue-300 whitespace-nowrap">
-                {isPt ? 'Camada Lunar (Cap. IV — Lua)' : 'Lunar Overlay (Ch. IV — Moon)'}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="border border-slate-800 bg-slate-900/40 p-3.5 space-y-1.5">
+              <h4 className="text-xs sm:text-sm font-bold text-amber-300">
+                {isPt ? 'Indicador do Sábado (Cap. I & V)' : 'Sabbath Indicator (Ch. I & V)'}
               </h4>
               <p className="text-xs text-slate-300 leading-relaxed">
                 {isPt
-                  ? 'O mês sinódico astronômico (~29,53 dias) é calculado em tempo real e sobreposto ao calendário de 28 dias sem deformar os meses. Receba notificações automáticas em cada Mudança de Fase da Lua.'
-                  : 'The astronomical synodic month (~29.53 days) is calculated in real time and overlaid onto the 28-day calendar without deforming month boundaries. Receive automatic notifications on every Moon Phase Change.'}
+                  ? 'No topo da página Hoje, acompanhe a contagem regressiva para o pôr do sol do próximo Sábado. Quando o Sábado está ativo, a barra brilha em ouro.'
+                  : 'At the top of the Today page, track the live sunset countdown to the next Sabbath. When the Sabbath is active, the bar glows gold.'}
               </p>
             </div>
 
-            <div className="border border-slate-800 bg-slate-900/40 p-4 space-y-2">
-              <h4 className="text-sm font-bold text-amber-300 whitespace-nowrap">
-                {isPt ? 'Festas Bíblicas (Cap. III — Festas)' : 'Biblical Feasts (Ch. III — Feasts)'}
+            <div className="border border-slate-800 bg-slate-900/40 p-3.5 space-y-1.5">
+              <h4 className="text-xs sm:text-sm font-bold text-purple-300">
+                {isPt ? 'Oração Diária (Cap. I — Hoje)' : 'Daily Prayer (Ch. I — Today)'}
               </h4>
               <p className="text-xs text-slate-300 leading-relaxed">
                 {isPt
-                  ? 'Calcula dinamicamente Páscoa, Pães Asmos, Primícias, Pentecostes (Shavuot), Trombetas, Dia da Expiação, Tabernáculos (7 dias) e Oitavo Dia (1 dia), identificando quando coincidem com o Sábado semanal.'
-                  : 'Dynamically calculates Passover, Unleavened Bread, Firstfruits, Pentecost (Shavuot), Trumpets, Day of Atonement, Tabernacles (7 days), and Eighth Day (1 day), highlighting Sabbath overlaps.'}
+                  ? 'Exibe diariamente uma reflexão bíblica e oração ancoradas na posição exata do dia atual dentro dos 13 meses e das 4 semanas do mês.'
+                  : 'Displays a daily scripture-based reflection and prayer anchored in the current day’s exact position within the 13 months and 4 monthly weeks.'}
+              </p>
+            </div>
+
+            <div className="border border-slate-800 bg-slate-900/40 p-3.5 space-y-1.5">
+              <h4 className="text-xs sm:text-sm font-bold text-blue-300">
+                {isPt ? 'Festas & Google Agenda (Cap. III)' : 'Feasts & Google Calendar (Ch. III)'}
+              </h4>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                {isPt
+                  ? 'Calcula as 8 Festas de Levítico 23 e o seu Natalício de 13 Meses, com inclusão direta no Google Agenda.'
+                  : 'Calculates the 8 Feasts of Leviticus 23 and your 13-Month Sacred Birthday, with 1-tap export to Google Calendar.'}
               </p>
             </div>
           </div>
@@ -547,19 +558,25 @@ export const TourGuideModal: React.FC<TourGuideModalProps> = ({
                 id: 'TODAY' as NavTab,
                 roman: 'I',
                 title: t.tabs.TODAY,
-                desc: isPt ? 'Painel diário sagrado, solar, lunar e milenar' : 'Daily sacred, solar, lunar & millennial overview',
+                desc: isPt
+                  ? 'Indicador do Sábado, Oração Diária, painel solar/lunar e mapa azimutal'
+                  : 'Sabbath indicator, Daily Prayer, solar/lunar panel & azimuthal map',
               },
               {
                 id: 'CALENDAR' as NavTab,
                 roman: 'II',
                 title: t.tabs.CALENDAR,
-                desc: isPt ? 'Almanaque de 13 meses × 28 dias + Dia Zero' : '13-month × 28-day almanac + Day Zero',
+                desc: isPt
+                  ? '13 meses × 28 dias, 13 Signos (13º Signo do Dragão) e tags Hoje/Aniv.'
+                  : '13 months × 28 days, 13 Signs (13th Dragon Sign) & Today/Bday tags',
               },
               {
                 id: 'FEASTS' as NavTab,
                 roman: 'III',
                 title: t.tabs.FEASTS,
-                desc: isPt ? 'As 8 Festas de Levítico 23 e conversões' : 'The 8 Leviticus 23 Feasts & conversions',
+                desc: isPt
+                  ? 'As 8 Festas de Levítico 23, Natalício de 13 Meses e Google Agenda'
+                  : 'The 8 Leviticus 23 Feasts, 13-Month Birthday & Google Calendar',
               },
               {
                 id: 'MOON' as NavTab,
@@ -571,7 +588,9 @@ export const TourGuideModal: React.FC<TourGuideModalProps> = ({
                 id: 'SABBATH' as NavTab,
                 roman: 'V',
                 title: t.tabs.SABBATH,
-                desc: isPt ? 'Guardião dos 52 Sábados semanais e Dia Zero' : 'Guardian of the 52 weekly Sabbaths & Day Zero',
+                desc: isPt
+                  ? 'Contagem regressiva do pôr do sol, 52 Sábados semanais e Dia Zero'
+                  : 'Live sunset countdown, 52 weekly Sabbaths & Day Zero',
               },
               {
                 id: 'GREAT_WEEK' as NavTab,
