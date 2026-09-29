@@ -4,16 +4,17 @@
  * Renders an interactive SVG 13-Sector Ecliptic Wheel (including Month IX: The Dragon / Ophiuchus),
  * Horizon/Meridian Axes (ASC/DSC/MC/IC), Natal Sun, Moon, Classical Planets, Dragon Node,
  * Geometric Aspects, Manual Birth City & Country geocoding/coordinates, and a high-resolution
- * 'Download Astral Map' button powered by html-to-image canvas capture.
+ * 'Download Astral Map' button powered by html-to-image canvas capture with zero text truncation or overflow.
  */
 
 import React, { useState, useMemo, useRef } from 'react';
-import { toPng } from 'html-to-image';
+import { toCanvas } from 'html-to-image';
 import { CalendarConfiguration } from '../types/calendar';
 import { Language } from '../i18n/translations';
 import {
   SACRED_13_ZODIAC_SIGNS,
   MONTH_ROMAN_NUMERALS,
+  SacredZodiacSign,
   getMonthDisplayTitle,
 } from '../calendar/months';
 import { getLocalizedPhaseName } from '../astronomy/moon';
@@ -41,6 +42,59 @@ interface NatalAstralMapWidgetProps {
   onSelectMonthInCalendar?: (monthNumber: number) => void;
 }
 
+/**
+ * Returns the complete, untruncated display name for a 13-Zodiac sign on the wheel arc.
+ * For Month IX, returns "O Dragão" / "The Dragon" so it fits cleanly without parenthetical overflow.
+ */
+function getWheelSignDisplayName(sign: SacredZodiacSign, isPt: boolean): string {
+  if (sign.isThirteenthDragonSign) {
+    return isPt ? 'O Dragão' : 'The Dragon';
+  }
+  return isPt ? sign.namePt : sign.nameEn;
+}
+
+/**
+ * Helper to wrap text lines onto a 2D canvas context within maxWidth so exported images never overflow or truncate.
+ */
+function drawWrappedCanvasText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  y: number,
+  maxWidth: number,
+  lineHeight: number,
+  maxLines: number = 3
+): number {
+  const words = text.split(/\s+/);
+  let line = '';
+  let currentY = y;
+  let lineCount = 0;
+
+  for (let i = 0; i < words.length; i++) {
+    const testLine = line ? `${line} ${words[i]}` : words[i];
+    const metrics = ctx.measureText(testLine);
+    if (metrics.width > maxWidth && line) {
+      lineCount++;
+      ctx.fillText(line, x, currentY);
+      line = words[i];
+      currentY += lineHeight;
+      if (lineCount >= maxLines - 1) {
+        // Put remaining words on the last allowed line
+        const remaining = [line, ...words.slice(i + 1)].join(' ');
+        ctx.fillText(remaining, x, currentY, maxWidth);
+        return currentY + lineHeight;
+      }
+    } else {
+      line = testLine;
+    }
+  }
+  if (line) {
+    ctx.fillText(line, x, currentY);
+    currentY += lineHeight;
+  }
+  return currentY;
+}
+
 export const NatalAstralMapWidget: React.FC<NatalAstralMapWidgetProps> = ({
   config,
   onUpdateConfig,
@@ -49,6 +103,7 @@ export const NatalAstralMapWidget: React.FC<NatalAstralMapWidgetProps> = ({
 }) => {
   const isPt = language === 'pt';
   const astralCaptureRef = useRef<HTMLDivElement | null>(null);
+  const wheelContainerRef = useRef<HTMLDivElement | null>(null);
   const svgWheelRef = useRef<SVGSVGElement | null>(null);
 
   // Default preview date if user hasn't entered their birthday yet
@@ -229,6 +284,12 @@ export const NatalAstralMapWidget: React.FC<NatalAstralMapWidgetProps> = ({
     document.body.removeChild(link);
   };
 
+  /**
+   * Exports a high-resolution (2400 × 1660) archival Natal Astral Map PNG image.
+   * Uses html-to-image `toCanvas` to capture the 13-Sign Zodiac Wheel alignment and
+   * composes all Natal Triad, 10-Point Ephemeris, and Aspect labels on a spacious canvas
+   * with full multi-line text wrapping so zero labels are ever truncated or overflowing.
+   */
   const handleDownloadAstralMap = async () => {
     if (!chart || isDownloadingImage) return;
     setIsDownloadingImage(true);
@@ -238,83 +299,382 @@ export const NatalAstralMapWidget: React.FC<NatalAstralMapWidgetProps> = ({
       : `13-Sign-Astral-Map-${chart.birthDateISO}-${safeTime}.png`;
 
     try {
-      // 1. Primary path: Capture full Astral Map section via html-to-image canvas library
-      if (astralCaptureRef.current) {
-        const dataUrl = await toPng(astralCaptureRef.current, {
-          pixelRatio: 2.5,
-          backgroundColor: '#070a0f',
-          cacheBust: true,
-          skipFonts: true,
-          fontEmbedCSS: '',
-        });
-        triggerImageDownload(dataUrl, fileName);
+      const posterCanvas = document.createElement('canvas');
+      posterCanvas.width = 2400;
+      posterCanvas.height = 1660;
+      const ctx = posterCanvas.getContext('2d');
+      if (!ctx) {
         setIsDownloadingImage(false);
         return;
       }
-    } catch {
-      // 2. Fallback: Render high-resolution SVG wheel + header directly onto HTML5 Canvas
-      try {
-        if (svgWheelRef.current) {
-          const serializer = new XMLSerializer();
-          const svgStr = serializer.serializeToString(svgWheelRef.current);
-          const svgBlob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
-          const url = URL.createObjectURL(svgBlob);
-          const img = new Image();
-          await new Promise<void>((resolve, reject) => {
-            img.onload = () => resolve();
-            img.onerror = (e) => reject(e);
-            img.src = url;
+
+      // 1. Background & Outer Archival Frame
+      ctx.fillStyle = '#070a0f';
+      ctx.fillRect(0, 0, posterCanvas.width, posterCanvas.height);
+
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(28, 28, posterCanvas.width - 56, posterCanvas.height - 56);
+
+      ctx.strokeStyle = 'rgba(245, 158, 11, 0.45)';
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(38, 38, posterCanvas.width - 76, posterCanvas.height - 76);
+
+      // 2. Top Archival Header Banner
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(40, 40, posterCanvas.width - 80, 138);
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(40, 178);
+      ctx.lineTo(posterCanvas.width - 40, 178);
+      ctx.stroke();
+
+      ctx.textAlign = 'left';
+      ctx.fillStyle = '#fbbf24';
+      ctx.font = 'bold 34px Georgia, "Times New Roman", serif';
+      ctx.fillText(
+        isPt
+          ? 'EVANGELHO DAS DIMENÚVEIS — MAPA ASTRAL NATAL DE 13 SIGNOS (MAZZAROTH)'
+          : 'GOSPEL OF DIMENUOUS — 13-SIGN NATAL ASTRAL MAP (MAZZAROTH)',
+        72,
+        92
+      );
+
+      const sacredBirthLabel = chart.isBornOnDayZero
+        ? isPt
+          ? 'Dia Zero (Sábado Anual)'
+          : 'Day Zero (Annual Sabbath)'
+        : `${getMonthDisplayTitle(chart.sacredMonth, config.customMonthNames, language)}, ${
+            isPt ? 'Dia' : 'Day'
+          } ${chart.sacredDayOfMonth} (${isPt ? 'Ano Sagrado' : 'Sacred Year'} ${
+            chart.sacredYearOfBirth
+          })`;
+
+      ctx.fillStyle = '#f8fafc';
+      ctx.font = 'bold 24px Georgia, "Times New Roman", serif';
+      ctx.fillText(
+        `${isPt ? 'Nascimento:' : 'Birth:'} ${chart.birthDateISO} · ${
+          chart.birthTimeHHMM
+        }   |   ${sacredBirthLabel}   |   ${observerPlaceLabel} (${observerLat.toFixed(
+          2
+        )}°, ${observerLon.toFixed(2)}°)`,
+        72,
+        134
+      );
+
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = 'italic 20px Georgia, "Times New Roman", serif';
+      ctx.fillText(
+        isPt
+          ? `Nascer do Sol Local: ${chart.localSunriseAtBirth} · Pôr do Sol: ${chart.localSunsetAtBirth} · ${chart.enochSolarGate}ª Porta Celeste de 1 Enoque 72 (${chart.dayParts18}/18 Partes de Dia)`
+          : `Local Sunrise: ${chart.localSunriseAtBirth} · Sunset: ${chart.localSunsetAtBirth} · Enoch Gate ${chart.enochSolarGate} (${chart.dayParts18}/18 Day Parts)`,
+        72,
+        164
+      );
+
+      // 3. Capture the 13-Sign Zodiac Wheel via html-to-image `toCanvas` (with SVG serializer fallback)
+      let wheelDrawn = false;
+      if (wheelContainerRef.current) {
+        try {
+          const capturedWheelCanvas = await toCanvas(wheelContainerRef.current, {
+            pixelRatio: 2.5,
+            backgroundColor: '#070a0f',
+            cacheBust: true,
+            skipFonts: true,
+            fontEmbedCSS: '',
           });
-          const canvas = document.createElement('canvas');
-          canvas.width = 1200;
-          canvas.height = 1320;
-          const ctx = canvas.getContext('2d');
-          if (ctx) {
-            ctx.fillStyle = '#070a0f';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = '#fbbf24';
-            ctx.font = 'bold 28px Georgia, serif';
-            ctx.textAlign = 'center';
-            ctx.fillText(
-              isPt
-                ? 'Evangelho das Dimenúveis — Mapa Astral Natal de 13 Signos'
-                : 'Gospel of Dimenuous — 13-Sign Natal Astral Map',
-              600,
-              52
-            );
-            ctx.fillStyle = '#e2e8f0';
-            ctx.font = '20px Georgia, serif';
-            ctx.fillText(
-              `${chart.birthDateISO} · ${chart.birthTimeHHMM} · ${observerPlaceLabel} (${observerLat.toFixed(
-                2
-              )}°, ${observerLon.toFixed(2)}°)`,
-              600,
-              88
-            );
-            ctx.drawImage(img, 60, 110, 1080, 1080);
-            ctx.fillStyle = '#f59e0b';
-            ctx.font = 'bold 20px Georgia, serif';
-            ctx.fillText(
-              `☉ ${
-                isPt ? chart.sunPosition.zodiacSign.namePt : chart.sunPosition.zodiacSign.nameEn
-              }   ·   ☽ ${
-                isPt ? chart.moonPosition.zodiacSign.namePt : chart.moonPosition.zodiacSign.nameEn
-              }   ·   ASC ${
-                isPt
-                  ? chart.ascendantPosition.zodiacSign.namePt
-                  : chart.ascendantPosition.zodiacSign.nameEn
-              }`,
-              600,
-              1245
-            );
-            URL.revokeObjectURL(url);
-            const fallbackDataUrl = canvas.toDataURL('image/png');
-            triggerImageDownload(fallbackDataUrl, fileName);
-          }
+          ctx.drawImage(capturedWheelCanvas, 70, 210, 1120, 1120);
+          wheelDrawn = true;
+        } catch {
+          wheelDrawn = false;
         }
-      } catch {
-        // ignore
       }
+
+      if (!wheelDrawn && svgWheelRef.current) {
+        const serializer = new XMLSerializer();
+        const svgStr = serializer.serializeToString(svgWheelRef.current);
+        const svgBlob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
+        const url = URL.createObjectURL(svgBlob);
+        const img = new Image();
+        await new Promise<void>((resolve, reject) => {
+          img.onload = () => resolve();
+          img.onerror = (e) => reject(e);
+          img.src = url;
+        });
+        ctx.drawImage(img, 70, 210, 1120, 1120);
+        URL.revokeObjectURL(url);
+      }
+
+      // 4. Bottom-Left Selected Body Box under the Wheel
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(70, 1355, 1120, 235);
+      ctx.strokeStyle = '#f59e0b';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(70, 1355, 1120, 235);
+
+      ctx.fillStyle = '#fbbf24';
+      ctx.font = 'bold 25px Georgia, "Times New Roman", serif';
+      ctx.fillText(
+        `${selectedBody.symbol} ${
+          isPt ? selectedBody.namePt : selectedBody.nameEn
+        } — ${selectedBody.zodiacSign.symbol} ${
+          isPt ? selectedBody.zodiacSign.namePt : selectedBody.zodiacSign.nameEn
+        } (${isPt ? 'Mês' : 'Month'} ${MONTH_ROMAN_NUMERALS[selectedBody.signIndex - 1]}) · ${selectedBody.eclipticLongitude.toFixed(
+          1
+        )}° (${isPt ? 'Dia' : 'Day'} ${selectedBody.equivalentSacredDayInMonth}/28)`,
+        96,
+        1400
+      );
+
+      ctx.fillStyle = '#c084fc';
+      ctx.font = 'italic 21px Georgia, "Times New Roman", serif';
+      ctx.fillText(
+        `${isPt ? selectedBody.rolePt : selectedBody.roleEn} · ${
+          isPt ? selectedBody.zodiacSign.archetypePt : selectedBody.zodiacSign.archetypeEn
+        } (${selectedBody.zodiacSign.constellationLatin})`,
+        96,
+        1436
+      );
+
+      ctx.fillStyle = '#e2e8f0';
+      ctx.font = '20px Georgia, "Times New Roman", serif';
+      drawWrappedCanvasText(
+        ctx,
+        isPt ? selectedBody.zodiacSign.meaningPt : selectedBody.zodiacSign.meaningEn,
+        96,
+        1474,
+        1068,
+        30,
+        3
+      );
+
+      // Vertical Divider between Left Wheel Column and Right Ephemeris Column
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(1230, 178);
+      ctx.lineTo(1230, posterCanvas.height - 40);
+      ctx.stroke();
+
+      // 5. Right Column — Section I: Primary Natal Triad (Sun, Moon, Ascendant)
+      const rightX = 1266;
+      const rightW = 1064;
+      let curY = 224;
+
+      ctx.fillStyle = '#fbbf24';
+      ctx.font = 'bold 24px Georgia, "Times New Roman", serif';
+      ctx.fillText(
+        isPt
+          ? 'I. TRÍADE NATAL PRINCIPAL (SOL · LUA · ASCENDENTE)'
+          : 'I. PRIMARY NATAL TRIAD (SUN · MOON · ASCENDANT)',
+        rightX,
+        curY
+      );
+      curY += 20;
+
+      const triadCards = [
+        {
+          border: '#f59e0b',
+          bg: 'rgba(120, 53, 15, 0.22)',
+          title: `☉ ${
+            isPt ? 'SIGNO SOLAR NATAL (MÊS SAGRADO)' : 'NATAL SUN SIGN (SACRED MONTH)'
+          }`,
+          titleColor: '#fbbf24',
+          main: `${chart.sunPosition.zodiacSign.symbol} ${
+            isPt ? chart.sunPosition.zodiacSign.namePt : chart.sunPosition.zodiacSign.nameEn
+          } — ${isPt ? 'Mês' : 'Month'} ${
+            MONTH_ROMAN_NUMERALS[chart.sunPosition.signIndex - 1]
+          } · ${chart.sunPosition.eclipticLongitude.toFixed(1)}° (${
+            isPt ? 'Dia' : 'Day'
+          } ${chart.sunPosition.equivalentSacredDayInMonth}/28)`,
+          sub: `${
+            isPt
+              ? chart.sunPosition.zodiacSign.archetypePt
+              : chart.sunPosition.zodiacSign.archetypeEn
+          } · ${
+            isPt
+              ? chart.sunPosition.zodiacSign.elementPt
+              : chart.sunPosition.zodiacSign.elementEn
+          }`,
+        },
+        {
+          border: '#3b82f6',
+          bg: 'rgba(30, 58, 138, 0.22)',
+          title: `☽ ${
+            isPt ? 'SIGNO LUNAR NATAL & FASE NA HORA' : 'NATAL MOON SIGN & PHASE AT BIRTH'
+          }`,
+          titleColor: '#93c5fd',
+          main: `${chart.moonPosition.zodiacSign.symbol} ${
+            isPt
+              ? chart.moonPosition.zodiacSign.namePt
+              : chart.moonPosition.zodiacSign.nameEn
+          } — ${isPt ? 'Mês' : 'Month'} ${
+            MONTH_ROMAN_NUMERALS[chart.moonPosition.signIndex - 1]
+          } · ${chart.moonPosition.eclipticLongitude.toFixed(1)}°`,
+          sub: `${getLocalizedPhaseName(chart.birthLunarInfo.phaseName, language)} · ${(
+            chart.birthLunarInfo.fraction * 100
+          ).toFixed(1)}% ${isPt ? 'Iluminada' : 'Illuminated'}`,
+        },
+        {
+          border: '#10b981',
+          bg: 'rgba(6, 78, 59, 0.22)',
+          title: `ASC ${
+            isPt
+              ? 'SIGNO ASCENDENTE (HORIZONTE ORIENTAL)'
+              : 'RISING ASCENDANT (EASTERN HORIZON)'
+          }`,
+          titleColor: '#6ee7b7',
+          main: `${chart.ascendantPosition.zodiacSign.symbol} ${
+            isPt
+              ? chart.ascendantPosition.zodiacSign.namePt
+              : chart.ascendantPosition.zodiacSign.nameEn
+          } — ${isPt ? 'Mês' : 'Month'} ${
+            MONTH_ROMAN_NUMERALS[chart.ascendantPosition.signIndex - 1]
+          } · ${chart.birthTimeHHMM} (${chart.ascendantPosition.eclipticLongitude.toFixed(
+            1
+          )}°)`,
+          sub: `${
+            isPt
+              ? chart.ascendantPosition.zodiacSign.archetypePt
+              : chart.ascendantPosition.zodiacSign.archetypeEn
+          } · ${chart.enochSolarGate}ª ${
+            isPt ? 'Porta de Enoque' : 'Enoch Gate'
+          } (${chart.dayParts18}/18 ${isPt ? 'Dia' : 'Day'})`,
+        },
+      ];
+
+      for (const card of triadCards) {
+        ctx.fillStyle = card.bg;
+        ctx.fillRect(rightX, curY, rightW, 118);
+        ctx.strokeStyle = card.border;
+        ctx.lineWidth = 1.8;
+        ctx.strokeRect(rightX, curY, rightW, 118);
+
+        ctx.fillStyle = card.titleColor;
+        ctx.font = 'bold 18px Georgia, "Times New Roman", serif';
+        ctx.fillText(card.title, rightX + 20, curY + 30);
+
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = 'bold 23px Georgia, "Times New Roman", serif';
+        ctx.fillText(card.main, rightX + 20, curY + 66);
+
+        ctx.fillStyle = '#cbd5e1';
+        ctx.font = 'italic 19px Georgia, "Times New Roman", serif';
+        ctx.fillText(card.sub, rightX + 20, curY + 98);
+
+        curY += 132;
+      }
+
+      // 6. Right Column — Section II: Complete 10-Point Natal Ephemeris Table (Full Names, Zero Truncation)
+      curY += 18;
+      ctx.fillStyle = '#fbbf24';
+      ctx.font = 'bold 24px Georgia, "Times New Roman", serif';
+      ctx.fillText(
+        isPt
+          ? 'II. EFEMÉRIDES NATAIS NOS 13 SIGNOS (10 PONTOS CELESTES)'
+          : 'II. 13-SIGN NATAL EPHEMERIS (10 CELESTIAL POINTS)',
+        rightX,
+        curY
+      );
+      curY += 20;
+
+      const colW = (rightW - 20) / 2;
+      const rowH = 82;
+      chart.bodies.forEach((b, idx) => {
+        const col = idx % 2;
+        const row = Math.floor(idx / 2);
+        const bx = rightX + col * (colW + 20);
+        const by = curY + row * (rowH + 12);
+        const isDragonSign = Boolean(b.zodiacSign.isThirteenthDragonSign);
+
+        ctx.fillStyle = isDragonSign ? 'rgba(6, 78, 59, 0.28)' : '#0f172a';
+        ctx.fillRect(bx, by, colW, rowH);
+        ctx.strokeStyle = isDragonSign ? '#10b981' : '#334155';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(bx, by, colW, rowH);
+
+        ctx.fillStyle = b.colorHex;
+        ctx.font = 'bold 21px Georgia, "Times New Roman", serif';
+        ctx.fillText(
+          `${b.symbol} ${isPt ? b.namePt : b.nameEn}`,
+          bx + 16,
+          by + 32
+        );
+
+        ctx.fillStyle = '#fde68a';
+        ctx.font = 'bold 19px Georgia, "Times New Roman", serif';
+        const fullSignLabel = `${b.zodiacSign.symbol} ${
+          isPt ? b.zodiacSign.namePt : b.zodiacSign.nameEn
+        } (${MONTH_ROMAN_NUMERALS[b.signIndex - 1]}) · ${b.degreeInSign.toFixed(1)}° (${
+          isPt ? 'Dia' : 'Day'
+        } ${b.equivalentSacredDayInMonth})`;
+        ctx.fillText(fullSignLabel, bx + 16, by + 64);
+      });
+
+      curY += 5 * (rowH + 12) + 24;
+
+      // 7. Right Column — Section III: Geometric Natal Aspects
+      ctx.fillStyle = '#c084fc';
+      ctx.font = 'bold 24px Georgia, "Times New Roman", serif';
+      ctx.fillText(
+        isPt
+          ? 'III. ASPECTOS GEOMÉTRICOS DE ALINHAMENTO NATAL'
+          : 'III. NATAL GEOMETRIC ALIGNMENT ASPECTS',
+        rightX,
+        curY
+      );
+      curY += 20;
+
+      const visibleAspects = chart.aspects.slice(0, 6);
+      if (visibleAspects.length === 0) {
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = 'italic 20px Georgia, "Times New Roman", serif';
+        ctx.fillText(
+          isPt
+            ? 'Nenhum aspecto exato dentro da orbe estrita neste horário.'
+            : 'No exact major aspect within strict orb at this hour.',
+          rightX,
+          curY + 30
+        );
+      } else {
+        const aspRowH = 62;
+        visibleAspects.forEach((asp, idx) => {
+          const col = idx % 2;
+          const row = Math.floor(idx / 2);
+          const ax = rightX + col * (colW + 20);
+          const ay = curY + row * (aspRowH + 12);
+
+          ctx.fillStyle = '#0f172a';
+          ctx.fillRect(ax, ay, colW, aspRowH);
+          ctx.strokeStyle = '#334155';
+          ctx.lineWidth = 1.4;
+          ctx.strokeRect(ax, ay, colW, aspRowH);
+
+          ctx.fillStyle = '#f8fafc';
+          ctx.font = 'bold 19px Georgia, "Times New Roman", serif';
+          ctx.fillText(
+            `${asp.bodyA.symbol} ${isPt ? asp.bodyA.namePt : asp.bodyA.nameEn} ${
+              asp.symbol
+            } ${asp.bodyB.symbol} ${isPt ? asp.bodyB.namePt : asp.bodyB.nameEn}`,
+            ax + 14,
+            ay + 26
+          );
+
+          ctx.fillStyle = '#fbbf24';
+          ctx.font = '17px Georgia, "Times New Roman", serif';
+          ctx.fillText(
+            `${isPt ? asp.labelPt : asp.labelEn} — ${asp.angleDiff.toFixed(1)}° (${
+              isPt ? 'Orbe' : 'Orb'
+            } ${asp.orbDegrees.toFixed(1)}°)`,
+            ax + 14,
+            ay + 50
+          );
+        });
+      }
+
+      const dataUrl = posterCanvas.toDataURL('image/png');
+      triggerImageDownload(dataUrl, fileName);
     } finally {
       setIsDownloadingImage(false);
     }
@@ -325,12 +685,11 @@ export const NatalAstralMapWidget: React.FC<NatalAstralMapWidgetProps> = ({
   // SVG Coordinate Helpers
   const cx = 260;
   const cy = 260;
-  const rOuter = 236;
-  const rZodiacInner = 186;
-  const rTickInner = 172;
-  const rPlanetTrackOuter = 152;
-  const rPlanetTrackInner = 114;
-  const rAspectHub = 96;
+  const rOuter = 244;
+  const rZodiacInner = 182;
+  const rTickInner = 168;
+  const rPlanetTracks = [150, 131, 112, 95];
+  const rAspectHub = 76;
 
   const lonToSvgDeg = (lon: number): number => {
     if (wheelOrientation === 'ARIES_TOP') {
@@ -370,30 +729,42 @@ export const NatalAstralMapWidget: React.FC<NatalAstralMapWidgetProps> = ({
     ].join(' ');
   };
 
-  // Compute radial stagger for planetary markers so nearby bodies never overlap visually
+  // Compute radial track and subtle angular fan offset for planetary medallions so nearby bodies never overlap
   const sortedBodies = [...chart.bodies].sort(
     (a, b) => a.eclipticLongitude - b.eclipticLongitude
   );
-  const bodyRadiiMap = new Map<AstralBodyPosition['id'], number>();
+  const bodyPlacementMap = new Map<
+    AstralBodyPosition['id'],
+    { radius: number; displayLon: number }
+  >();
+
   sortedBodies.forEach((b, idx) => {
     if (idx === 0) {
-      bodyRadiiMap.set(b.id, rPlanetTrackOuter);
+      bodyPlacementMap.set(b.id, {
+        radius: rPlanetTracks[0],
+        displayLon: b.eclipticLongitude,
+      });
       return;
     }
-    const prev = sortedBodies[idx - 1];
-    const prevRadius = bodyRadiiMap.get(prev.id) || rPlanetTrackOuter;
-    const diff = Math.abs(b.eclipticLongitude - prev.eclipticLongitude);
-    if (diff < 12) {
-      const nextR =
-        prevRadius === rPlanetTrackOuter
-          ? (rPlanetTrackOuter + rPlanetTrackInner) / 2
-          : prevRadius === (rPlanetTrackOuter + rPlanetTrackInner) / 2
-          ? rPlanetTrackInner
-          : rPlanetTrackOuter;
-      bodyRadiiMap.set(b.id, nextR);
-    } else {
-      bodyRadiiMap.set(b.id, rPlanetTrackOuter);
+    // Check how many preceding bodies are within 14° of this body
+    let clusterCount = 0;
+    for (let j = 0; j < idx; j++) {
+      const prev = sortedBodies[j];
+      let diff = Math.abs(b.eclipticLongitude - prev.eclipticLongitude);
+      if (diff > 180) diff = 360 - diff;
+      if (diff < 14) {
+        clusterCount++;
+      }
     }
+    const trackRadius = rPlanetTracks[clusterCount % rPlanetTracks.length];
+    const angularNudge =
+      clusterCount > 0
+        ? (clusterCount % 2 === 1 ? 1 : -1) * Math.ceil(clusterCount / 2) * 2.2
+        : 0;
+    bodyPlacementMap.set(b.id, {
+      radius: trackRadius,
+      displayLon: b.eclipticLongitude + angularNudge,
+    });
   });
 
   const selectedBody =
@@ -747,7 +1118,10 @@ export const NatalAstralMapWidget: React.FC<NatalAstralMapWidgetProps> = ({
           </div>
 
           {/* SVG 13-Sector Natal Chart */}
-          <div className="w-full max-w-[520px] aspect-square relative">
+          <div
+            ref={wheelContainerRef}
+            className="w-full max-w-[540px] aspect-square relative p-1 bg-[#070a0f] rounded-full"
+          >
             <svg
               ref={svgWheelRef}
               viewBox="0 0 520 520"
@@ -776,11 +1150,17 @@ export const NatalAstralMapWidget: React.FC<NatalAstralMapWidgetProps> = ({
                 strokeWidth="1.5"
               />
 
-              {/* 13 Ecliptic Zodiac Sectors */}
+              {/* 13 Ecliptic Zodiac Sectors with Tangentially Rotated Full Sign Names */}
               {SACRED_13_ZODIAC_SIGNS.map((sign, idx) => {
                 const startLon = idx * (360 / 13);
                 const endLon = (idx + 1) * (360 / 13);
                 const midLon = (startLon + endLon) / 2;
+                const midSvgDeg = lonToSvgDeg(midLon);
+                const normDeg = ((midSvgDeg % 360) + 360) % 360;
+                // Tangential rotation angle so text follows the ring arc and is always upright
+                const tangentRot =
+                  normDeg >= 180 && normDeg <= 360 ? normDeg + 90 : normDeg - 90;
+
                 const pathD = buildSectorPath(rZodiacInner, rOuter, startLon, endLon);
 
                 const isSunSign = chart.sunPosition.signIndex === sign.monthNumber;
@@ -796,14 +1176,11 @@ export const NatalAstralMapWidget: React.FC<NatalAstralMapWidgetProps> = ({
                 else if (isMoonSign) sectorFill = 'rgba(59, 130, 246, 0.24)';
                 else if (isDragon) sectorFill = 'rgba(6, 95, 70, 0.32)';
 
-                const labelPos = polarToXY(
-                  (rOuter + rZodiacInner) / 2 + 6,
-                  lonToSvgDeg(midLon)
-                );
-                const romanPos = polarToXY(
-                  (rOuter + rZodiacInner) / 2 - 11,
-                  lonToSvgDeg(midLon)
-                );
+                // Outer radial band (r=224): Symbol + Roman Numeral
+                // Inner radial band (r=198): Full Sign Name along the sector arc
+                const symbolPos = polarToXY(224, midSvgDeg);
+                const namePos = polarToXY(198, midSvgDeg);
+                const fullWheelSignName = getWheelSignDisplayName(sign, isPt);
 
                 return (
                   <g
@@ -833,10 +1210,13 @@ export const NatalAstralMapWidget: React.FC<NatalAstralMapWidgetProps> = ({
                       strokeWidth={isSelectedSign || isSunSign || isDragon ? '1.8' : '1'}
                     />
 
-                    {/* Zodiac Symbol */}
+                    {/* Zodiac Symbol & Sacred Month Roman Numeral (Tangentially Aligned) */}
                     <text
-                      x={labelPos.x}
-                      y={labelPos.y}
+                      x={symbolPos.x}
+                      y={symbolPos.y}
+                      transform={`rotate(${tangentRot.toFixed(2)}, ${symbolPos.x.toFixed(
+                        2
+                      )}, ${symbolPos.y.toFixed(2)})`}
                       textAnchor="middle"
                       dominantBaseline="central"
                       fill={
@@ -846,24 +1226,26 @@ export const NatalAstralMapWidget: React.FC<NatalAstralMapWidgetProps> = ({
                           ? '#6ee7b7'
                           : '#f8fafc'
                       }
-                      fontSize="16"
+                      fontSize="13"
                       fontWeight="bold"
                     >
-                      {sign.symbol}
+                      {sign.symbol} {MONTH_ROMAN_NUMERALS[idx]}
                     </text>
 
-                    {/* Sacred Month Roman Numeral & Short Name */}
+                    {/* Complete Untruncated Sign Name (Tangentially Aligned) */}
                     <text
-                      x={romanPos.x}
-                      y={romanPos.y}
+                      x={namePos.x}
+                      y={namePos.y}
+                      transform={`rotate(${tangentRot.toFixed(2)}, ${namePos.x.toFixed(
+                        2
+                      )}, ${namePos.y.toFixed(2)})`}
                       textAnchor="middle"
                       dominantBaseline="central"
                       fill={isDragon ? '#34d399' : '#fbbf24'}
-                      fontSize="9"
+                      fontSize="9.5"
                       fontWeight="bold"
                     >
-                      {MONTH_ROMAN_NUMERALS[idx]} ·{' '}
-                      {(isPt ? sign.namePt : sign.nameEn).slice(0, 6)}
+                      {fullWheelSignName}
                     </text>
                   </g>
                 );
@@ -958,11 +1340,15 @@ export const NatalAstralMapWidget: React.FC<NatalAstralMapWidgetProps> = ({
 
               {/* Plotted Natal Bodies (Sun, Moon, Ascendant, Midheaven, Dragon Node, Planets) */}
               {chart.bodies.map((body) => {
-                const svgDeg = lonToSvgDeg(body.eclipticLongitude);
-                const markerR = bodyRadiiMap.get(body.id) || rPlanetTrackOuter;
-                const pos = polarToXY(markerR, svgDeg);
-                const tickPos = polarToXY(rTickInner, svgDeg);
-                const hubAnchorPos = polarToXY(rAspectHub, svgDeg);
+                const placement = bodyPlacementMap.get(body.id) || {
+                  radius: rPlanetTracks[0],
+                  displayLon: body.eclipticLongitude,
+                };
+                const trueSvgDeg = lonToSvgDeg(body.eclipticLongitude);
+                const displaySvgDeg = lonToSvgDeg(placement.displayLon);
+                const pos = polarToXY(placement.radius, displaySvgDeg);
+                const tickPos = polarToXY(rTickInner, trueSvgDeg);
+                const hubAnchorPos = polarToXY(rAspectHub, trueSvgDeg);
                 const isSelected = selectedBody.id === body.id;
                 const isPrimary =
                   body.id === 'SUN' || body.id === 'MOON' || body.id === 'ASCENDANT';
@@ -973,7 +1359,7 @@ export const NatalAstralMapWidget: React.FC<NatalAstralMapWidgetProps> = ({
                     onClick={() => setSelectedBodyId(body.id)}
                     className="cursor-pointer"
                   >
-                    {/* Guide ray from degree tick through planet to aspect hub */}
+                    {/* Guide ray from true degree tick to aspect hub */}
                     <line
                       x1={tickPos.x}
                       y1={tickPos.y}
@@ -997,7 +1383,7 @@ export const NatalAstralMapWidget: React.FC<NatalAstralMapWidgetProps> = ({
                       <circle
                         cx={pos.x}
                         cy={pos.y}
-                        r={isPrimary ? 17 : 15}
+                        r={isPrimary ? 16 : 14}
                         fill="none"
                         stroke="#fbbf24"
                         strokeWidth="1.5"
@@ -1009,10 +1395,10 @@ export const NatalAstralMapWidget: React.FC<NatalAstralMapWidgetProps> = ({
                     <circle
                       cx={pos.x}
                       cy={pos.y}
-                      r={isPrimary ? 13 : 11}
+                      r={isPrimary ? 12.5 : 10.5}
                       fill="#090d16"
                       stroke={body.colorHex}
-                      strokeWidth={isSelected ? '2.8' : '1.5'}
+                      strokeWidth={isSelected ? '2.6' : '1.5'}
                     />
                     <text
                       x={pos.x}
@@ -1020,7 +1406,7 @@ export const NatalAstralMapWidget: React.FC<NatalAstralMapWidgetProps> = ({
                       textAnchor="middle"
                       dominantBaseline="central"
                       fill={body.colorHex}
-                      fontSize={body.symbol.length > 1 ? '8.5' : '12'}
+                      fontSize={body.symbol.length > 1 ? '8' : '11.5'}
                       fontWeight="bold"
                     >
                       {body.symbol}
@@ -1033,7 +1419,7 @@ export const NatalAstralMapWidget: React.FC<NatalAstralMapWidgetProps> = ({
               <circle
                 cx={cx}
                 cy={cy}
-                r={24}
+                r={23}
                 fill="#090d16"
                 stroke="#f59e0b"
                 strokeWidth="1.2"
@@ -1043,7 +1429,7 @@ export const NatalAstralMapWidget: React.FC<NatalAstralMapWidgetProps> = ({
                 y={cy - 5}
                 textAnchor="middle"
                 fill="#fbbf24"
-                fontSize="8.5"
+                fontSize="8"
                 fontWeight="bold"
               >
                 {isPt ? '13 SIGNOS' : '13 SIGNS'}
@@ -1253,7 +1639,7 @@ export const NatalAstralMapWidget: React.FC<NatalAstralMapWidgetProps> = ({
                     key={b.id}
                     type="button"
                     onClick={() => setSelectedBodyId(b.id)}
-                    className={`p-2 border text-left flex items-center justify-between gap-2 transition-colors cursor-pointer ${
+                    className={`p-2.5 border text-left flex flex-col justify-between gap-1 transition-colors cursor-pointer ${
                       isSelected
                         ? 'border-amber-400 ring-1 ring-amber-400 bg-amber-950/25'
                         : isInDragon
@@ -1261,25 +1647,29 @@ export const NatalAstralMapWidget: React.FC<NatalAstralMapWidgetProps> = ({
                         : 'border-slate-800 bg-slate-900/40 hover:bg-slate-900'
                     }`}
                   >
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      <span
-                        className={`font-bold text-xs shrink-0 ${
-                          isSelected ? 'text-amber-400' : 'text-amber-300'
-                        }`}
-                      >
-                        {b.symbol}
-                      </span>
-                      <span className="text-slate-100 font-bold truncate">
+                    <div className="flex items-center justify-between gap-1.5 w-full">
+                      <span className="text-slate-100 font-bold leading-snug">
+                        <span
+                          className={`font-bold mr-1 ${
+                            isSelected ? 'text-amber-400' : 'text-amber-300'
+                          }`}
+                        >
+                          {b.symbol}
+                        </span>
                         {isPt ? b.namePt : b.nameEn}
                       </span>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <span className="text-amber-400 font-bold">
-                        {b.zodiacSign.symbol}{' '}
-                        {(isPt ? b.zodiacSign.namePt : b.zodiacSign.nameEn).slice(0, 7)}
+                      <span className="text-slate-300 font-semibold shrink-0">
+                        {b.degreeInSign.toFixed(1)}°
                       </span>
-                      <span className="text-slate-300 font-semibold ml-1">
-                        {b.degreeInSign.toFixed(0)}°
+                    </div>
+                    <div className="flex items-center justify-between gap-1.5 w-full text-[11px]">
+                      <span className="text-amber-400 font-bold leading-snug">
+                        {b.zodiacSign.symbol}{' '}
+                        {isPt ? b.zodiacSign.namePt : b.zodiacSign.nameEn}
+                      </span>
+                      <span className="text-slate-400 shrink-0">
+                        {isPt ? 'Mês' : 'Month'} {MONTH_ROMAN_NUMERALS[b.signIndex - 1]} ·{' '}
+                        {isPt ? 'Dia' : 'Day'} {b.equivalentSacredDayInMonth}
                       </span>
                     </div>
                   </button>
@@ -1378,19 +1768,19 @@ export const NatalAstralMapWidget: React.FC<NatalAstralMapWidgetProps> = ({
                         key={idx}
                         type="button"
                         onClick={() => setSelectedAspectIdx(idx)}
-                        className={`px-2.5 py-1.5 border text-left flex items-center justify-between gap-2 cursor-pointer transition-colors ${
+                        className={`px-2.5 py-2 border text-left flex flex-wrap items-center justify-between gap-1.5 cursor-pointer transition-colors ${
                           isSelectedAspect
                             ? 'border-amber-400 ring-1 ring-amber-400 bg-amber-950/25'
                             : 'border-slate-800 bg-slate-900/50 hover:bg-slate-900'
                         }`}
                       >
-                        <span className="text-slate-100 font-bold">
+                        <span className="text-slate-100 font-bold leading-snug">
                           <span className="text-amber-400">{asp.bodyA.symbol}</span>{' '}
                           <span className="text-purple-300">{asp.symbol}</span>{' '}
                           <span className="text-emerald-400">{asp.bodyB.symbol}</span>{' '}
                           {isPt ? asp.labelPt : asp.labelEn}
                         </span>
-                        <span className="text-slate-300 font-semibold">
+                        <span className="text-slate-300 font-semibold shrink-0">
                           {asp.angleDiff.toFixed(1)}°
                         </span>
                       </button>
