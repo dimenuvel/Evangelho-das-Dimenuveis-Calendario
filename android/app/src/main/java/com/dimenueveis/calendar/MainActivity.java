@@ -204,13 +204,31 @@ public class MainActivity extends AppCompatActivity {
                 return assetLoader.shouldInterceptRequest(request.getUrl());
             }
 
-            @Override
-            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-                Uri url = request.getUrl();
-                if (url != null && APP_HOST.equalsIgnoreCase(url.getHost())) {
+            private boolean handleUriLoading(Uri url) {
+                if (url == null) {
                     return false;
                 }
-                if (url != null && ("http".equalsIgnoreCase(url.getScheme()) || "https".equalsIgnoreCase(url.getScheme()))) {
+                if (APP_HOST.equalsIgnoreCase(url.getHost())) {
+                    return false;
+                }
+                String scheme = url.getScheme();
+                if (scheme == null) {
+                    return false;
+                }
+                if ("mailto".equalsIgnoreCase(scheme)) {
+                    try {
+                        Intent emailIntent = new Intent(Intent.ACTION_SENDTO, url);
+                        startActivity(Intent.createChooser(emailIntent, "Enviar e-mail"));
+                    } catch (Exception e) {
+                        try {
+                            Intent viewIntent = new Intent(Intent.ACTION_VIEW, url);
+                            startActivity(viewIntent);
+                        } catch (Exception ignored) {
+                        }
+                    }
+                    return true;
+                }
+                if ("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme) || "tel".equalsIgnoreCase(scheme)) {
                     try {
                         Intent intent = new Intent(Intent.ACTION_VIEW, url);
                         startActivity(intent);
@@ -218,7 +236,17 @@ public class MainActivity extends AppCompatActivity {
                     }
                     return true;
                 }
-                return false;
+                return true;
+            }
+
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                return handleUriLoading(request.getUrl());
+            }
+
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                return handleUriLoading(Uri.parse(url));
             }
         });
 

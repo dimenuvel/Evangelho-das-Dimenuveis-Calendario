@@ -325,6 +325,14 @@ export default function App() {
           <div className="flex items-center gap-3 text-sm font-serif font-semibold shrink-0">
             <a
               href="mailto:samuel.tiem@proton.me?subject=Calend%C3%A1rio%20das%20Dimen%C3%BAveis"
+              onClick={(e) => {
+                const mailtoUrl =
+                  'mailto:samuel.tiem@proton.me?subject=Calend%C3%A1rio%20das%20Dimen%C3%BAveis';
+                if (typeof window !== 'undefined' && window.AndroidBridge?.openExternalUrl) {
+                  e.preventDefault();
+                  window.AndroidBridge.openExternalUrl(mailtoUrl);
+                }
+              }}
               className="text-amber-400 hover:text-amber-300 underline decoration-amber-500/60 underline-offset-4 transition-colors"
             >
               {language === 'pt' ? 'Contato' : 'Contact'}
