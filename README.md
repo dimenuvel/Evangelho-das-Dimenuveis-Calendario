@@ -148,9 +148,9 @@ O projeto inclui uma estrutura nativa Android para o aplicativo **Calendário Di
 Ao enviar código para a branch `main`/`master` (ou acionar manualmente em **Actions → Build Android APK → Run workflow** no GitHub):
 1. O GitHub Actions instala o Node.js 22, compila o aplicativo Vite (`npm run build`) e sincroniza o bundle em `android/app/src/main/assets/public/`.
 2. Configura automaticamente o **Java JDK 17 (Temurin)**, **Android SDK 34** e **Gradle 8.7**, baixando todas as dependências Maven/Gradle na nuvem.
-3. Gera e assina os arquivos sincronizados com a versão do rodapé (`v1.9`):
-   - `Calendario-Dimenuvel-v1.9-release.apk` (Artifact: `Calendario-Dimenuvel-v1.9-release-apk` — APK Release assinado pronto para instalação)
-   - `Calendario-Dimenuvel-v1.9-debug.apk` (Artifact: `Calendario-Dimenuvel-v1.9-debug-apk` — APK Debug)
+3. Gera e assina os arquivos sincronizados com a versão do rodapé (`v2.0`):
+   - `Calendario-Dimenuvel-v2.0-release.apk` (Artifact: `Calendario-Dimenuvel-v2.0-release-apk` — APK Release assinado pronto para instalação)
+   - `Calendario-Dimenuvel-v2.0-debug.apk` (Artifact: `Calendario-Dimenuvel-v2.0-debug-apk` — APK Debug)
 4. Disponibiliza ambos os APKs para download direto na seção **Artifacts** da execução do workflow no GitHub.
 
 ---
