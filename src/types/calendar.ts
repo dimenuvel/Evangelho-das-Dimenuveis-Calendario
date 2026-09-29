@@ -131,6 +131,7 @@ export interface CalendarConfiguration {
     longitude: number;
     cityName?: string;
   };
+  userBirthdayGregorian?: string; // ISO YYYY-MM-DD
 }
 
 export interface SacredFeastDay {

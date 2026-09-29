@@ -198,7 +198,7 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
             {activeFeast ? (
               <div
                 onClick={() => onNavigateTab('FEASTS')}
-                className="p-3.5 sm:p-4 bg-amber-950/20 border border-amber-500/50 cursor-pointer hover:bg-amber-950/30 transition-colors flex items-center justify-between gap-3"
+                className="p-3.5 sm:p-4 rounded-md bg-amber-950/20 border border-amber-500/50 cursor-pointer hover:bg-amber-950/30 transition-colors flex items-center justify-between gap-3"
               >
                 <div className="space-y-0.5 min-w-0">
                   <div className="text-xs font-serif font-semibold uppercase text-amber-400 tracking-wider whitespace-nowrap">
@@ -216,7 +216,7 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
             ) : nextFeast ? (
               <div
                 onClick={() => onNavigateTab('FEASTS')}
-                className="p-3.5 sm:p-4 bg-slate-900/60 border border-slate-800 cursor-pointer hover:border-slate-700 transition-colors flex items-center justify-between gap-3"
+                className="p-3.5 sm:p-4 rounded-md bg-slate-900/60 border border-slate-800 cursor-pointer hover:border-slate-700 transition-colors flex items-center justify-between gap-3"
               >
                 <div className="space-y-0.5 min-w-0">
                   <div className="text-xs font-serif font-semibold text-amber-400 uppercase tracking-wider whitespace-nowrap">
@@ -236,7 +236,7 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
             <div className="pt-1">
               <button
                 onClick={() => onOpenDayDetail(currentSacredDay)}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-serif font-semibold text-xs uppercase tracking-wider transition-colors cursor-pointer whitespace-nowrap"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-amber-500 hover:bg-amber-400 text-slate-950 font-serif font-semibold text-xs uppercase tracking-wider transition-colors cursor-pointer whitespace-nowrap"
               >
                 {t.today.inspectDetails}
                 <ArrowRight className="w-3.5 h-3.5" />

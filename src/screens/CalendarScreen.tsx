@@ -7,7 +7,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { CalendarConfiguration, CalendarDay } from '../types/calendar';
 import { Language, TRANSLATIONS } from '../i18n/translations';
-import { generateSacredYearDays, solarDateToSacredDate } from '../calendar/sacredCalendar';
+import { generateSacredYearDays, solarDateToSacredDate, resolveSacredBirthday } from '../calendar/sacredCalendar';
 import { getMonthDisplayTitle } from '../calendar/months';
 import { getLunarPhaseInfo, getLocalizedPhaseName, getPhaseCategory, MajorLunarCategory } from '../astronomy/moon';
 import { getObservancesForDay, calculateFeastOccurrences } from '../calendar/feastEngine';
@@ -94,6 +94,18 @@ export const CalendarScreen: React.FC<CalendarScreenProps> = ({
         language
       ),
     [selectedSacredYear, config.lunarAnchorMode, config.feastCalendarModel, systemDate, language]
+  );
+
+  const resolvedBirthday = useMemo(
+    () =>
+      config.userBirthdayGregorian
+        ? resolveSacredBirthday(
+            config.userBirthdayGregorian,
+            config.lunarAnchorMode,
+            selectedSacredYear
+          )
+        : null,
+    [config.userBirthdayGregorian, config.lunarAnchorMode, selectedSacredYear]
   );
 
   const { dayZero, monthsData } = useMemo(() => {
@@ -778,6 +790,11 @@ export const CalendarScreen: React.FC<CalendarScreenProps> = ({
                   {isPt ? 'Hoje' : 'Today'}
                 </span>
               )}
+            {resolvedBirthday?.sacredMonth === 0 && (
+              <span className="px-1.5 py-0.5 bg-purple-400 text-slate-950 font-bold text-[10px] uppercase tracking-wider">
+                {isPt ? 'Aniv.' : 'Bday'}
+              </span>
+            )}
             <span className="text-purple-300 font-semibold">
               {isPt ? 'Dia Zero' : 'Day Zero'}
             </span>
@@ -901,6 +918,10 @@ export const CalendarScreen: React.FC<CalendarScreenProps> = ({
                       currentSacredDay.kind === 'NUMBERED_DAY' &&
                       selectedSacredYear === currentSacredDay.calendarYear &&
                       numDay.dayOfYear === currentSacredDay.dayOfYear;
+                    const isUserBirthday =
+                      resolvedBirthday !== null &&
+                      resolvedBirthday.sacredMonth === numDay.month &&
+                      resolvedBirthday.sacredDayOfMonth === numDay.dayOfMonth;
                     const isJumpedTarget = highlightedJumpId === cellDomId;
 
                     return (
@@ -917,6 +938,8 @@ export const CalendarScreen: React.FC<CalendarScreenProps> = ({
                             ? `ring-2 ring-inset ring-amber-400 bg-amber-500/25 hover:bg-amber-500/35 text-amber-100 shadow-[inset_0_0_16px_rgba(245,158,11,0.32)] relative z-10 ${
                                 isJumpedTarget ? 'ring-4 ring-amber-300' : ''
                               }`
+                            : isUserBirthday
+                            ? 'ring-2 ring-inset ring-purple-400 bg-purple-950/35 hover:bg-purple-950/50 text-purple-100 relative z-10'
                             : observancesInfo.isDoubleObservance
                             ? 'bg-amber-950/40 hover:bg-amber-950/60 text-amber-200 print-cell-feast'
                             : feastObs
@@ -928,7 +951,7 @@ export const CalendarScreen: React.FC<CalendarScreenProps> = ({
                             : 'bg-slate-950 hover:bg-slate-900 text-slate-100'
                         }`}
                       >
-                        {/* Cell Top Row: Day Number (with Today Badge beneath) + Moon Phase Icon */}
+                        {/* Cell Top Row: Day Number (with Today / Birthday Badge beneath) + Moon Phase Icon */}
                         <div className="flex items-start justify-between gap-0.5">
                           <div className="flex flex-col items-start gap-1 min-w-0">
                             <div className="flex items-baseline gap-1">
@@ -936,6 +959,8 @@ export const CalendarScreen: React.FC<CalendarScreenProps> = ({
                                 className={`font-serif font-bold text-sm sm:text-base tabular-nums leading-none ${
                                   isCurrentDay
                                     ? 'text-amber-300'
+                                    : isUserBirthday
+                                    ? 'text-purple-300'
                                     : isSabbath
                                     ? 'text-amber-400'
                                     : 'text-slate-100'
@@ -950,6 +975,18 @@ export const CalendarScreen: React.FC<CalendarScreenProps> = ({
                             {isCurrentDay && (
                               <span className="no-print inline-block px-1 py-0.5 bg-amber-400 text-slate-950 font-serif font-bold text-[8px] sm:text-[9px] uppercase tracking-tight leading-none">
                                 {isPt ? 'Hoje' : 'Today'}
+                              </span>
+                            )}
+                            {isUserBirthday && (
+                              <span
+                                className="no-print inline-block px-1 py-0.5 bg-purple-400 text-slate-950 font-serif font-bold text-[8px] sm:text-[9px] uppercase tracking-tight leading-none"
+                                title={
+                                  isPt
+                                    ? 'Seu Aniversário no Calendário de 13 Meses'
+                                    : 'Your 13-Month Sacred Birthday'
+                                }
+                              >
+                                {isPt ? 'Aniv.' : 'Bday'}
                               </span>
                             )}
                           </div>

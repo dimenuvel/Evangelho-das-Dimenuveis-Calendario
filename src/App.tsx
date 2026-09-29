@@ -138,7 +138,7 @@ export default function App() {
     setActiveTab('CALENDAR');
   };
 
-  // Evaluate Sunrise and Moon Phase Change notifications on launch and every 60 seconds
+  // Evaluate Sunrise, Moon Phase Change, and Sacred Birthday notifications on launch and every 60 seconds
   useEffect(() => {
     const runCheck = () => {
       evaluateSolarAndLunarNotifications(
@@ -146,13 +146,15 @@ export default function App() {
         config.userLocation?.latitude ?? 31.7683,
         config.userLocation?.longitude ?? 35.2137,
         config.userLocation?.cityName ?? 'Jerusalem (Default)',
-        language
+        language,
+        config.userBirthdayGregorian,
+        config.lunarAnchorMode
       );
     };
     runCheck();
     const interval = setInterval(runCheck, 60000);
     return () => clearInterval(interval);
-  }, [config.userLocation, language]);
+  }, [config.userLocation, config.userBirthdayGregorian, config.lunarAnchorMode, language]);
 
   return (
     <div className="min-h-screen bg-[#0c0e14] text-[#f5f2eb] flex flex-col font-sans selection:bg-amber-500/30 selection:text-amber-200 transition-colors">
@@ -177,6 +179,8 @@ export default function App() {
         theme={theme}
         onToggleTheme={toggleTheme}
         onNavigateTab={setActiveTab}
+        config={config}
+        onUpdateConfig={handleUpdateConfig}
         userLocation={config.userLocation}
       />
 
@@ -208,6 +212,7 @@ export default function App() {
           <AppointedTimesScreen
             systemDate={systemDate}
             config={config}
+            onUpdateConfig={handleUpdateConfig}
             language={language}
           />
         )}
@@ -298,7 +303,7 @@ export default function App() {
       <footer className="mt-auto border-t border-slate-800 bg-[#0b0e14] pt-6 pb-24 text-sm font-serif text-slate-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="space-y-1 text-center sm:text-left">
-            <div className="text-slate-100 font-semibold text-base font-serif">
+            <div className="text-lg sm:text-xl font-bold text-slate-100 font-serif leading-snug">
               <a
                 href="https://dimenuvel.github.io/Evangelho-das-Dimenuveis-site/"
                 target="_blank"
@@ -306,17 +311,28 @@ export default function App() {
                 className="hover:text-amber-400 underline decoration-amber-500/60 underline-offset-4 transition-colors"
               >
                 {t.appTitle}
-              </a>{' '}
-              — {t.appSubtitle}
+              </a>
             </div>
-            <div className="text-xs sm:text-sm italic text-slate-300">
+            <div className="text-xs sm:text-sm font-medium text-slate-200 font-serif">
+              {t.appSubtitle}
+            </div>
+            <div className="text-xs italic text-slate-300 pt-0.5">
               {language === 'pt'
                 ? 'Dia Zero + 13 Meses × 28 Dias = 364 Dias · Sábado Contínuo · A Grande Semana de 7.000 Anos'
                 : 'Day Zero + 13 Months × 28 Days = 364 Days · Continuous Sabbath · The 7,000-Year Great Week'}
             </div>
           </div>
-          <div className="text-sm font-serif font-semibold text-amber-300 tabular-nums shrink-0">
-            {language === 'pt' ? 'Versão 1.9' : 'Version 1.9'}
+          <div className="flex items-center gap-3 text-sm font-serif font-semibold shrink-0">
+            <a
+              href="mailto:samuel.tiem@proton.me?subject=Calend%C3%A1rio%20das%20Dimen%C3%BAveis"
+              className="text-amber-400 hover:text-amber-300 underline decoration-amber-500/60 underline-offset-4 transition-colors"
+            >
+              {language === 'pt' ? 'Contato' : 'Contact'}
+            </a>
+            <span className="text-slate-500">·</span>
+            <span className="text-amber-300 tabular-nums">
+              {language === 'pt' ? 'Versão 1.9' : 'Version 1.9'}
+            </span>
           </div>
         </div>
       </footer>

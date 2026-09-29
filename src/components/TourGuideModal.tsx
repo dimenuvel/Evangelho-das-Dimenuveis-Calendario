@@ -6,7 +6,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { Language, TRANSLATIONS } from '../i18n/translations';
+import { CalendarConfiguration } from '../types/calendar';
+import { resolveSacredBirthday, solarDateToSacredDate } from '../calendar/sacredCalendar';
+import { getMonthDisplayTitle } from '../calendar/months';
 import { NavTab } from './Navbar';
+import { LanguageSelector } from './LanguageSelector';
 import {
   loadStoredNotificationSettings,
   saveNotificationSettings,
@@ -14,6 +18,7 @@ import {
   markNotificationPromptDecided,
   sendSunriseAlertPreview,
   sendMoonPhaseAlertPreview,
+  sendBirthdayAlertPreview,
   NotificationSettings,
 } from '../notifications/notificationService';
 import {
@@ -28,6 +33,7 @@ import {
   CheckCircle2,
   ChevronRight,
   ChevronLeft,
+  Gift,
   X,
 } from 'lucide-react';
 
@@ -39,6 +45,8 @@ interface TourGuideModalProps {
   theme: 'night' | 'day';
   onToggleTheme: () => void;
   onNavigateTab: (tab: NavTab) => void;
+  config: CalendarConfiguration;
+  onUpdateConfig: (partial: Partial<CalendarConfiguration>) => void;
   userLocation?: {
     latitude: number;
     longitude: number;
@@ -54,6 +62,8 @@ export const TourGuideModal: React.FC<TourGuideModalProps> = ({
   theme,
   onToggleTheme,
   onNavigateTab,
+  config,
+  onUpdateConfig,
   userLocation,
 }) => {
   const [stepIndex, setStepIndex] = useState(0);
@@ -61,8 +71,34 @@ export const TourGuideModal: React.FC<TourGuideModalProps> = ({
     loadStoredNotificationSettings()
   );
   const [hasAutoTriggeredOnStep3, setHasAutoTriggeredOnStep3] = useState(false);
+  const [birthdaySavedToast, setBirthdaySavedToast] = useState(false);
   const isPt = language === 'pt';
   const t = TRANSLATIONS[language];
+
+  const currentSacredYear = solarDateToSacredDate(new Date(), config.lunarAnchorMode).calendarYear;
+  const resolvedBirthday = config.userBirthdayGregorian
+    ? resolveSacredBirthday(config.userBirthdayGregorian, config.lunarAnchorMode, currentSacredYear)
+    : null;
+
+  const handleSaveBirthdayInTour = async (dateISO: string) => {
+    onUpdateConfig({ userBirthdayGregorian: dateISO || undefined });
+    if (dateISO && /^\d{4}-\d{2}-\d{2}$/.test(dateISO)) {
+      markNotificationPromptDecided();
+      await requestNotificationPermission();
+      const current = loadStoredNotificationSettings();
+      const updated: NotificationSettings = {
+        ...current,
+        enabled: true,
+        birthdayAlert: true,
+      };
+      saveNotificationSettings(updated);
+      setNotifSettings(updated);
+      setBirthdaySavedToast(true);
+      sendBirthdayAlertPreview(dateISO, config.lunarAnchorMode, language, true);
+    } else {
+      setBirthdaySavedToast(false);
+    }
+  };
 
   useEffect(() => {
     const syncHandler = () => {
@@ -128,107 +164,144 @@ export const TourGuideModal: React.FC<TourGuideModalProps> = ({
           {/* Interactive Language & Theme Switcher Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
             {/* Language Selection Box */}
-            <div className="border border-slate-700 bg-slate-900/50 p-4 space-y-3">
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-xs font-serif uppercase tracking-wider text-amber-400 font-semibold whitespace-nowrap">
-                  {isPt ? '1. Idioma' : '1. Language'}
-                </span>
-                <span className="text-xs font-serif italic text-slate-300 whitespace-nowrap">
-                  {isPt ? 'Bilingue' : 'Bilingual'}
-                </span>
+            <div className="border border-slate-700 bg-slate-900/50 p-4 flex items-center justify-between gap-4">
+              <div className="space-y-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-serif uppercase tracking-wider text-amber-400 font-semibold whitespace-nowrap">
+                    {isPt ? '1. Idioma' : '1. Language'}
+                  </span>
+                  <span className="text-xs font-serif italic text-slate-300 whitespace-nowrap">
+                    ({language === 'pt' ? 'Português' : 'English'})
+                  </span>
+                </div>
+                <p className="text-xs font-serif text-slate-300 leading-relaxed">
+                  {isPt
+                    ? 'Toque no botão circular de bandeira para alternar entre Português e Inglês.'
+                    : 'Tap the circular flag button to switch between English and Portuguese.'}
+                </p>
               </div>
-              <p className="text-xs font-serif text-slate-300 leading-relaxed">
-                {isPt
-                  ? 'Alterne entre Português e Inglês a qualquer momento aqui ou no botão de bandeira no topo da página.'
-                  : 'Switch between English and Portuguese anytime here or via the flag button in the top navigation bar.'}
-              </p>
-              <div className="grid grid-cols-2 gap-2 pt-1">
-                <button
-                  type="button"
-                  onClick={() => onSelectLanguage('pt')}
-                  className={`flex items-center justify-center gap-2 px-3 py-2 border text-xs font-serif transition-colors cursor-pointer whitespace-nowrap ${
-                    language === 'pt'
-                      ? 'bg-amber-500 text-slate-950 border-amber-500 font-bold'
-                      : 'bg-slate-950 text-slate-200 border-slate-700 hover:bg-slate-900'
-                  }`}
-                >
-                  <svg className="w-5 h-3.5 shrink-0" viewBox="0 0 36 24" aria-hidden="true">
-                    <rect width="36" height="24" fill="#009b3a" />
-                    <polygon points="18,2.5 33,12 18,21.5 3,12" fill="#fedf00" />
-                    <circle cx="18" cy="12" r="5" fill="#002776" />
-                  </svg>
-                  <span>Português</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onSelectLanguage('en')}
-                  className={`flex items-center justify-center gap-2 px-3 py-2 border text-xs font-serif transition-colors cursor-pointer whitespace-nowrap ${
-                    language === 'en'
-                      ? 'bg-amber-500 text-slate-950 border-amber-500 font-bold'
-                      : 'bg-slate-950 text-slate-200 border-slate-700 hover:bg-slate-900'
-                  }`}
-                >
-                  <svg className="w-5 h-3.5 shrink-0" viewBox="0 0 36 24" aria-hidden="true">
-                    <rect width="36" height="24" fill="#b22234" />
-                    <path d="M0,2.77H36M0,6.46H36M0,10.15H36M0,13.85H36M0,17.54H36M0,21.23H36" stroke="#fff" strokeWidth="1.85" />
-                    <rect width="15" height="12.92" fill="#3c3b6e" />
-                  </svg>
-                  <span>English</span>
-                </button>
-              </div>
+              <LanguageSelector language={language} onSelectLanguage={onSelectLanguage} />
             </div>
 
             {/* Day / Night Reading Mode Box */}
-            <div className="border border-slate-700 bg-slate-900/50 p-4 space-y-3">
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-xs font-serif uppercase tracking-wider text-amber-400 font-semibold whitespace-nowrap">
-                  {isPt ? '2. Modo Dia / Noite' : '2. Day / Night Mode'}
-                </span>
-                <span className="text-xs font-serif italic text-slate-300 whitespace-nowrap">
-                  {theme === 'day'
+            <div className="border border-slate-700 bg-slate-900/50 p-4 flex items-center justify-between gap-4">
+              <div className="space-y-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-serif uppercase tracking-wider text-amber-400 font-semibold whitespace-nowrap">
+                    {isPt ? '2. Modo Dia / Noite' : '2. Day / Night Mode'}
+                  </span>
+                  <span className="text-xs font-serif italic text-slate-300 whitespace-nowrap">
+                    ({theme === 'day' ? (isPt ? 'Dia' : 'Day') : isPt ? 'Noite' : 'Night'})
+                  </span>
+                </div>
+                <p className="text-xs font-serif text-slate-300 leading-relaxed">
+                  {isPt
+                    ? 'Toque no botão circular de Sol/Lua para alternar entre o modo Dia e Noite.'
+                    : 'Tap the circular Sun/Moon button to switch between Day and Night mode.'}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={onToggleTheme}
+                className="inline-flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-900 border border-slate-700 hover:border-amber-500/60 text-slate-200 transition-colors cursor-pointer shrink-0"
+                title={
+                  theme === 'day'
                     ? isPt
-                      ? 'Pergaminho'
-                      : 'Parchment'
+                      ? 'Modo Dia ativo — Clique para Modo Noite'
+                      : 'Day Mode active — Click for Night Mode'
                     : isPt
-                      ? 'Obsidiana'
-                      : 'Obsidian'}
+                      ? 'Modo Noite ativo — Clique para Modo Dia'
+                      : 'Night Mode active — Click for Day Mode'
+                }
+              >
+                {theme === 'day' ? (
+                  <svg className="w-4 h-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <circle cx="12" cy="12" r="4" />
+                    <path strokeLinecap="round" d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41m11.32-11.32l1.41-1.41" />
+                  </svg>
+                ) : (
+                  <svg className="w-4 h-4 text-amber-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+                  </svg>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* 3. Gregorian Birthday to 13-Month Sacred Calendar & Notification Box */}
+          <div className="border border-amber-500/40 bg-amber-950/15 p-4 space-y-3 font-serif">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <Gift className="w-4 h-4 text-amber-400 shrink-0" />
+                <span className="text-xs uppercase tracking-wider text-amber-400 font-bold">
+                  {isPt
+                    ? '3. Seu Aniversário no Calendário de 13 Meses & Notificação'
+                    : '3. Your Birthday in the 13-Month Calendar & Notification'}
                 </span>
               </div>
-              <p className="text-xs font-serif text-slate-300 leading-relaxed">
-                {isPt
-                  ? 'Alterne entre o modo Noturno Celestial e o modo Diurno Pergaminho de alto contraste.'
-                  : 'Switch between Celestial Night mode and high-contrast Archival Parchment Day mode.'}
-              </p>
-              <div className="grid grid-cols-2 gap-2 pt-1">
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (theme !== 'night') onToggleTheme();
-                  }}
-                  className={`flex items-center justify-center gap-2 px-3 py-2 border text-xs font-serif transition-colors cursor-pointer whitespace-nowrap ${
-                    theme === 'night'
-                      ? 'bg-amber-500 text-slate-950 border-amber-500 font-bold'
-                      : 'bg-slate-950 text-slate-200 border-slate-700 hover:bg-slate-900'
-                  }`}
+              <span className="text-xs italic text-slate-300">
+                {isPt ? 'Opcional (Disponível em Festas)' : 'Optional (Also on Feasts page)'}
+              </span>
+            </div>
+
+            <p className="text-xs text-slate-200 leading-relaxed">
+              {isPt
+                ? 'Insira sua data de nascimento no calendário gregoriano atual para mapeá-la ao seu equivalente no Calendário Sagrado de 13 Meses e configurar automaticamente uma notificação anual de aniversário. Caso não insira agora, essa opção estará sempre disponível na página III. Festas.'
+                : 'Enter your birth date in the current Gregorian calendar to map it to its 13-Month Sacred Calendar equivalent and automatically set up an annual birthday notification. If you skip it now, this option is always available on the III. Feasts page.'}
+            </p>
+
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 pt-1">
+              <div className="flex items-center gap-2">
+                <label
+                  htmlFor="tour-birthday-input"
+                  className="text-xs text-slate-300 font-semibold whitespace-nowrap"
                 >
-                  <Moon className="w-3.5 h-3.5 shrink-0" />
-                  <span>{isPt ? 'Modo Noite' : 'Night Mode'}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (theme !== 'day') onToggleTheme();
-                  }}
-                  className={`flex items-center justify-center gap-2 px-3 py-2 border text-xs font-serif transition-colors cursor-pointer whitespace-nowrap ${
-                    theme === 'day'
-                      ? 'bg-amber-500 text-slate-950 border-amber-500 font-bold'
-                      : 'bg-slate-950 text-slate-200 border-slate-700 hover:bg-slate-900'
-                  }`}
-                >
-                  <Sun className="w-3.5 h-3.5 shrink-0" />
-                  <span>{isPt ? 'Modo Dia' : 'Day Mode'}</span>
-                </button>
+                  {isPt ? 'Nascimento (Gregoriano):' : 'Birth Date (Gregorian):'}
+                </label>
+                <input
+                  id="tour-birthday-input"
+                  type="date"
+                  value={config.userBirthdayGregorian || ''}
+                  onChange={(e) => handleSaveBirthdayInTour(e.target.value)}
+                  className="px-3 py-1.5 bg-slate-950 border border-amber-500/50 text-slate-100 text-xs font-serif tabular-nums focus:outline-none focus:border-amber-400"
+                />
               </div>
+
+              {resolvedBirthday && (
+                <div className="flex-1 px-3 py-2 bg-slate-950 border border-emerald-500/40 text-xs flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <span className="text-slate-400">
+                      {isPt ? 'Equivalente 13 Meses: ' : '13-Month Equivalent: '}
+                    </span>
+                    <strong className="text-amber-300">
+                      {resolvedBirthday.sacredMonth === 0
+                        ? isPt
+                          ? 'Dia Zero (Sábado Anual)'
+                          : 'Day Zero (Annual Sabbath)'
+                        : `${getMonthDisplayTitle(
+                            resolvedBirthday.sacredMonth,
+                            config.customMonthNames,
+                            language
+                          )}, ${isPt ? 'Dia' : 'Day'} ${resolvedBirthday.sacredDayOfMonth}`}
+                    </strong>
+                    <span className="text-slate-400 ml-1.5 tabular-nums">
+                      ({resolvedBirthday.targetYearDay.gregorianDate.toISOString().split('T')[0]})
+                    </span>
+                  </div>
+                  <span className="inline-flex items-center gap-1 text-emerald-300 font-semibold whitespace-nowrap">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                    <span>
+                      {birthdaySavedToast || notifSettings.birthdayAlert
+                        ? isPt
+                          ? 'Notificação Ativa'
+                          : 'Notification Active'
+                        : isPt
+                          ? 'Mapeado'
+                          : 'Mapped'}
+                    </span>
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -570,41 +643,16 @@ export const TourGuideModal: React.FC<TourGuideModalProps> = ({
             </span>
           </div>
 
-          {/* Persistent Quick Controls: Language + Day/Night + Close */}
+          {/* Persistent Quick Controls: App-Style Circular Language + Day/Night + Close */}
           <div className="flex items-center gap-2">
-            {/* Language Switcher Pill/Box */}
-            <div className="inline-flex border border-slate-700 bg-slate-950 text-xs font-serif">
-              <button
-                type="button"
-                onClick={() => onSelectLanguage('pt')}
-                className={`px-2.5 py-1 text-xs transition-colors cursor-pointer ${
-                  language === 'pt'
-                    ? 'bg-amber-500 text-slate-950 font-bold'
-                    : 'text-slate-300 hover:text-slate-100'
-                }`}
-                title="Português"
-              >
-                PT
-              </button>
-              <button
-                type="button"
-                onClick={() => onSelectLanguage('en')}
-                className={`px-2.5 py-1 text-xs transition-colors cursor-pointer border-l border-slate-700 ${
-                  language === 'en'
-                    ? 'bg-amber-500 text-slate-950 font-bold'
-                    : 'text-slate-300 hover:text-slate-100'
-                }`}
-                title="English"
-              >
-                EN
-              </button>
-            </div>
+            {/* Circular Flag Language Switcher Button (Same as Navbar) */}
+            <LanguageSelector language={language} onSelectLanguage={onSelectLanguage} />
 
-            {/* Day/Night Mode Switcher Button */}
+            {/* Circular Day/Night Mode Switcher Button (Same as Navbar) */}
             <button
               type="button"
               onClick={onToggleTheme}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 border border-slate-700 bg-slate-950 hover:border-amber-500/60 text-xs font-serif text-slate-200 transition-colors cursor-pointer"
+              className="inline-flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-900 border border-slate-700 hover:border-amber-500/60 text-slate-200 transition-colors cursor-pointer shrink-0"
               title={
                 theme === 'day'
                   ? isPt
@@ -616,15 +664,14 @@ export const TourGuideModal: React.FC<TourGuideModalProps> = ({
               }
             >
               {theme === 'day' ? (
-                <>
-                  <Sun className="w-3.5 h-3.5 text-amber-500" />
-                  <span className="hidden sm:inline">{isPt ? 'Dia' : 'Day'}</span>
-                </>
+                <svg className="w-4 h-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <circle cx="12" cy="12" r="4" />
+                  <path strokeLinecap="round" d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41m11.32-11.32l1.41-1.41" />
+                </svg>
               ) : (
-                <>
-                  <Moon className="w-3.5 h-3.5 text-blue-300" />
-                  <span className="hidden sm:inline">{isPt ? 'Noite' : 'Night'}</span>
-                </>
+                <svg className="w-4 h-4 text-amber-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+                </svg>
               )}
             </button>
 
@@ -632,7 +679,7 @@ export const TourGuideModal: React.FC<TourGuideModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="inline-flex items-center justify-center w-7 h-7 border border-slate-700 bg-slate-950 hover:border-amber-500/60 text-slate-300 hover:text-slate-100 transition-colors cursor-pointer"
+              className="inline-flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-slate-700 bg-slate-900 hover:border-amber-500/60 text-slate-300 hover:text-slate-100 transition-colors cursor-pointer shrink-0"
               title={isPt ? 'Fechar Guia' : 'Close Guide'}
               aria-label={isPt ? 'Fechar Guia' : 'Close Guide'}
             >
@@ -726,10 +773,10 @@ export const TourGuideModal: React.FC<TourGuideModalProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="inline-flex items-center gap-1.5 px-5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold transition-colors cursor-pointer"
               >
-                <CheckCircle2 className="w-4 h-4" />
-                <span>{isPt ? 'Começar a Explorar' : 'Start Exploring'}</span>
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                <span>{isPt ? 'Começar' : 'Start'}</span>
               </button>
             )}
           </div>

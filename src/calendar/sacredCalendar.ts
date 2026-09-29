@@ -160,3 +160,67 @@ export function sacredDateToSolarDate(
   const resultDate = new Date(dayZeroDate.getFullYear(), dayZeroDate.getMonth(), dayZeroDate.getDate() + dayOfYear, 0, 0, 0, 0);
   return resultDate;
 }
+
+export interface ResolvedSacredBirthday {
+  gregorianBirthISO: string;
+  birthSacredDay: CalendarDay;
+  targetYearDay: CalendarDay;
+  sacredMonth: number; // 0 for Day Zero, 1..13 for numbered days
+  sacredDayOfMonth: number; // 0 for Day Zero, 1..28 for numbered days
+  sacredAgeInTargetYear: number;
+}
+
+/**
+ * Maps a user's Gregorian birthday (YYYY-MM-DD) to its 13-month Sacred Calendar equivalent
+ * and computes its occurrence in a target Sacred Year.
+ */
+export function resolveSacredBirthday(
+  gregorianBirthISO: string,
+  anchorMode: LunarAnchorMode = 'CONJUNCTION',
+  targetSacredYear = 6050
+): ResolvedSacredBirthday | null {
+  if (!gregorianBirthISO || !/^\d{4}-\d{2}-\d{2}$/.test(gregorianBirthISO)) {
+    return null;
+  }
+  const [yStr, mStr, dStr] = gregorianBirthISO.split('-');
+  const y = Number(yStr);
+  const m = Number(mStr);
+  const d = Number(dStr);
+  if (!y || !m || !d) return null;
+
+  const birthDate = new Date(y, m - 1, d, 12, 0, 0);
+  if (Number.isNaN(birthDate.getTime())) return null;
+
+  const birthSacredDay = solarDateToSacredDate(birthDate, anchorMode);
+  const targetYearDays = generateSacredYearDays(targetSacredYear, anchorMode);
+
+  let targetYearDay: CalendarDay = targetYearDays[0];
+  let sacredMonth = 0;
+  let sacredDayOfMonth = 0;
+
+  if (birthSacredDay.kind === 'NUMBERED_DAY') {
+    sacredMonth = birthSacredDay.month;
+    sacredDayOfMonth = birthSacredDay.dayOfMonth;
+    const found = targetYearDays.find(
+      (item) =>
+        item.kind === 'NUMBERED_DAY' &&
+        item.month === birthSacredDay.month &&
+        item.dayOfMonth === birthSacredDay.dayOfMonth
+    );
+    if (found) {
+      targetYearDay = found;
+    }
+  }
+
+  const sacredAgeInTargetYear = Math.max(0, targetSacredYear - birthSacredDay.calendarYear);
+
+  return {
+    gregorianBirthISO,
+    birthSacredDay,
+    targetYearDay,
+    sacredMonth,
+    sacredDayOfMonth,
+    sacredAgeInTargetYear,
+  };
+}
+

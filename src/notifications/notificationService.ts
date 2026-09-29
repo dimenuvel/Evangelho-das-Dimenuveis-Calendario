@@ -9,12 +9,15 @@
 
 import { getSunTimes } from '../astronomy/sun';
 import { getLunarPhaseInfo, getLocalizedPhaseName } from '../astronomy/moon';
+import { resolveSacredBirthday, solarDateToSacredDate } from '../calendar/sacredCalendar';
+import { LunarAnchorMode } from '../types/calendar';
 import { Language } from '../i18n/translations';
 
 export interface NotificationSettings {
   enabled: boolean;
   sunriseAlert: boolean; // Daily local sunrise notification in Android status bar
   moonPhaseChangeAlert: boolean; // All 8 astronomical moon phase transitions in Android status bar
+  birthdayAlert: boolean; // Personal 13-month Sacred Birthday notification
   upcomingFeastAlert: boolean; // 24 hours prior to feast
   feastBeginningAlert: boolean;
   feastEndingAlert: boolean;
@@ -28,6 +31,7 @@ export const DEFAULT_NOTIFICATION_SETTINGS: NotificationSettings = {
   enabled: false,
   sunriseAlert: true,
   moonPhaseChangeAlert: true,
+  birthdayAlert: true,
   upcomingFeastAlert: true,
   feastBeginningAlert: true,
   feastEndingAlert: true,
@@ -39,6 +43,7 @@ export const DEFAULT_NOTIFICATION_SETTINGS: NotificationSettings = {
 
 const SUNRISE_LAST_FIRED_KEY = 'dimenueveis_last_sunrise_alert_day';
 const MOON_PHASE_LAST_SEEN_KEY = 'dimenueveis_last_moon_phase_seen';
+const BIRTHDAY_LAST_FIRED_KEY = 'dimenueveis_last_birthday_alert_year';
 export const NOTIF_PROMPT_DECIDED_KEY = 'dimenueveis_notif_prompt_decided_v1';
 
 // Register Service Worker so Android Chrome / mobile web can post directly to the Android status bar
@@ -282,15 +287,56 @@ export function sendMoonPhaseAlertPreview(
 }
 
 /**
- * Schedules upcoming Sunrise and Moon Phase Change alarms with Android AlarmManager (when running in Android APK)
- * and evaluates live Sunrise and Moon Phase Change transitions for the Android status bar.
+ * Sends a 13-Month Sacred Birthday notification to the Android status bar / browser notifications.
+ */
+export function sendBirthdayAlertPreview(
+  gregorianBirthISO: string,
+  anchorMode: LunarAnchorMode = 'CONJUNCTION',
+  language: Language = 'pt',
+  forceSend = true
+): void {
+  const isPt = language === 'pt';
+  const currentSacredDay = solarDateToSacredDate(new Date(), anchorMode);
+  const resolved = resolveSacredBirthday(
+    gregorianBirthISO,
+    anchorMode,
+    currentSacredDay.calendarYear
+  );
+  if (!resolved) return;
+
+  const sacredLabel =
+    resolved.sacredMonth === 0
+      ? isPt
+        ? 'Dia Zero (Sábado Anual)'
+        : 'Day Zero (Annual Sabbath)'
+      : isPt
+        ? `Mês ${resolved.sacredMonth}, Dia ${resolved.sacredDayOfMonth}`
+        : `Month ${resolved.sacredMonth}, Day ${resolved.sacredDayOfMonth}`;
+
+  const nextGregISO = resolved.targetYearDay.gregorianDate.toISOString().split('T')[0];
+
+  const title = isPt
+    ? `🎂 Natalício no Calendário de 13 Meses: ${sacredLabel}`
+    : `🎂 13-Month Sacred Birthday: ${sacredLabel}`;
+  const body = isPt
+    ? `Seu aniversário (${gregorianBirthISO}) equivale a ${sacredLabel} no Calendário Sagrado de 13 Meses (${nextGregISO} no Ano Sagrado ${currentSacredDay.calendarYear}).`
+    : `Your birthday (${gregorianBirthISO}) maps to ${sacredLabel} in the 13-Month Sacred Calendar (${nextGregISO} in Sacred Year ${currentSacredDay.calendarYear}).`;
+
+  sendFeastNotification(title, body, forceSend);
+}
+
+/**
+ * Schedules upcoming Sunrise, Moon Phase Change, and 13-Month Sacred Birthday alarms with Android AlarmManager (when running in Android APK)
+ * and evaluates live Sunrise, Moon Phase Change, and Sacred Birthday transitions for the Android status bar.
  */
 export function evaluateSolarAndLunarNotifications(
   now: Date,
   latitude = 31.7683,
   longitude = 35.2137,
   cityName = 'Jerusalem (Default)',
-  language: Language = 'pt'
+  language: Language = 'pt',
+  userBirthdayGregorian?: string,
+  anchorMode: LunarAnchorMode = 'CONJUNCTION'
 ): void {
   const settings = loadStoredNotificationSettings();
   const isPt = language === 'pt';
@@ -398,6 +444,81 @@ export function evaluateSolarAndLunarNotifications(
         : `The Moon has reached ${phaseLabel} in the synodic cycle.`;
 
       window.AndroidBridge.scheduleStatusBarNotification(7002, targetMs, mpTitle, mpBody);
+    } catch {
+      // ignore
+    }
+  }
+
+  // 3. Personal 13-Month Sacred Birthday Notification
+  if (settings.birthdayAlert && userBirthdayGregorian) {
+    try {
+      const todaySacred = solarDateToSacredDate(now, anchorMode);
+      const resolved = resolveSacredBirthday(
+        userBirthdayGregorian,
+        anchorMode,
+        todaySacred.calendarYear
+      );
+      if (resolved) {
+        const isTodaySacredBirthday =
+          (resolved.sacredMonth === 0 && todaySacred.kind === 'DAY_ZERO') ||
+          (todaySacred.kind === 'NUMBERED_DAY' &&
+            todaySacred.month === resolved.sacredMonth &&
+            todaySacred.dayOfMonth === resolved.sacredDayOfMonth);
+
+        const firedKey = `${todaySacred.calendarYear}-${resolved.sacredMonth}-${resolved.sacredDayOfMonth}`;
+        const lastFired = localStorage.getItem(BIRTHDAY_LAST_FIRED_KEY);
+
+        if (isTodaySacredBirthday && lastFired !== firedKey) {
+          localStorage.setItem(BIRTHDAY_LAST_FIRED_KEY, firedKey);
+          sendBirthdayAlertPreview(userBirthdayGregorian, anchorMode, language, false);
+        }
+
+        // Schedule upcoming Sacred Birthday morning alarm in Android APK
+        if (typeof window !== 'undefined' && window.AndroidBridge?.scheduleStatusBarNotification) {
+          let targetOccurrence = resolved.targetYearDay.gregorianDate;
+          if (targetOccurrence.getTime() <= now.getTime()) {
+            const nextYearResolved = resolveSacredBirthday(
+              userBirthdayGregorian,
+              anchorMode,
+              todaySacred.calendarYear + 1
+            );
+            if (nextYearResolved) {
+              targetOccurrence = nextYearResolved.targetYearDay.gregorianDate;
+            }
+          }
+          const morningAlarm = new Date(
+            targetOccurrence.getUTCFullYear(),
+            targetOccurrence.getUTCMonth(),
+            targetOccurrence.getUTCDate(),
+            8,
+            0,
+            0
+          );
+          if (morningAlarm.getTime() > now.getTime()) {
+            const sacredLabel =
+              resolved.sacredMonth === 0
+                ? isPt
+                  ? 'Dia Zero'
+                  : 'Day Zero'
+                : isPt
+                  ? `Mês ${resolved.sacredMonth}, Dia ${resolved.sacredDayOfMonth}`
+                  : `Month ${resolved.sacredMonth}, Day ${resolved.sacredDayOfMonth}`;
+            const bTitle = isPt
+              ? `🎂 Feliz Natalício Sagrado (${sacredLabel})!`
+              : `🎂 Happy Sacred Birthday (${sacredLabel})!`;
+            const bBody = isPt
+              ? `Hoje é ${sacredLabel}, o seu aniversário no Calendário Sagrado de 13 Meses!`
+              : `Today is ${sacredLabel}, your birthday in the 13-Month Sacred Calendar!`;
+
+            window.AndroidBridge.scheduleStatusBarNotification(
+              7003,
+              morningAlarm.getTime(),
+              bTitle,
+              bBody
+            );
+          }
+        }
+      }
     } catch {
       // ignore
     }

@@ -4,26 +4,39 @@
  * Chronological Spring & Autumn Appointed Times catalog with dynamic calculations.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CalendarConfiguration } from '../types/calendar';
 import { Language } from '../i18n/translations';
 import { CalculatedFeastOccurrence } from '../types/feasts';
 import { calculateFeastOccurrences } from '../calendar/feastEngine';
+import { resolveSacredBirthday } from '../calendar/sacredCalendar';
+import { getMonthDisplayTitle } from '../calendar/months';
+import { getLunarPhaseInfo } from '../astronomy/moon';
+import {
+  loadStoredNotificationSettings,
+  saveNotificationSettings,
+  requestNotificationPermission,
+  markNotificationPromptDecided,
+  sendBirthdayAlertPreview,
+  NotificationSettings,
+} from '../notifications/notificationService';
 import { FeastDetailModal } from '../components/FeastDetailModal';
 import { GoogleCalendarSyncModal } from '../components/GoogleCalendarSyncModal';
 import { LunarPhaseIcon } from '../components/LunarPhaseIcon';
 import { DataSourceBadge } from '../components/DataSourceBadge';
-import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar, Gift, Bell, CheckCircle2 } from 'lucide-react';
 
 interface AppointedTimesScreenProps {
   systemDate: Date;
   config: CalendarConfiguration;
+  onUpdateConfig: (partial: Partial<CalendarConfiguration>) => void;
   language: Language;
 }
 
 export const AppointedTimesScreen: React.FC<AppointedTimesScreenProps> = ({
   systemDate,
   config,
+  onUpdateConfig,
   language,
 }) => {
   const isPt = language === 'pt';
@@ -32,6 +45,112 @@ export const AppointedTimesScreen: React.FC<AppointedTimesScreenProps> = ({
   );
   const [selectedFeastModal, setSelectedFeastModal] = useState<CalculatedFeastOccurrence | null>(null);
   const [calendarSyncOccurrences, setCalendarSyncOccurrences] = useState<CalculatedFeastOccurrence[] | null>(null);
+  const [notifSettings, setNotifSettings] = useState<NotificationSettings>(
+    loadStoredNotificationSettings()
+  );
+
+  useEffect(() => {
+    const syncHandler = () => {
+      setNotifSettings(loadStoredNotificationSettings());
+    };
+    window.addEventListener('dimenueveisNotificationSettingsChanged', syncHandler);
+    return () => window.removeEventListener('dimenueveisNotificationSettingsChanged', syncHandler);
+  }, []);
+
+  const resolvedBirthday = config.userBirthdayGregorian
+    ? resolveSacredBirthday(
+        config.userBirthdayGregorian,
+        config.lunarAnchorMode,
+        selectedSacredYear
+      )
+    : null;
+
+  const handleSetBirthday = async (dateISO: string) => {
+    onUpdateConfig({ userBirthdayGregorian: dateISO || undefined });
+    if (dateISO && /^\d{4}-\d{2}-\d{2}$/.test(dateISO)) {
+      markNotificationPromptDecided();
+      await requestNotificationPermission();
+      const current = loadStoredNotificationSettings();
+      const updated: NotificationSettings = {
+        ...current,
+        enabled: true,
+        birthdayAlert: true,
+      };
+      saveNotificationSettings(updated);
+      setNotifSettings(updated);
+      sendBirthdayAlertPreview(dateISO, config.lunarAnchorMode, language, true);
+    }
+  };
+
+  const handleToggleBirthdayNotification = async () => {
+    const current = loadStoredNotificationSettings();
+    const nextBirthdayAlert = !current.birthdayAlert;
+    if (nextBirthdayAlert) {
+      markNotificationPromptDecided();
+      await requestNotificationPermission();
+    }
+    const updated: NotificationSettings = {
+      ...current,
+      enabled: nextBirthdayAlert ? true : current.enabled,
+      birthdayAlert: nextBirthdayAlert,
+    };
+    saveNotificationSettings(updated);
+    setNotifSettings(updated);
+    if (nextBirthdayAlert && config.userBirthdayGregorian) {
+      sendBirthdayAlertPreview(config.userBirthdayGregorian, config.lunarAnchorMode, language, true);
+    }
+  };
+
+  const handleAddBirthdayToGoogleCalendar = () => {
+    if (!resolvedBirthday) return;
+    const occDate = resolvedBirthday.targetYearDay.gregorianDate;
+    const lunarAtBirth = getLunarPhaseInfo(occDate);
+    const sacredLabel =
+      resolvedBirthday.sacredMonth === 0
+        ? isPt
+          ? 'Dia Zero'
+          : 'Day Zero'
+        : `${isPt ? 'Mês' : 'Month'} ${resolvedBirthday.sacredMonth}, ${isPt ? 'Dia' : 'Day'} ${
+            resolvedBirthday.sacredDayOfMonth
+          }`;
+
+    const birthdayOccurrence: CalculatedFeastOccurrence = {
+      feast: {
+        id: 'SACRED_BIRTHDAY' as any,
+        name: isPt
+          ? `Natalício no Calendário de 13 Meses (${sacredLabel})`
+          : `13-Month Sacred Birthday (${sacredLabel})`,
+        hebrewName: isPt ? 'Yom Huledet' : 'Yom Huledet',
+        category: 'FEAST',
+        sacredMonth: resolvedBirthday.sacredMonth || 1,
+        sacredDay: resolvedBirthday.sacredDayOfMonth || 1,
+        durationDays: 1,
+        sabbathRestDays: [],
+        biblicalReferences: ['Salmos 90:12 / Psalm 90:12'],
+        theologicalSignificance: isPt
+          ? `Equivalente no Calendário Sagrado de 13 Meses para o nascimento gregoriano em ${resolvedBirthday.gregorianBirthISO}.`
+          : `13-Month Sacred Calendar equivalent for Gregorian birth date ${resolvedBirthday.gregorianBirthISO}.`,
+        propheticFulfillment: isPt
+          ? 'Contagem dos nossos dias segundo a sabedoria do ciclo criacional (Salmos 90:12).'
+          : 'Numbering our days according to wisdom in the creational cycle (Psalm 90:12).',
+        observanceInstructions: isPt
+          ? 'Ação de graças anual no dia correspondente do Calendário de 13 Meses.'
+          : 'Annual thanksgiving on the corresponding day of the 13-Month Sacred Calendar.',
+        dataSource: 'ASTRONOMICAL_CALCULATION',
+      },
+      sacredYear: selectedSacredYear,
+      gregorianStartDate: occDate,
+      gregorianEndDate: occDate,
+      lunarPhaseAtStart: lunarAtBirth.phaseName,
+      lunarIlluminationAtStart: lunarAtBirth.fraction,
+      overlapsWeeklySabbath:
+        resolvedBirthday.targetYearDay.kind === 'DAY_ZERO' ||
+        resolvedBirthday.targetYearDay.isWeeklySabbath,
+      isActiveToday: false,
+      activeDayIndex: 1,
+    };
+    setCalendarSyncOccurrences([birthdayOccurrence]);
+  };
 
   const feastOccurrences = calculateFeastOccurrences(
     selectedSacredYear,
@@ -300,6 +419,191 @@ export const AppointedTimesScreen: React.FC<AppointedTimesScreenProps> = ({
               </div>
             );
           })}
+        </div>
+      </div>
+
+      {/* SECTION III: PERSONAL 13-MONTH SACRED BIRTHDAY & NOTIFICATION */}
+      <div className="border border-amber-500/40 bg-slate-950 divide-y divide-slate-800">
+        <div className="px-4 sm:px-5 py-3 bg-amber-950/20 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <Gift className="w-4 h-4 text-amber-400 shrink-0" />
+            <h3 className="text-xs sm:text-sm font-serif font-bold uppercase tracking-wider text-amber-400">
+              III.{' '}
+              {isPt
+                ? 'Seu Aniversário no Calendário de 13 Meses & Notificação'
+                : 'Your Birthday in the 13-Month Calendar & Notification'}
+            </h3>
+          </div>
+          <span className="text-xs font-serif italic text-slate-300">
+            {isPt ? 'Salmos 90:12 · Conversão Natalícia' : 'Psalm 90:12 · Birthday Mapping'}
+          </span>
+        </div>
+
+        <div className="p-4 sm:p-5 space-y-4 font-serif">
+          <p className="text-xs text-slate-300 leading-relaxed">
+            {isPt
+              ? 'Insira ou atualize sua data de nascimento no calendário gregoriano atual para descobrir seu dia exato no Calendário Sagrado de 13 Meses × 28 Dias e receber uma notificação anual.'
+              : 'Enter or update your birth date in the current Gregorian calendar to discover your exact day in the 13-Month × 28-Day Sacred Calendar and receive an annual birthday notification.'}
+          </p>
+
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            {/* Date Picker Control */}
+            <div className="flex flex-wrap items-center gap-2.5">
+              <label
+                htmlFor="feasts-birthday-input"
+                className="text-xs font-semibold text-slate-200 whitespace-nowrap"
+              >
+                {isPt ? 'Data de Nascimento (Gregoriano):' : 'Birth Date (Gregorian):'}
+              </label>
+              <input
+                id="feasts-birthday-input"
+                type="date"
+                value={config.userBirthdayGregorian || ''}
+                onChange={(e) => handleSetBirthday(e.target.value)}
+                className="px-3 py-1.5 bg-slate-900 border border-amber-500/50 text-slate-100 text-xs font-serif tabular-nums focus:outline-none focus:border-amber-400"
+              />
+              {config.userBirthdayGregorian && (
+                <button
+                  type="button"
+                  onClick={() => handleSetBirthday('')}
+                  className="px-2.5 py-1.5 border border-slate-700 bg-slate-950 hover:bg-slate-900 text-xs text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
+                >
+                  {isPt ? 'Limpar' : 'Clear'}
+                </button>
+              )}
+            </div>
+
+            {/* Notification & Google Calendar Actions when Birthday is Set */}
+            {resolvedBirthday && (
+              <div className="flex flex-wrap items-center gap-2 text-xs">
+                <button
+                  type="button"
+                  onClick={handleToggleBirthdayNotification}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 border font-semibold transition-colors cursor-pointer ${
+                    notifSettings.enabled && notifSettings.birthdayAlert
+                      ? 'bg-emerald-950/50 border-emerald-500/60 text-emerald-300'
+                      : 'bg-slate-900 border-slate-700 text-slate-300 hover:border-amber-500/50'
+                  }`}
+                >
+                  {notifSettings.enabled && notifSettings.birthdayAlert ? (
+                    <>
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                      <span>
+                        {isPt ? 'Notificação de Aniversário Ativa' : 'Birthday Notification Active'}
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <Bell className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                      <span>
+                        {isPt ? 'Ativar Notificação de Aniversário' : 'Enable Birthday Notification'}
+                      </span>
+                    </>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    config.userBirthdayGregorian &&
+                    sendBirthdayAlertPreview(
+                      config.userBirthdayGregorian,
+                      config.lunarAnchorMode,
+                      language,
+                      true
+                    )
+                  }
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-amber-500/50 bg-slate-950 hover:bg-slate-900 text-amber-300 transition-colors cursor-pointer"
+                >
+                  <Bell className="w-3.5 h-3.5 shrink-0" />
+                  <span>{isPt ? 'Testar Alerta' : 'Test Alert'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleAddBirthdayToGoogleCalendar}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold transition-colors cursor-pointer"
+                >
+                  <Calendar className="w-3.5 h-3.5 shrink-0" />
+                  <span>{isPt ? 'Incluir no Google Agenda' : 'Add to Google Calendar'}</span>
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Mapped 13-Month Sacred Birthday Readout Grid */}
+          {resolvedBirthday && (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-px bg-slate-800 border border-slate-800 text-xs tabular-nums">
+              <div className="bg-slate-900/60 p-3.5 space-y-1">
+                <span className="text-slate-400 block">
+                  {isPt
+                    ? 'Equivalente no Calendário de 13 Meses'
+                    : '13-Month Sacred Calendar Equivalent'}
+                </span>
+                <strong className="text-base text-amber-300 block">
+                  {resolvedBirthday.sacredMonth === 0
+                    ? isPt
+                      ? 'Dia Zero (Sábado Anual)'
+                      : 'Day Zero (Annual Sabbath)'
+                    : `${getMonthDisplayTitle(
+                        resolvedBirthday.sacredMonth,
+                        config.customMonthNames,
+                        language
+                      )}, ${isPt ? 'Dia' : 'Day'} ${resolvedBirthday.sacredDayOfMonth}`}
+                </strong>
+                <span className="text-slate-400 italic block">
+                  {resolvedBirthday.birthSacredDay.kind === 'NUMBERED_DAY'
+                    ? isPt
+                      ? `Dia ${resolvedBirthday.birthSacredDay.dayOfYear} de 364 · ${
+                          resolvedBirthday.birthSacredDay.isWeeklySabbath
+                            ? 'Sábado Semanal'
+                            : `${resolvedBirthday.birthSacredDay.dayOfWeek}º Dia da Semana`
+                        }`
+                      : `Day ${resolvedBirthday.birthSacredDay.dayOfYear} of 364 · ${
+                          resolvedBirthday.birthSacredDay.isWeeklySabbath
+                            ? 'Weekly Sabbath'
+                            : `Day ${resolvedBirthday.birthSacredDay.dayOfWeek} of Week`
+                        }`
+                    : isPt
+                      ? 'Limiar Anual Fora dos 364 Dias'
+                      : 'Annual Threshold Outside the 364 Days'}
+                </span>
+              </div>
+
+              <div className="bg-slate-900/60 p-3.5 space-y-1">
+                <span className="text-slate-400 block">
+                  {isPt
+                    ? `Data Gregoriana no Ano Sagrado ${selectedSacredYear}`
+                    : `Gregorian Date in Sacred Year ${selectedSacredYear}`}
+                </span>
+                <strong className="text-base text-slate-100 block">
+                  {resolvedBirthday.targetYearDay.gregorianDate.toISOString().split('T')[0]}
+                </strong>
+                <span className="text-emerald-400 italic block">
+                  {isPt
+                    ? `Ano Sagrado de Nascimento: ${resolvedBirthday.birthSacredDay.calendarYear}`
+                    : `Birth Sacred Year: ${resolvedBirthday.birthSacredDay.calendarYear}`}
+                </span>
+              </div>
+
+              <div className="bg-slate-900/60 p-3.5 space-y-1">
+                <span className="text-slate-400 block">
+                  {isPt
+                    ? `Ciclos Sagrados Completos (${selectedSacredYear})`
+                    : `Completed Sacred Cycles (${selectedSacredYear})`}
+                </span>
+                <strong className="text-base text-purple-300 block">
+                  {resolvedBirthday.sacredAgeInTargetYear}{' '}
+                  {isPt ? 'anos sagrados' : 'sacred years'}
+                </strong>
+                <span className="text-slate-400 italic block">
+                  {isPt
+                    ? `Nascimento Gregoriano: ${resolvedBirthday.gregorianBirthISO}`
+                    : `Gregorian Birth: ${resolvedBirthday.gregorianBirthISO}`}
+                </span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
