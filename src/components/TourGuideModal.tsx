@@ -151,14 +151,14 @@ export const TourGuideModal: React.FC<TourGuideModalProps> = ({
         ? 'Evangelho das Dimenúveis'
         : 'Gospel of Dimenuous',
       subtitle: isPt
-        ? 'Almanaque Bíblico Lunar, Sagrado e Milenar · Versão 2.0'
-        : 'Biblical Lunar, Sacred & Millennial Almanac · Version 2.0',
+        ? 'Almanaque Bíblico Lunar, Sagrado e Milenar · Versão 2.1'
+        : 'Biblical Lunar, Sacred & Millennial Almanac · Version 2.1',
       content: (
         <div className="space-y-5">
           <p className="text-sm font-serif text-slate-200 leading-relaxed">
             {isPt
-              ? 'Este instrumento editorial e astronômico (v2.0) integra o Calendário Sagrado de 13 Meses × 28 Dias (364 dias + Dia Zero), os 13 Signos Eclípticos (incluindo o 13º Signo restaurado do Dragão no Mês IX), o Indicador Ao Vivo do Sábado, a Oração Diária Bíblica, as Festas de Levítico 23 e o Relógio Milenar de 7.000 anos.'
-              : 'This editorial and astronomical instrument (v2.0) integrates the 13-Month × 28-Day Sacred Calendar (364 days + Day Zero), the 13 Ecliptic Zodiac Signs (including the restored 13th Sign of the Dragon in Month IX), the Live Sabbath Indicator, the Daily Scriptural Prayer, Leviticus 23 Feasts, and the 7,000-Year Millennial Clock.'}
+              ? 'Este instrumento editorial e astronômico (v2.1) integra o Calendário Sagrado de 13 Meses × 28 Dias (364 dias + Dia Zero), os 13 Signos Eclípticos (incluindo o 13º Signo restaurado do Dragão no Mês IX), o Indicador Ao Vivo do Sábado, a Oração Diária Bíblica, as Festas de Levítico 23 e o Relógio Milenar de 7.000 anos.'
+              : 'This editorial and astronomical instrument (v2.1) integrates the 13-Month × 28-Day Sacred Calendar (364 days + Day Zero), the 13 Ecliptic Zodiac Signs (including the restored 13th Sign of the Dragon in Month IX), the Live Sabbath Indicator, the Daily Scriptural Prayer, Leviticus 23 Feasts, and the 7,000-Year Millennial Clock.'}
           </p>
 
           {/* Interactive Language & Theme Switcher Cards */}

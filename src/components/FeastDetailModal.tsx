@@ -138,6 +138,32 @@ export const FeastDetailModal: React.FC<FeastDetailModalProps> = ({
                 <span className="text-slate-400">{isPt ? 'Observância:' : 'Observance:'}</span>
                 <span className="text-slate-200">{translateBoundary(feast.beginsAt)} → {translateBoundary(feast.endsAt)}</span>
               </div>
+              {occurrence.localSunsetStart && (
+                <div className="flex justify-between gap-2 whitespace-nowrap">
+                  <span className="text-slate-400">
+                    {isPt ? 'Pôr do Sol Local (GPS):' : 'Local Sunset (GPS):'}
+                  </span>
+                  <strong className="text-emerald-300">
+                    {occurrence.localSunsetStart} ({occurrence.observerCityName || 'Jerusalem'})
+                  </strong>
+                </div>
+              )}
+              {occurrence.hemisphere && (
+                <div className="flex justify-between gap-2 whitespace-nowrap">
+                  <span className="text-slate-400">
+                    {isPt ? 'Estação por Hemisfério:' : 'Hemisphere Season:'}
+                  </span>
+                  <span className="text-amber-300 font-semibold">
+                    {occurrence.hemisphere === 'SOUTHERN'
+                      ? isPt
+                        ? 'Hemisfério Sul (Invertida)'
+                        : 'Southern Hemisphere (Inverted)'
+                      : isPt
+                        ? 'Hemisfério Norte'
+                        : 'Northern Hemisphere'}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
 

@@ -91,9 +91,17 @@ export const CalendarScreen: React.FC<CalendarScreenProps> = ({
         config.lunarAnchorMode,
         config.feastCalendarModel,
         systemDate,
-        language
+        language,
+        config.userLocation
       ),
-    [selectedSacredYear, config.lunarAnchorMode, config.feastCalendarModel, systemDate, language]
+    [
+      selectedSacredYear,
+      config.lunarAnchorMode,
+      config.feastCalendarModel,
+      systemDate,
+      language,
+      config.userLocation,
+    ]
   );
 
   const resolvedBirthday = useMemo(
@@ -127,7 +135,8 @@ export const CalendarScreen: React.FC<CalendarScreenProps> = ({
             numDay,
             config.lunarAnchorMode,
             config.feastCalendarModel,
-            language
+            language,
+            config.userLocation
           );
           const feastObs = observancesInfo.observances.find(
             (o) => o.type === 'FEAST_DAY' || o.type === 'SOLEMN_ASSEMBLY' || o.type === 'FAST_DAY'
@@ -165,6 +174,7 @@ export const CalendarScreen: React.FC<CalendarScreenProps> = ({
     config.feastCalendarModel,
     config.customMonthNames,
     language,
+    config.userLocation,
   ]);
 
   const getShortFeastLabel = (feastId?: string, fullName?: string) => {

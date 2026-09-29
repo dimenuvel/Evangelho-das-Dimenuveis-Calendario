@@ -76,13 +76,15 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
     currentSacredDay,
     config.lunarAnchorMode,
     config.feastCalendarModel,
-    language
+    language,
+    config.userLocation
   );
   const { activeFeast, nextFeast } = getCurrentOrNextFeast(
     systemDate,
     config.lunarAnchorMode,
     config.feastCalendarModel,
-    language
+    language,
+    config.userLocation
   );
 
   const translateAnchorMode = (mode: string) => {

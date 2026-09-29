@@ -69,6 +69,20 @@ export interface CalculatedFeastOccurrence {
 
   lunarPhaseAtStart: string; // e.g., "Full Moon"
   lunarIlluminationAtStart: number; // 0..1
+
+  // GPS & Hemisphere Seasonal Context
+  hemisphere?: "NORTHERN" | "SOUTHERN";
+  seasonalGroup?: "SPRING" | "AUTUMN";
+  localSunsetStart?: string;
+  observerCityName?: string;
+  observerLatitude?: number;
+  observerLongitude?: number;
+  sabbathRestDays?: number[];
+  theologicalSignificance?: string;
+  propheticFulfillment?: string;
+  observanceInstructions?: string;
+  dataSource?: string;
+  overlapsWeeklySabbath?: boolean;
 }
 
 export interface DayObservance {

@@ -24,7 +24,7 @@ import { FeastDetailModal } from '../components/FeastDetailModal';
 import { GoogleCalendarSyncModal } from '../components/GoogleCalendarSyncModal';
 import { LunarPhaseIcon } from '../components/LunarPhaseIcon';
 import { DataSourceBadge } from '../components/DataSourceBadge';
-import { ChevronLeft, ChevronRight, Calendar, Gift, Bell, CheckCircle2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar, Gift, Bell, CheckCircle2, MapPin } from 'lucide-react';
 
 interface AppointedTimesScreenProps {
   systemDate: Date;
@@ -125,22 +125,25 @@ export const AppointedTimesScreen: React.FC<AppointedTimesScreenProps> = ({
         sacredMonth: resolvedBirthday.sacredMonth || 1,
         sacredDay: resolvedBirthday.sacredDayOfMonth || 1,
         durationDays: 1,
-        sabbathRestDays: [],
-        biblicalReferences: ['Salmos 90:12 / Psalm 90:12'],
-        theologicalSignificance: isPt
+        status: 'APPOINTED_TIME',
+        description: isPt
           ? `Equivalente no Calendário Sagrado de 13 Meses para o nascimento gregoriano em ${resolvedBirthday.gregorianBirthISO}.`
           : `13-Month Sacred Calendar equivalent for Gregorian birth date ${resolvedBirthday.gregorianBirthISO}.`,
-        propheticFulfillment: isPt
-          ? 'Contagem dos nossos dias segundo a sabedoria do ciclo criacional (Salmos 90:12).'
-          : 'Numbering our days according to wisdom in the creational cycle (Psalm 90:12).',
-        observanceInstructions: isPt
-          ? 'Ação de graças anual no dia correspondente do Calendário de 13 Meses.'
-          : 'Annual thanksgiving on the corresponding day of the 13-Month Sacred Calendar.',
-        dataSource: 'ASTRONOMICAL_CALCULATION',
+        beginsAt: 'SUNSET',
+        endsAt: 'SUNSET',
+        biblicalReferences: ['Salmos 90:12 / Psalm 90:12'],
       },
       sacredYear: selectedSacredYear,
+      startSacredMonth: resolvedBirthday.sacredMonth || 1,
+      startSacredDay: resolvedBirthday.sacredDayOfMonth || 1,
+      endSacredMonth: resolvedBirthday.sacredMonth || 1,
+      endSacredDay: resolvedBirthday.sacredDayOfMonth || 1,
       gregorianStartDate: occDate,
       gregorianEndDate: occDate,
+      julianDayStartNumber: 0,
+      julianDayEndNumber: 0,
+      durationDays: 1,
+      isUpcoming: occDate.getTime() > systemDate.getTime(),
       lunarPhaseAtStart: lunarAtBirth.phaseName,
       lunarIlluminationAtStart: lunarAtBirth.fraction,
       overlapsWeeklySabbath:
@@ -152,16 +155,24 @@ export const AppointedTimesScreen: React.FC<AppointedTimesScreenProps> = ({
     setCalendarSyncOccurrences([birthdayOccurrence]);
   };
 
+  const activeLocation = config.userLocation || {
+    latitude: 31.7683,
+    longitude: 35.2137,
+    cityName: 'Jerusalem (Default)',
+  };
+  const isSouthernHemisphere = activeLocation.latitude < 0;
+
   const feastOccurrences = calculateFeastOccurrences(
     selectedSacredYear,
     config.lunarAnchorMode,
     config.feastCalendarModel,
     systemDate,
-    language
+    language,
+    activeLocation
   );
 
-  const springFeasts = feastOccurrences.filter((f) => f.feast.sacredMonth <= 3);
-  const autumnFeasts = feastOccurrences.filter((f) => f.feast.sacredMonth >= 7);
+  const springFeasts = feastOccurrences.filter((f) => f.seasonalGroup === 'SPRING');
+  const autumnFeasts = feastOccurrences.filter((f) => f.seasonalGroup === 'AUTUMN');
 
   const translateCategory = (cat: string) => {
     if (!isPt) {
@@ -231,6 +242,24 @@ export const AppointedTimesScreen: React.FC<AppointedTimesScreenProps> = ({
             <span>{isPt ? 'Modelo:' : 'Model:'} <strong className="text-amber-400">{translateModel(config.feastCalendarModel)}</strong></span>
             <span className="text-slate-500">·</span>
             <span>{isPt ? 'Âncora:' : 'Anchor:'} <strong className="text-blue-300">{translateAnchor(config.lunarAnchorMode)}</strong></span>
+            <span className="text-slate-500">·</span>
+            <span className="inline-flex items-center gap-1">
+              <MapPin className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+              <strong className="text-emerald-300">
+                {activeLocation.cityName || 'Jerusalem (Default)'}
+              </strong>
+              <span className="text-slate-400 tabular-nums">
+                ({activeLocation.latitude.toFixed(2)}°, {activeLocation.longitude.toFixed(2)}° ·{' '}
+                {isSouthernHemisphere
+                  ? isPt
+                    ? 'Hemisfério Sul — Estações Invertidas'
+                    : 'Southern Hemisphere — Inverted Seasons'
+                  : isPt
+                    ? 'Hemisfério Norte'
+                    : 'Northern Hemisphere'}
+                )
+              </span>
+            </span>
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5 min-w-0">
@@ -268,9 +297,16 @@ export const AppointedTimesScreen: React.FC<AppointedTimesScreenProps> = ({
 
       {/* SECTION I: SPRING APPOINTED TIMES */}
       <div className="border border-slate-800 bg-slate-950">
-        <div className="px-4 sm:px-5 py-3 bg-slate-900/70 border-b border-slate-800 flex items-center justify-between gap-2">
-          <h3 className="text-xs sm:text-sm font-serif font-bold uppercase tracking-wider text-amber-400 whitespace-nowrap">
-            I. {isPt ? 'Festas da Primavera (Meses I–III)' : 'Spring Feasts (Months I–III)'}
+        <div className="px-4 sm:px-5 py-3 bg-slate-900/70 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2">
+          <h3 className="text-xs sm:text-sm font-serif font-bold uppercase tracking-wider text-amber-400">
+            I.{' '}
+            {isSouthernHemisphere
+              ? isPt
+                ? 'Festas da Primavera Austral (Meses VII–IX · Set–Nov)'
+                : 'Southern Spring Feasts (Months VII–IX · Sep–Nov)'
+              : isPt
+                ? 'Festas da Primavera Boreal (Meses I–III · Mar–Mai)'
+                : 'Northern Spring Feasts (Months I–III · Mar–May)'}
           </h3>
           <span className="text-xs font-serif italic text-slate-300 whitespace-nowrap">
             {isPt ? 'Lev 23:4–22' : 'Lev 23:4–22'}
@@ -313,6 +349,12 @@ export const AppointedTimesScreen: React.FC<AppointedTimesScreenProps> = ({
                     <span className="text-slate-400">{isPt ? 'Gregoriano:' : 'Gregorian:'}</span>
                     <span className="text-slate-100 font-semibold">{occ.gregorianStartDate.toISOString().split('T')[0]}</span>
                   </div>
+                  {occ.localSunsetStart && (
+                    <div className="flex justify-between whitespace-nowrap">
+                      <span className="text-slate-400">{isPt ? 'Pôr do Sol GPS:' : 'GPS Sunset:'}</span>
+                      <span className="text-amber-300 font-semibold">{occ.localSunsetStart}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between whitespace-nowrap">
                     <span className="text-slate-400">{isPt ? 'Duração:' : 'Duration:'}</span>
                     <span className="text-slate-200">{f.durationDays} {isPt ? 'dia(s)' : 'day(s)'}</span>
@@ -336,9 +378,16 @@ export const AppointedTimesScreen: React.FC<AppointedTimesScreenProps> = ({
 
       {/* SECTION II: AUTUMN APPOINTED TIMES */}
       <div className="border border-slate-800 bg-slate-950">
-        <div className="px-4 sm:px-5 py-3 bg-slate-900/70 border-b border-slate-800 flex items-center justify-between gap-2">
-          <h3 className="text-xs sm:text-sm font-serif font-bold uppercase tracking-wider text-purple-300 whitespace-nowrap">
-            II. {isPt ? 'Festas do Outono (Mês VII)' : 'Autumn Feasts (Month VII)'}
+        <div className="px-4 sm:px-5 py-3 bg-slate-900/70 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2">
+          <h3 className="text-xs sm:text-sm font-serif font-bold uppercase tracking-wider text-purple-300">
+            II.{' '}
+            {isSouthernHemisphere
+              ? isPt
+                ? 'Festas do Outono Austral (Mês I · Mar–Abr)'
+                : 'Southern Autumn Feasts (Month I · Mar–Apr)'
+              : isPt
+                ? 'Festas do Outono Boreal (Mês VII · Set–Out)'
+                : 'Northern Autumn Feasts (Month VII · Sep–Oct)'}
           </h3>
           <span className="text-xs font-serif italic text-slate-300 whitespace-nowrap">
             {isPt ? 'Lev 23:23–44' : 'Lev 23:23–44'}
@@ -389,6 +438,12 @@ export const AppointedTimesScreen: React.FC<AppointedTimesScreenProps> = ({
                     <span className="text-slate-400">{isPt ? 'Gregoriano:' : 'Gregorian:'}</span>
                     <span className="text-slate-100 font-semibold">{occ.gregorianStartDate.toISOString().split('T')[0]}</span>
                   </div>
+                  {occ.localSunsetStart && (
+                    <div className="flex justify-between whitespace-nowrap">
+                      <span className="text-slate-400">{isPt ? 'Pôr do Sol GPS:' : 'GPS Sunset:'}</span>
+                      <span className="text-purple-300 font-semibold">{occ.localSunsetStart}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between whitespace-nowrap">
                     <span className="text-slate-400">{isPt ? 'Duração:' : 'Duration:'}</span>
                     <span className="text-slate-200">{f.durationDays} {isPt ? 'dia(s)' : 'day(s)'}</span>

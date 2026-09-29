@@ -46,8 +46,20 @@ export const DayDetailModal: React.FC<DayDetailModalProps> = ({
   );
 
   const sabbathBadge = getSabbathBadgeLabel(day.sabbathType, language);
-  const feastMatch = getFeastOccurrenceForDay(day, config.lunarAnchorMode, config.feastCalendarModel, language);
-  const observancesInfo = getObservancesForDay(day, config.lunarAnchorMode, config.feastCalendarModel, language);
+  const feastMatch = getFeastOccurrenceForDay(
+    day,
+    config.lunarAnchorMode,
+    config.feastCalendarModel,
+    language,
+    config.userLocation
+  );
+  const observancesInfo = getObservancesForDay(
+    day,
+    config.lunarAnchorMode,
+    config.feastCalendarModel,
+    language,
+    config.userLocation
+  );
 
   const allBiblicalEvents = getLocalizedBiblicalEvents(language);
   const biblicalEvents = allBiblicalEvents.filter((e) => {
