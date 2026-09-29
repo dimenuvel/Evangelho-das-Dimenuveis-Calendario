@@ -1,27 +1,37 @@
-# Evangelho das Dimenúveis — Calendário Bíblico Lunar & Milenar (v2.1)
+# Evangelho das Dimenúveis — Calendário Bíblico Lunar & Milenar (v2.2)
 
-[![Version](https://img.shields.io/badge/Vers%C3%A3o-2.1-f59e0b.svg)](https://dimenuvel.github.io/Evangelho-das-Dimenuveis-site/)
+[![Version](https://img.shields.io/badge/Vers%C3%A3o-2.2-f59e0b.svg)](https://dimenuvel.github.io/Evangelho-das-Dimenuveis-site/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-19.x-61dafb.svg)](https://react.dev/)
 [![Tailwind CSS](https://img.shields.io/badge/TailwindCSS-4.x-38bdf8.svg)](https://tailwindcss.com/)
 [![Licença: MIT](https://img.shields.io/badge/Licen%C3%A7a-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Um motor avançado de engenharia de calendários e aplicação web/mobile interativa (**v2.1**) que integra o **Tempo Sagrado Bíblico** (13 meses × 28 dias = 364 dias + Dia Zero = 365 dias), os **13 Signos Eclípticos do Zodíaco** (com o **13º Signo restaurado do Dragão** no Mês IX), **Festas Bíblicas Dependentes de GPS & Hemisfério**, **Indicador Ao Vivo do Sábado com Contagem Regressiva ao Pôr do Sol**, **Oração Diária Bíblica**, **Mapeamento Natalício de 13 Meses**, **Cálculos Lunares Astronômicos**, **Cronologia Histórica a.C./d.C.** (sem Ano Zero), a **Grande Semana Milenar de 7.000 Anos** e a árvore arquitetônica temporal do **Evangelho das Dimenúveis**.
+Um motor avançado de engenharia de calendários e aplicação web/mobile interativa (**v2.2**) que integra o **Tempo Sagrado Bíblico** (13 meses × 28 dias = 364 dias + Dia Zero = 365 dias), os **13 Signos Eclípticos do Zodíaco** (com o **13º Signo restaurado do Dragão** no Mês IX), o **Mapa Astral Natal Interativo de 13 Signos** (com data e hora exata de nascimento, geocodificação manual de Cidade/País natal e download de imagem em alta resolução), **Festas Bíblicas Dependentes de GPS & Hemisfério**, **Indicador Ao Vivo do Sábado com Contagem Regressiva ao Pôr do Sol**, **Oração Diária Bíblica**, **Cálculos Lunares Astronômicos**, **Cronologia Histórica a.C./d.C.** (sem Ano Zero), a **Grande Semana Milenar de 7.000 Anos** e a árvore arquitetônica temporal do **Evangelho das Dimenúveis**.
 
 ---
 
-## 🌟 Principais Funcionalidades (Novidades da Versão 2.1)
+## 🌟 Principais Funcionalidades (Novidades da Versão 2.2)
 
-- **Estrutura do Calendário Sagrado (13 × 28 + Dia 0)**:
-  - **13 meses sagrados iguais** de exatamente **28 dias** (4 semanas perfeitas de 7 dias por mês).
-  - **Dia Zero (0)**: O limiar não numerado do Ano Novo Sagrado que antecede o Mês I, Dia 1.
-  - **Sábado Semanal Contínuo**: Ciclo ininterrupto de Sábados de 7 dias preservado através de fronteiras de meses e anos (**52 Sábados semanais** por ano sagrado nos dias **7, 14, 21 e 28**).
-  - **Sábado Anual do Dia Zero**: O Dia Zero é classificado como Sábado Anual, ou *Sábado Maior / Grão-Sábado* quando coincide com o 7º dia semanal.
+- **Estrutura do Calendário Sagrado (13 × 28 + Dia 0) & Navegação em Duas Abas (Cap. II)**:
+  - **Aba I — `I. Calendário Sagrado (13 Meses × 28 Dias)`**:
+    - **13 meses sagrados iguais** de exatamente **28 dias** (4 semanas perfeitas de 7 dias por mês).
+    - **Dia Zero (0)**: O limiar não numerado do Ano Novo Sagrado que antecede o Mês I, Dia 1.
+    - **Sábado Semanal Contínuo**: Ciclo ininterrupto de Sábados de 7 dias preservado através de fronteiras de meses e anos (**52 Sábados semanais** por ano sagrado nos dias **7, 14, 21 e 28**).
+    - **Sábado Anual do Dia Zero**: O Dia Zero é classificado como Sábado Anual, ou *Sábado Maior / Grão-Sábado* quando coincide com o 7º dia semanal.
+  - **Aba II — `II. Dados Astrais & 13 Signos (Mapa Astral Natal)`**:
+    - Separa os dados astrais, a matriz eclíptica dos 13 signos e o Mapa Astral Natal em uma aba dedicada no topo da página de Calendário para manter a leitura limpa e organizada.
 
-- **Os 13 Signos Eclípticos & O 13º Signo Restaurado do Dragão (Cap. II — Calendário)**:
-  - Correlaciona e mapeia todos os **13 Signos do Zodíaco Eclíptico** diretamente nos **13 Meses Sagrados de 28 dias** (`364° / 13 = 28°` de arco solar por mês):
-    - **Mês I**: ♈ Áries (*Cordeiro*) · **Mês II**: ♉ Touro · **Mês III**: ♊ Gêmeos · **Mês IV**: ♋ Câncer · **Mês V**: ♌ Leão · **Mês VI**: ♍ Virgem (*Espiga*) · **Mês VII**: ♎ Libra (*Balança*) · **Mês VIII**: ♏ Escorpião · **Mês IX**: 🐉 **O Dragão (*Ophiuchus / Draco — 13º Signo Restaurado*)** · **Mês X**: ♐ Sagitário · **Mês XI**: ♑ Capricórnio · **Mês XII**: ♒ Aquário · **Mês XIII**: ♓ Peixes.
-  - Exibe uma **Matriz Eclíptica Interativa dos 13 Signos** no topo do **Cap. II (Calendário)**, além de insígnias zodiacais nos cabeçalhos dos 13 meses e no modal de detalhes de cada dia.
+- **Os 13 Signos Eclípticos, O 13º Signo do Dragão & Mapa Astral Natal (Cap. II — Aba II)**:
+  - Correlaciona e mapeia todos os **13 Signos do Zodíaco Eclíptico (Mazzaroth — Jó 38:32)** diretamente nos **13 Meses Sagrados de 28 dias** (`360° / 13 ≈ 27,69°` de arco eclíptico por mês):
+    - **Mês I**: ♈ Áries (*Cordeiro*) · **Mês II**: ♉ Touro · **Mês III**: ♊ Gêmeos · **Mês IV**: ♋ Câncer · **Mês V**: ♌ Leão · **Mês VI**: ♍ Virgem (*Espiga*) · **Mês VII**: ♎ Libra (*Balança*) · **Mês VIII**: ♏ Escorpião · **Mês IX**: ⛎ **O Dragão (*Ophiuchus / Draco — 13º Signo Restaurado*)** · **Mês X**: ♐ Sagitário · **Mês XI**: ♑ Capricórnio · **Mês XII**: ♒ Aquário · **Mês XIII**: ♓ Peixes.
+  - **Mapa Astral Natal Interativo de 13 Signos (Data, Hora Exata e Cidade Natal)**:
+    - **Roda Astral SVG de 13 Setores**: Renderiza a posição exata dos astros no momento do nascimento, com alternância entre visualização pelo **Eixo Ascendente (`ASC`)** e **Mês I (Áries) no Topo**.
+    - **Local de Nascimento Manual (Cidade & País + Coordenadas)**: Permite alternar entre o **GPS Atual / Padrão** e a **Cidade & País de Nascimento (Manual)** (com busca automática de coordenadas via OpenStreetMap Nominatim + gazetteer offline integrado, além de ajuste fino de Latitude e Longitude) para calcular com precisão o **Nascer do Sol Natal**, o **Signo Ascendente (`ASC`)** e o **Meio do Céu (`MC`)** mesmo quando o usuário não está fisicamente em sua cidade natal.
+    - **Download do Mapa Astral em Alta Resolução (`Baixar Mapa Astral` / `Download Astral Map`)**: Exporta o alinhamento da roda zodiacal de 13 signos, metadados de nascimento e efemérides natais como imagem **`.PNG` de alta definição** (`html-to-image` canvas capture + suporte nativo `AndroidBridge.savePngFile` no APK Android).
+    - **Inspeção Interativa de 10 Astros & Aspectos Geométricos Natais**:
+      - **I. Tríade Natal Principal**: **☉ Sol Natal** (Mês e Dia Sagrado de nascimento), **☽ Lua Natal & Fase na Hora** e **ASC Signo Ascendente** (com a Porta Celeste de 1 Enoque 72 ativa no nascimento).
+      - **II. Efemérides Natais nos 13 Signos**: Inspetor interativo ao vivo para **☉ Sol**, **☽ Lua**, **ASC Ascendente**, **MC Meio do Céu**, **☊ Cabeça do Dragão (Nodo Norte)**, **☿ Mercúrio**, **♀ Vênus**, **♂ Marte**, **♃ Júpiter** e **♄ Saturno**.
+      - **III. Aspectos Geométricos de Alinhamento Natal**: Cálculo e leitura detalhada de **Conjunção (0°)**, **Sextil (60°)**, **Quadratura (90°)**, **Trígono (120°)** e **Oposição (180°)** com alto contraste tanto no **Modo Dia** quanto no **Modo Noite**.
 
 - **Festas Bíblicas Dependentes de GPS & Inversão Sazonal de Hemisfério (Cap. III — Festas)**:
   - Cálculo dinâmico das **8 Solenidades de Levítico 23 (*Moedim*)**: *Páscoa (Pesach)*, *Pães Asmos*, *Primícias*, *Pentecostes (Shavuot)*, *Trombetas (Yom Teruah)*, *Dia da Expiação (Yom Kippur)*, *Tabernáculos (Sukkot — 7 dias)* e *Oitavo Dia (Shemini Atzeret — 1 dia)*.
@@ -78,11 +88,11 @@ $$\text{Arco Eclíptico Mensal} = \frac{364^\circ \text{ Ciclo Solar Numerado}}{
 
 ## 🛠 Tecnologia Utilizada
 
-- **Frontend**: React 19, TypeScript 5, Vite 8, Tailwind CSS v4
+- **Frontend**: React 19, TypeScript 5, Vite 8, Tailwind CSS v4, html-to-image (Exportação PNG do Mapa Astral)
 - **Tipografia**: Cormorant Garamond, EB Garamond, Lora (Estética editorial de livro clássico)
 - **Ícones & Animações**: Lucide React, Motion (Framer Motion)
-- **Astronomia**: SunCalc (Motor de posições solares, pôr do sol GPS e fases lunares)
-- **Android Nativo**: Java 17, Android SDK 34, `WebViewAssetLoader`, `AlarmManager` (Notificações em 2º plano), `PrintManager` (Exportação PDF) e `CalendarContract` (Integração Google Agenda)
+- **Astronomia**: SunCalc (Motor de posições solares, pôr do sol GPS e fases lunares) + Motor Eclíptico Natal de 13 Signos (`natalAstralMap.ts`)
+- **Android Nativo**: Java 17, Android SDK 34, `WebViewAssetLoader`, `AlarmManager` (Notificações em 2º plano), `PrintManager` (Exportação PDF), `ActivityResultContracts` (Download nativo de `.PNG` e `.ICS`) e `CalendarContract` (Integração Google Agenda)
 
 ---
 
@@ -158,9 +168,9 @@ O projeto inclui uma estrutura nativa Android para o aplicativo **Calendário da
 Ao enviar código para a branch `main`/`master` (ou acionar manualmente em **Actions → Build Android APK → Run workflow** no GitHub):
 1. O GitHub Actions instala o Node.js 22, compila o aplicativo Vite (`npm run build`) e sincroniza o bundle em `android/app/src/main/assets/public/`.
 2. Configura automaticamente o **Java JDK 17 (Temurin)**, **Android SDK 34** e **Gradle 8.7**, baixando todas as dependências Maven/Gradle na nuvem.
-3. Gera e assina os arquivos sincronizados automaticamente com a versão do rodapé (`v2.1`):
-   - `Calendario-das-Dimenuveis-v2.1-release.apk` (Artifact: `Calendario-das-Dimenuveis-v2.1-release-apk` — APK Release assinado pronto para instalação)
-   - `Calendario-das-Dimenuveis-v2.1-debug.apk` (Artifact: `Calendario-das-Dimenuveis-v2.1-debug-apk` — APK Debug)
+3. Gera e assina os arquivos sincronizados automaticamente com a versão do rodapé (`v2.2`):
+   - `Calendario-das-Dimenuveis-v2.2-release.apk` (Artifact: `Calendario-das-Dimenuveis-v2.2-release-apk` — APK Release assinado pronto para instalação)
+   - `Calendario-das-Dimenuveis-v2.2-debug.apk` (Artifact: `Calendario-das-Dimenuveis-v2.2-debug-apk` — APK Debug)
 4. Disponibiliza ambos os APKs para download direto na seção **Artifacts** da execução do workflow no GitHub.
 
 ---

@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,500;0,600;0,700;1,400;1,600&family=EB+Garamond:ital,wght@0,500;0,600;0,700;1,400&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&display=swap');
 
 @theme {
   --font-sans: "Lora", Georgia, Cambria, "Times New Roman", Times, serif;
@@ -483,6 +482,7 @@
 [data-theme="day"] input[type="text"],
 [data-theme="day"] input[type="number"],
 [data-theme="day"] input[type="date"],
+[data-theme="day"] input[type="time"],
 [data-theme="day"] textarea {
   background-color: #fcfaf5 !important;
   color: #14110d !important;

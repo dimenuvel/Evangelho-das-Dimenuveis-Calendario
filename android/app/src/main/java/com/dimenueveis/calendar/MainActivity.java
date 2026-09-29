@@ -16,6 +16,7 @@ import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Base64;
 import android.print.PrintAttributes;
 import android.print.PrintDocumentAdapter;
 import android.print.PrintManager;
@@ -54,9 +55,11 @@ public class MainActivity extends AppCompatActivity {
     private String pendingGeolocationOrigin;
     private GeolocationPermissions.Callback pendingGeolocationCallback;
     private String pendingIcsContent;
+    private byte[] pendingPngBytes;
     private ActivityResultLauncher<String[]> locationPermissionLauncher;
     private ActivityResultLauncher<String> notificationPermissionLauncher;
     private ActivityResultLauncher<Intent> saveIcsDocumentLauncher;
+    private ActivityResultLauncher<Intent> savePngDocumentLauncher;
 
     private boolean isLocationPermissionGranted() {
         return ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
@@ -145,6 +148,28 @@ public class MainActivity extends AppCompatActivity {
                         final boolean finalSaved = saved;
                         final String js = "window.dispatchEvent(new CustomEvent('androidIcsSaveResult', { detail: { saved: " + finalSaved + " } }));";
                         webView.post(() -> webView.evaluateJavascript(js, null));
+                    }
+                }
+        );
+
+        savePngDocumentLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    boolean saved = false;
+                    if (result.getResultCode() == RESULT_OK && result.getData() != null && result.getData().getData() != null && pendingPngBytes != null) {
+                        Uri uri = result.getData().getData();
+                        try (OutputStream os = getContentResolver().openOutputStream(uri)) {
+                            if (os != null) {
+                                os.write(pendingPngBytes);
+                                os.flush();
+                                saved = true;
+                            }
+                        } catch (Exception ignored) {
+                        }
+                    }
+                    pendingPngBytes = null;
+                    if (saved) {
+                        Toast.makeText(MainActivity.this, "Mapa Astral salvo com sucesso!", Toast.LENGTH_LONG).show();
                     }
                 }
         );
@@ -413,6 +438,30 @@ public class MainActivity extends AppCompatActivity {
                     intent.setType("text/calendar");
                     intent.putExtra(Intent.EXTRA_TITLE, safeName);
                     saveIcsDocumentLauncher.launch(intent);
+                } catch (Exception ignored) {
+                }
+            });
+        }
+
+        @JavascriptInterface
+        public void savePngFile(String fileName, String base64DataUrl) {
+            runOnUiThread(() -> {
+                try {
+                    if (base64DataUrl == null || base64DataUrl.isEmpty()) return;
+                    String cleanBase64 = base64DataUrl;
+                    int commaIdx = base64DataUrl.indexOf(',');
+                    if (commaIdx >= 0) {
+                        cleanBase64 = base64DataUrl.substring(commaIdx + 1);
+                    }
+                    pendingPngBytes = Base64.decode(cleanBase64, Base64.DEFAULT);
+                    String safeName = (fileName != null && !fileName.isEmpty())
+                            ? fileName
+                            : "Mapa-Astral-13-Signos.png";
+                    Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+                    intent.addCategory(Intent.CATEGORY_OPENABLE);
+                    intent.setType("image/png");
+                    intent.putExtra(Intent.EXTRA_TITLE, safeName);
+                    savePngDocumentLauncher.launch(intent);
                 } catch (Exception ignored) {
                 }
             });

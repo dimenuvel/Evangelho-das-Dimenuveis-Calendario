@@ -202,6 +202,7 @@ export default function App() {
           <CalendarScreen
             systemDate={systemDate}
             config={config}
+            onUpdateConfig={handleUpdateConfig}
             onOpenDayDetail={setSelectedDayModal}
             language={language}
             focusDayRequest={calendarFocusRequest}
@@ -339,7 +340,7 @@ export default function App() {
             </a>
             <span className="text-slate-500">·</span>
             <span className="text-amber-300 tabular-nums">
-              {language === 'pt' ? 'Versão 2.1' : 'Version 2.1'}
+              {language === 'pt' ? 'Versão 2.2' : 'Version 2.2'}
             </span>
           </div>
         </div>

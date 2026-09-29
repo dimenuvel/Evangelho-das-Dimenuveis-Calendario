@@ -502,7 +502,7 @@ export const AppointedTimesScreen: React.FC<AppointedTimesScreenProps> = ({
           </p>
 
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-            {/* Date Picker Control */}
+            {/* Date & Time Picker Control */}
             <div className="flex flex-wrap items-center gap-2.5">
               <label
                 htmlFor="feasts-birthday-input"
@@ -516,6 +516,19 @@ export const AppointedTimesScreen: React.FC<AppointedTimesScreenProps> = ({
                 value={config.userBirthdayGregorian || ''}
                 onChange={(e) => handleSetBirthday(e.target.value)}
                 className="px-3 py-1.5 bg-slate-900 border border-amber-500/50 text-slate-100 text-xs font-serif tabular-nums focus:outline-none focus:border-amber-400"
+              />
+              <label
+                htmlFor="feasts-birthtime-input"
+                className="text-xs font-semibold text-slate-200 whitespace-nowrap"
+              >
+                {isPt ? 'Hora Exata (Mapa Astral):' : 'Exact Time (Astral Map):'}
+              </label>
+              <input
+                id="feasts-birthtime-input"
+                type="time"
+                value={config.userBirthTime || '12:00'}
+                onChange={(e) => onUpdateConfig({ userBirthTime: e.target.value || '12:00' })}
+                className="px-2.5 py-1.5 bg-slate-900 border border-amber-500/50 text-slate-100 text-xs font-serif tabular-nums focus:outline-none focus:border-amber-400"
               />
               {config.userBirthdayGregorian && (
                 <button

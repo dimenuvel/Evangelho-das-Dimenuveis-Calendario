@@ -250,7 +250,7 @@ export const TourGuideModal: React.FC<TourGuideModalProps> = ({
                 : 'Enter your birth date in the current Gregorian calendar to map it to its 13-Month Sacred Calendar equivalent and automatically set up an annual birthday notification. If you skip it now, this option is always available on the III. Feasts page.'}
             </p>
 
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3 pt-1">
+            <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3 pt-1">
               <div className="flex items-center gap-2">
                 <label
                   htmlFor="tour-birthday-input"
@@ -264,6 +264,22 @@ export const TourGuideModal: React.FC<TourGuideModalProps> = ({
                   value={config.userBirthdayGregorian || ''}
                   onChange={(e) => handleSaveBirthdayInTour(e.target.value)}
                   className="px-3 py-1.5 bg-slate-950 border border-amber-500/50 text-slate-100 text-xs font-serif tabular-nums focus:outline-none focus:border-amber-400"
+                />
+              </div>
+
+              <div className="flex items-center gap-2">
+                <label
+                  htmlFor="tour-birthtime-input"
+                  className="text-xs text-slate-300 font-semibold whitespace-nowrap"
+                >
+                  {isPt ? 'Hora Exata (Mapa Astral):' : 'Exact Time (Astral Map):'}
+                </label>
+                <input
+                  id="tour-birthtime-input"
+                  type="time"
+                  value={config.userBirthTime || '12:00'}
+                  onChange={(e) => onUpdateConfig({ userBirthTime: e.target.value || '12:00' })}
+                  className="px-2.5 py-1.5 bg-slate-950 border border-amber-500/50 text-slate-100 text-xs font-serif tabular-nums focus:outline-none focus:border-amber-400"
                 />
               </div>
 

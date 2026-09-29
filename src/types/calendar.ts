@@ -132,6 +132,14 @@ export interface CalendarConfiguration {
     cityName?: string;
   };
   userBirthdayGregorian?: string; // ISO YYYY-MM-DD
+  userBirthTime?: string; // HH:MM (24h format, e.g. "08:30")
+  userBirthLocation?: {
+    city: string;
+    country: string;
+    latitude: number;
+    longitude: number;
+    useManualBirthLocation?: boolean;
+  };
 }
 
 export interface SacredFeastDay {

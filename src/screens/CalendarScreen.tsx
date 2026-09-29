@@ -12,7 +12,8 @@ import { getMonthDisplayTitle, getZodiacForSacredMonth, SACRED_13_ZODIAC_SIGNS }
 import { getLunarPhaseInfo, getLocalizedPhaseName, getPhaseCategory, MajorLunarCategory } from '../astronomy/moon';
 import { getObservancesForDay, calculateFeastOccurrences } from '../calendar/feastEngine';
 import { LunarPhaseIcon } from '../components/LunarPhaseIcon';
-import { ChevronLeft, ChevronRight, Printer, Sparkles } from 'lucide-react';
+import { NatalAstralMapWidget } from '../components/NatalAstralMapWidget';
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Compass, Printer, Sparkles } from 'lucide-react';
 
 type PrintPaperSize =
   | 'AUTO'
@@ -25,6 +26,7 @@ type PrintPaperSize =
 interface CalendarScreenProps {
   systemDate: Date;
   config: CalendarConfiguration;
+  onUpdateConfig: (partial: Partial<CalendarConfiguration>) => void;
   onOpenDayDetail: (day: CalendarDay) => void;
   language: Language;
   focusDayRequest?: { day: CalendarDay; timestamp: number } | null;
@@ -35,6 +37,7 @@ const ROMAN_MONTHS = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X
 export const CalendarScreen: React.FC<CalendarScreenProps> = ({
   systemDate,
   config,
+  onUpdateConfig,
   onOpenDayDetail,
   language,
   focusDayRequest,
@@ -48,6 +51,7 @@ export const CalendarScreen: React.FC<CalendarScreenProps> = ({
   const [selectedSacredYear, setSelectedSacredYear] = useState<number>(
     () => currentSacredDay.calendarYear
   );
+  const [activeSubTab, setActiveSubTab] = useState<'CALENDAR_GRID' | 'ASTRAL_DATA'>('CALENDAR_GRID');
   const [activeMonthFilter, setActiveMonthFilter] = useState<number | 'ALL'>('ALL');
   const [activeLunarPhaseFilter, setActiveLunarPhaseFilter] = useState<'ALL' | MajorLunarCategory>('ALL');
   const [paperSize, setPaperSize] = useState<PrintPaperSize>('AUTO');
@@ -56,6 +60,7 @@ export const CalendarScreen: React.FC<CalendarScreenProps> = ({
   useEffect(() => {
     if (!focusDayRequest) return;
     const targetDay = focusDayRequest.day;
+    setActiveSubTab('CALENDAR_GRID');
     setSelectedSacredYear(targetDay.calendarYear);
     setActiveMonthFilter('ALL');
     setActiveLunarPhaseFilter('ALL');
@@ -655,7 +660,46 @@ export const CalendarScreen: React.FC<CalendarScreenProps> = ({
         )}
       </div>
 
-      {/* Book Almanac Header & Control Strip (Screen Only) */}
+      {/* Top Sub-Tab Switcher: Tab 1 (Sacred Calendar) vs Tab 2 (Astral Data & 13 Zodiac Signs) */}
+      <div className="no-print border border-slate-800 bg-slate-950 p-1.5 grid grid-cols-1 sm:grid-cols-2 gap-1.5 font-serif">
+        <button
+          type="button"
+          onClick={() => setActiveSubTab('CALENDAR_GRID')}
+          className={`flex items-center justify-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-bold transition-colors cursor-pointer ${
+            activeSubTab === 'CALENDAR_GRID'
+              ? 'bg-amber-500 text-slate-950'
+              : 'bg-slate-900/60 text-slate-300 hover:bg-slate-900 hover:text-slate-100'
+          }`}
+        >
+          <CalendarIcon className="w-4 h-4 shrink-0" />
+          <span>
+            {isPt
+              ? 'I. Calendário Sagrado (13 Meses × 28 Dias)'
+              : 'I. Sacred Calendar (13 Months × 28 Days)'}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveSubTab('ASTRAL_DATA')}
+          className={`flex items-center justify-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-bold transition-colors cursor-pointer ${
+            activeSubTab === 'ASTRAL_DATA'
+              ? 'bg-amber-500 text-slate-950'
+              : 'bg-slate-900/60 text-slate-300 hover:bg-slate-900 hover:text-slate-100'
+          }`}
+        >
+          <Compass className="w-4 h-4 shrink-0" />
+          <span>
+            {isPt
+              ? 'II. Dados Astrais & 13 Signos (Mapa Astral Natal)'
+              : 'II. Astral Data & 13 Signs (Natal Astral Map)'}
+          </span>
+        </button>
+      </div>
+
+      {activeSubTab === 'CALENDAR_GRID' && (
+        <>
+          {/* Book Almanac Header & Control Strip (Screen Only) */}
       <div className="border border-slate-800 bg-slate-950 divide-y divide-slate-800 print-calendar-header no-print">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 p-4 sm:p-5">
           <div>
@@ -1063,10 +1107,13 @@ export const CalendarScreen: React.FC<CalendarScreenProps> = ({
             );
           })}
       </div>
+        </>
+      )}
 
       {/* ================================================================== */}
-      {/* 13-MONTH ZODIAC CORRELATION MATRIX (MAZZAROTH & 13TH DRAGON SIGN)  */}
+      {/* TAB 2: ASTRAL DATA & 13-MONTH ZODIAC CORRELATION MATRIX            */}
       {/* ================================================================== */}
+      {activeSubTab === 'ASTRAL_DATA' && (
       <div className="no-print border border-slate-800 bg-slate-950 divide-y divide-slate-800 font-serif">
         {/* Section Header */}
         <div className="p-4 sm:p-5 bg-slate-900/60 space-y-2">
@@ -1122,15 +1169,33 @@ export const CalendarScreen: React.FC<CalendarScreenProps> = ({
           <button
             type="button"
             onClick={() => {
+              setActiveSubTab('CALENDAR_GRID');
               setActiveMonthFilter(9);
-              const el = document.getElementById('sacred-month-card-9');
-              if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              setTimeout(() => {
+                const el = document.getElementById('sacred-month-card-9');
+                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }, 80);
             }}
             className="px-3.5 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold transition-colors cursor-pointer shrink-0 self-start md:self-center"
           >
-            {isPt ? 'Ver Mês IX (Signo do Dragão)' : 'View Month IX (Dragon Sign)'}
+            {isPt ? 'Ver Mês IX no Calendário' : 'View Month IX in Calendar'}
           </button>
         </div>
+
+        {/* Interactive 13-Sign Natal Astral Map by Exact Birth Date & Time */}
+        <NatalAstralMapWidget
+          config={config}
+          onUpdateConfig={onUpdateConfig}
+          language={language}
+          onSelectMonthInCalendar={(monthNumber) => {
+            setActiveSubTab('CALENDAR_GRID');
+            setActiveMonthFilter(monthNumber);
+            setTimeout(() => {
+              const el = document.getElementById(`sacred-month-card-${monthNumber}`);
+              if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 80);
+          }}
+        />
 
         {/* 13-Month Zodiac Correlation Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-slate-800">
@@ -1148,17 +1213,10 @@ export const CalendarScreen: React.FC<CalendarScreenProps> = ({
             return (
               <div
                 key={z.monthNumber}
-                onClick={() => {
-                  setActiveMonthFilter(z.monthNumber);
-                  setTimeout(() => {
-                    const el = document.getElementById(`sacred-month-card-${z.monthNumber}`);
-                    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                  }, 60);
-                }}
-                className={`p-4 flex flex-col justify-between space-y-3 cursor-pointer transition-colors ${
+                className={`p-4 flex flex-col justify-between space-y-3 transition-colors ${
                   isDragon
-                    ? 'bg-emerald-950/30 hover:bg-emerald-950/40 ring-1 ring-inset ring-emerald-500/50'
-                    : 'bg-slate-950 hover:bg-slate-900/70'
+                    ? 'bg-emerald-950/30 ring-1 ring-inset ring-emerald-500/50'
+                    : 'bg-slate-950'
                 }`}
               >
                 <div className="space-y-1.5">
@@ -1204,11 +1262,24 @@ export const CalendarScreen: React.FC<CalendarScreenProps> = ({
                     <span>{isPt ? 'Elemento:' : 'Element:'}</span>
                     <span className="text-amber-300">{isPt ? z.elementPt : z.elementEn}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span>{isPt ? 'Gregoriano:' : 'Gregorian:'}</span>
+                  <div className="flex justify-between items-center pt-1">
                     <span className="text-slate-300">
                       {startGreg} → {endGreg}
                     </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActiveSubTab('CALENDAR_GRID');
+                        setActiveMonthFilter(z.monthNumber);
+                        setTimeout(() => {
+                          const el = document.getElementById(`sacred-month-card-${z.monthNumber}`);
+                          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }, 80);
+                      }}
+                      className="px-2 py-0.5 border border-amber-500/50 bg-amber-500/15 hover:bg-amber-500 hover:text-slate-950 text-amber-300 font-bold text-[10px] transition-colors cursor-pointer"
+                    >
+                      {isPt ? 'Ver no Calendário →' : 'View in Calendar →'}
+                    </button>
                   </div>
                 </div>
               </div>
@@ -1216,6 +1287,7 @@ export const CalendarScreen: React.FC<CalendarScreenProps> = ({
           })}
         </div>
       </div>
+      )}
     </div>
   );
 };
