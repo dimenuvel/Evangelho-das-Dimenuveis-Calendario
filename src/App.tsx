@@ -101,10 +101,10 @@ export default function App() {
     document.body.scrollTop = 0;
   }, [activeTab]);
 
-  // Theme state ('night' vs 'day' — defaults to 'day' on first launch)
-  const [theme, setTheme] = useState<'night' | 'day'>(() => {
+  // Theme state ('mono' | 'day' | 'night' — defaults to 'mono' on first launch)
+  const [theme, setTheme] = useState<'night' | 'day' | 'mono'>(() => {
     const saved = localStorage.getItem('dimenueveis_theme');
-    return (saved === 'day' || saved === 'night') ? saved : 'day';
+    return saved === 'day' || saved === 'night' || saved === 'mono' ? saved : 'mono';
   });
 
   useEffect(() => {
@@ -113,7 +113,11 @@ export default function App() {
   }, [theme]);
 
   const toggleTheme = () => {
-    setTheme((prev) => (prev === 'night' ? 'day' : 'night'));
+    setTheme((prev) => {
+      if (prev === 'day') return 'night';
+      if (prev === 'night') return 'mono';
+      return 'day';
+    });
   };
 
   // Keep configuration persisted
@@ -340,7 +344,7 @@ export default function App() {
             </a>
             <span className="text-slate-500">·</span>
             <span className="text-amber-300 tabular-nums">
-              {language === 'pt' ? 'Versão 2.3' : 'Version 2.3'}
+              {language === 'pt' ? 'Versão 2.4' : 'Version 2.4'}
             </span>
           </div>
         </div>

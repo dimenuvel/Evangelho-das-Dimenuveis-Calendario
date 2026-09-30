@@ -24,6 +24,7 @@ import {
 import {
   Sun,
   Moon,
+  Contrast,
   Bell,
   BookOpen,
   Calendar,
@@ -42,7 +43,7 @@ interface TourGuideModalProps {
   onClose: () => void;
   language: Language;
   onSelectLanguage: (lang: Language) => void;
-  theme: 'night' | 'day';
+  theme: 'night' | 'day' | 'mono';
   onToggleTheme: () => void;
   onNavigateTab: (tab: NavTab) => void;
   config: CalendarConfiguration;
@@ -151,14 +152,14 @@ export const TourGuideModal: React.FC<TourGuideModalProps> = ({
         ? 'Evangelho das Dimenúveis'
         : 'Gospel of Dimenuous',
       subtitle: isPt
-        ? 'Almanaque Bíblico Lunar, Sagrado e Milenar · Versão 2.1'
-        : 'Biblical Lunar, Sacred & Millennial Almanac · Version 2.1',
+        ? 'Almanaque Bíblico Lunar, Sagrado e Milenar · Versão 2.4'
+        : 'Biblical Lunar, Sacred & Millennial Almanac · Version 2.4',
       content: (
         <div className="space-y-5">
           <p className="text-sm font-serif text-slate-200 leading-relaxed">
             {isPt
-              ? 'Este instrumento editorial e astronômico (v2.1) integra o Calendário Sagrado de 13 Meses × 28 Dias (364 dias + Dia Zero), os 13 Signos Eclípticos (incluindo o 13º Signo restaurado do Dragão no Mês IX), o Indicador Ao Vivo do Sábado, a Oração Diária Bíblica, as Festas de Levítico 23 e o Relógio Milenar de 7.000 anos.'
-              : 'This editorial and astronomical instrument (v2.1) integrates the 13-Month × 28-Day Sacred Calendar (364 days + Day Zero), the 13 Ecliptic Zodiac Signs (including the restored 13th Sign of the Dragon in Month IX), the Live Sabbath Indicator, the Daily Scriptural Prayer, Leviticus 23 Feasts, and the 7,000-Year Millennial Clock.'}
+              ? 'Este instrumento editorial e astronômico (v2.4) integra o Calendário Sagrado de 13 Meses × 28 Dias (364 dias + Dia Zero), os 13 Signos Eclípticos (incluindo o 13º Signo restaurado do Dragão no Mês IX), o Mapa Astral Natal de 13 Signos, o Zodíaco Chinês & 4 Pilares (BaZi), o Indicador Ao Vivo do Sábado, a Oração Diária Bíblica, as Festas de Levítico 23 e o Relógio Milenar de 7.000 anos.'
+              : 'This editorial and astronomical instrument (v2.4) integrates the 13-Month × 28-Day Sacred Calendar (364 days + Day Zero), the 13 Ecliptic Zodiac Signs (including the restored 13th Sign of the Dragon in Month IX), the 13-Sign Natal Astral Map, the Chinese Zodiac & 4 Pillars (BaZi), the Live Sabbath Indicator, the Daily Scriptural Prayer, Leviticus 23 Feasts, and the 7,000-Year Millennial Clock.'}
           </p>
 
           {/* Interactive Language & Theme Switcher Cards */}
@@ -183,21 +184,33 @@ export const TourGuideModal: React.FC<TourGuideModalProps> = ({
               <LanguageSelector language={language} onSelectLanguage={onSelectLanguage} />
             </div>
 
-            {/* Day / Night Reading Mode Box */}
+            {/* Day / Night / Monochrome Reading Mode Box */}
             <div className="border border-slate-700 bg-slate-900/50 p-4 flex items-center justify-between gap-4">
               <div className="space-y-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-serif uppercase tracking-wider text-amber-400 font-semibold whitespace-nowrap">
-                    {isPt ? '2. Modo Dia / Noite' : '2. Day / Night Mode'}
+                    {isPt ? '2. Tema Visual' : '2. Visual Theme'}
                   </span>
                   <span className="text-xs font-serif italic text-slate-300 whitespace-nowrap">
-                    ({theme === 'day' ? (isPt ? 'Dia' : 'Day') : isPt ? 'Noite' : 'Night'})
+                    (
+                    {theme === 'day'
+                      ? isPt
+                        ? 'Dia'
+                        : 'Day'
+                      : theme === 'night'
+                        ? isPt
+                          ? 'Noite'
+                          : 'Night'
+                        : isPt
+                          ? 'Monocromático'
+                          : 'Monochrome'}
+                    )
                   </span>
                 </div>
                 <p className="text-xs font-serif text-slate-300 leading-relaxed">
                   {isPt
-                    ? 'Toque no botão circular de Sol/Lua para alternar entre o modo Dia e Noite.'
-                    : 'Tap the circular Sun/Moon button to switch between Day and Night mode.'}
+                    ? 'Toque no botão circular para alternar entre os modos Dia, Noite e Monocromático.'
+                    : 'Tap the circular button to cycle between Day, Night, and Monochrome modes.'}
                 </p>
               </div>
               <button
@@ -209,20 +222,21 @@ export const TourGuideModal: React.FC<TourGuideModalProps> = ({
                     ? isPt
                       ? 'Modo Dia ativo — Clique para Modo Noite'
                       : 'Day Mode active — Click for Night Mode'
-                    : isPt
-                      ? 'Modo Noite ativo — Clique para Modo Dia'
-                      : 'Night Mode active — Click for Day Mode'
+                    : theme === 'night'
+                      ? isPt
+                        ? 'Modo Noite ativo — Clique para Modo Monocromático'
+                        : 'Night Mode active — Click for Monochrome Mode'
+                      : isPt
+                        ? 'Modo Monocromático ativo — Clique para Modo Dia'
+                        : 'Monochrome Mode active — Click for Day Mode'
                 }
               >
                 {theme === 'day' ? (
-                  <svg className="w-4 h-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <circle cx="12" cy="12" r="4" />
-                    <path strokeLinecap="round" d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41m11.32-11.32l1.41-1.41" />
-                  </svg>
+                  <Sun className="w-4 h-4 text-amber-500" />
+                ) : theme === 'night' ? (
+                  <Moon className="w-4 h-4 text-blue-300" />
                 ) : (
-                  <svg className="w-4 h-4 text-amber-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
-                  </svg>
+                  <Contrast className="w-4 h-4 text-amber-400" />
                 )}
               </button>
             </div>
@@ -683,7 +697,7 @@ export const TourGuideModal: React.FC<TourGuideModalProps> = ({
             {/* Circular Flag Language Switcher Button (Same as Navbar) */}
             <LanguageSelector language={language} onSelectLanguage={onSelectLanguage} />
 
-            {/* Circular Day/Night Mode Switcher Button (Same as Navbar) */}
+            {/* Circular Day/Night/Monochrome Mode Switcher Button (Same as Navbar) */}
             <button
               type="button"
               onClick={onToggleTheme}
@@ -693,20 +707,21 @@ export const TourGuideModal: React.FC<TourGuideModalProps> = ({
                   ? isPt
                     ? 'Alternar para Modo Noite'
                     : 'Switch to Night Mode'
-                  : isPt
-                    ? 'Alternar para Modo Dia'
-                    : 'Switch to Day Mode'
+                  : theme === 'night'
+                    ? isPt
+                      ? 'Alternar para Modo Monocromático'
+                      : 'Switch to Monochrome Mode'
+                    : isPt
+                      ? 'Alternar para Modo Dia'
+                      : 'Switch to Day Mode'
               }
             >
               {theme === 'day' ? (
-                <svg className="w-4 h-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <circle cx="12" cy="12" r="4" />
-                  <path strokeLinecap="round" d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41m11.32-11.32l1.41-1.41" />
-                </svg>
+                <Sun className="w-4 h-4 text-amber-500" />
+              ) : theme === 'night' ? (
+                <Moon className="w-4 h-4 text-blue-300" />
               ) : (
-                <svg className="w-4 h-4 text-amber-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
-                </svg>
+                <Contrast className="w-4 h-4 text-amber-400" />
               )}
             </button>
 

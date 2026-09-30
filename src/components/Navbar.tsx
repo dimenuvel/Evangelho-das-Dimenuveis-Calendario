@@ -10,6 +10,7 @@ import { LanguageSelector } from './LanguageSelector';
 import {
   Moon,
   Sun,
+  Contrast,
   HelpCircle,
   Compass,
   CalendarDays,
@@ -41,7 +42,7 @@ interface NavbarProps {
   activeTab: NavTab;
   setActiveTab: (tab: NavTab) => void;
   systemDate: Date;
-  theme: 'night' | 'day';
+  theme: 'night' | 'day' | 'mono';
   onToggleTheme: () => void;
   language: Language;
   onSelectLanguage: (lang: Language) => void;
@@ -196,26 +197,36 @@ export const Navbar: React.FC<NavbarProps> = ({
                 title={
                   theme === 'day'
                     ? isPt
-                      ? 'Alternar para Modo Noturno'
-                      : 'Switch to Night Mode'
-                    : isPt
-                      ? 'Alternar para Modo Dia Solar'
-                      : 'Switch to Solar Day Mode'
+                      ? 'Modo Dia Solar — Alternar para Modo Noturno'
+                      : 'Solar Day Mode — Switch to Night Mode'
+                    : theme === 'night'
+                      ? isPt
+                        ? 'Modo Noturno — Alternar para Modo Monocromático'
+                        : 'Night Mode — Switch to Monochrome Mode'
+                      : isPt
+                        ? 'Modo Monocromático — Alternar para Modo Dia Solar'
+                        : 'Monochrome Mode — Switch to Solar Day Mode'
                 }
                 aria-label={
                   theme === 'day'
                     ? isPt
                       ? 'Alternar para Modo Noturno'
                       : 'Switch to Night Mode'
-                    : isPt
-                      ? 'Alternar para Modo Dia Solar'
-                      : 'Switch to Solar Day Mode'
+                    : theme === 'night'
+                      ? isPt
+                        ? 'Alternar para Modo Monocromático'
+                        : 'Switch to Monochrome Mode'
+                      : isPt
+                        ? 'Alternar para Modo Dia Solar'
+                        : 'Switch to Solar Day Mode'
                 }
               >
                 {theme === 'day' ? (
                   <Sun className="w-4 h-4 text-amber-500" />
-                ) : (
+                ) : theme === 'night' ? (
                   <Moon className="w-4 h-4 text-blue-300" />
+                ) : (
+                  <Contrast className="w-4 h-4 text-amber-400" />
                 )}
               </button>
 

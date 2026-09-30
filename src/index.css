@@ -496,6 +496,412 @@
 }
 
 /* ========================================================================== */
+/* MONOCHROME MODE OVERRIDES ([data-theme="mono"])                            */
+/* Crisp white/light grayscale backgrounds, neutral gray borders, and         */
+/* deep black/charcoal texts while preserving Icon & Moon colors.             */
+/* ========================================================================== */
+
+[data-theme="mono"] ::-webkit-scrollbar-track {
+  background: #f5f5f5;
+}
+[data-theme="mono"] ::-webkit-scrollbar-thumb {
+  background: #b5b5b5;
+}
+[data-theme="mono"] ::-webkit-scrollbar-thumb:hover {
+  background: #8a8a8a;
+}
+
+/* Root & Page Backgrounds in Monochrome Mode (Crisp Light/White) */
+[data-theme="mono"] body,
+[data-theme="mono"] .bottom-icon-navbar,
+[data-theme="mono"] .bg-\[\#070a0f\],
+[data-theme="mono"] .bg-\[\#080910\],
+[data-theme="mono"] .bg-\[\#090b10\],
+[data-theme="mono"] .bg-\[\#090b12\],
+[data-theme="mono"] .bg-\[\#0b0d14\],
+[data-theme="mono"] .bg-\[\#0b0e14\],
+[data-theme="mono"] .bg-\[\#0c0e14\],
+[data-theme="mono"] .bg-\[\#0c0e14\]\/95,
+[data-theme="mono"] .bg-\[\#0d101b\],
+[data-theme="mono"] .bg-\[\#0f1422\] {
+  background-color: #f7f7f7 !important;
+  color: #111111 !important;
+}
+
+/* Primary Card & Section Surfaces in Monochrome Mode (Pure White) */
+[data-theme="mono"] .bg-slate-950,
+[data-theme="mono"] .bg-slate-950\/40,
+[data-theme="mono"] .bg-slate-950\/50,
+[data-theme="mono"] .bg-slate-950\/60,
+[data-theme="mono"] .bg-slate-950\/70,
+[data-theme="mono"] .bg-slate-950\/80,
+[data-theme="mono"] .bg-slate-950\/90 {
+  background-color: #ffffff !important;
+  color: #111111 !important;
+}
+
+/* Secondary Panels, Headers & Sub-Surfaces in Monochrome Mode */
+[data-theme="mono"] .bg-slate-900,
+[data-theme="mono"] .bg-slate-900\/20,
+[data-theme="mono"] .bg-slate-900\/30,
+[data-theme="mono"] .bg-slate-900\/40,
+[data-theme="mono"] .bg-slate-900\/50,
+[data-theme="mono"] .bg-slate-900\/60,
+[data-theme="mono"] .bg-slate-900\/70,
+[data-theme="mono"] .bg-slate-900\/80,
+[data-theme="mono"] .bg-slate-900\/90,
+[data-theme="mono"] .bg-slate-800,
+[data-theme="mono"] .bg-slate-800\/40,
+[data-theme="mono"] .bg-slate-800\/50,
+[data-theme="mono"] .bg-slate-800\/60,
+[data-theme="mono"] .bg-slate-800\/80,
+[data-theme="mono"] .bg-slate-700 {
+  background-color: #efefef !important;
+  color: #111111 !important;
+}
+
+/* Neutral Hover States in Monochrome Mode */
+[data-theme="mono"] .hover\:bg-slate-900:hover,
+[data-theme="mono"] .hover\:bg-slate-900\/40:hover,
+[data-theme="mono"] .hover\:bg-slate-900\/50:hover,
+[data-theme="mono"] .hover\:bg-slate-900\/60:hover,
+[data-theme="mono"] .hover\:bg-slate-900\/70:hover,
+[data-theme="mono"] .hover\:bg-slate-900\/80:hover,
+[data-theme="mono"] .hover\:bg-slate-900\/90:hover,
+[data-theme="mono"] .hover\:bg-slate-800:hover {
+  background-color: #e2e2e2 !important;
+}
+
+/* All Tinted Semantic Surfaces (Amber, Purple, Blue, Emerald, Rose, Indigo) -> Light Monochrome Gray */
+[data-theme="mono"] .bg-amber-950,
+[data-theme="mono"] .bg-amber-950\/10,
+[data-theme="mono"] .bg-amber-950\/15,
+[data-theme="mono"] .bg-amber-950\/20,
+[data-theme="mono"] .bg-amber-950\/25,
+[data-theme="mono"] .bg-amber-950\/30,
+[data-theme="mono"] .bg-amber-950\/40,
+[data-theme="mono"] .bg-amber-950\/50,
+[data-theme="mono"] .bg-amber-950\/60,
+[data-theme="mono"] .bg-amber-950\/80,
+[data-theme="mono"] .bg-amber-500\/10,
+[data-theme="mono"] .bg-amber-500\/15,
+[data-theme="mono"] .bg-amber-500\/20,
+[data-theme="mono"] .bg-amber-500\/25,
+[data-theme="mono"] .bg-amber-500\/30,
+[data-theme="mono"] .bg-amber-400\/20,
+[data-theme="mono"] .bg-amber-400\/25,
+[data-theme="mono"] .bg-yellow-500\/20,
+[data-theme="mono"] .bg-purple-950,
+[data-theme="mono"] .bg-purple-950\/15,
+[data-theme="mono"] .bg-purple-950\/20,
+[data-theme="mono"] .bg-purple-950\/25,
+[data-theme="mono"] .bg-purple-950\/30,
+[data-theme="mono"] .bg-purple-950\/35,
+[data-theme="mono"] .bg-purple-950\/40,
+[data-theme="mono"] .bg-purple-950\/50,
+[data-theme="mono"] .bg-purple-950\/60,
+[data-theme="mono"] .bg-purple-950\/80,
+[data-theme="mono"] .bg-purple-500\/10,
+[data-theme="mono"] .bg-purple-500\/15,
+[data-theme="mono"] .bg-purple-500\/20,
+[data-theme="mono"] .bg-blue-950,
+[data-theme="mono"] .bg-blue-950\/15,
+[data-theme="mono"] .bg-blue-950\/20,
+[data-theme="mono"] .bg-blue-950\/25,
+[data-theme="mono"] .bg-blue-950\/30,
+[data-theme="mono"] .bg-blue-950\/35,
+[data-theme="mono"] .bg-blue-950\/40,
+[data-theme="mono"] .bg-blue-950\/50,
+[data-theme="mono"] .bg-blue-950\/60,
+[data-theme="mono"] .bg-blue-950\/80,
+[data-theme="mono"] .bg-blue-500\/10,
+[data-theme="mono"] .bg-blue-500\/15,
+[data-theme="mono"] .bg-blue-500\/20,
+[data-theme="mono"] .bg-emerald-950,
+[data-theme="mono"] .bg-emerald-950\/15,
+[data-theme="mono"] .bg-emerald-950\/20,
+[data-theme="mono"] .bg-emerald-950\/25,
+[data-theme="mono"] .bg-emerald-950\/30,
+[data-theme="mono"] .bg-emerald-950\/40,
+[data-theme="mono"] .bg-emerald-950\/50,
+[data-theme="mono"] .bg-emerald-950\/60,
+[data-theme="mono"] .bg-emerald-950\/80,
+[data-theme="mono"] .bg-emerald-500\/10,
+[data-theme="mono"] .bg-emerald-500\/15,
+[data-theme="mono"] .bg-emerald-500\/20,
+[data-theme="mono"] .bg-rose-950,
+[data-theme="mono"] .bg-rose-950\/20,
+[data-theme="mono"] .bg-rose-950\/30,
+[data-theme="mono"] .bg-rose-950\/40,
+[data-theme="mono"] .bg-rose-950\/50,
+[data-theme="mono"] .bg-indigo-950,
+[data-theme="mono"] .bg-indigo-950\/80 {
+  background-color: #ebebeb !important;
+  color: #111111 !important;
+}
+
+[data-theme="mono"] .hover\:bg-amber-950\/25:hover,
+[data-theme="mono"] .hover\:bg-amber-950\/30:hover,
+[data-theme="mono"] .hover\:bg-amber-950\/40:hover,
+[data-theme="mono"] .hover\:bg-amber-950\/60:hover,
+[data-theme="mono"] .hover\:bg-amber-500\/25:hover,
+[data-theme="mono"] .hover\:bg-amber-500\/35:hover,
+[data-theme="mono"] .hover\:bg-purple-950\/25:hover,
+[data-theme="mono"] .hover\:bg-purple-950\/40:hover,
+[data-theme="mono"] .hover\:bg-blue-950\/25:hover,
+[data-theme="mono"] .hover\:bg-blue-950\/30:hover,
+[data-theme="mono"] .hover\:bg-blue-950\/35:hover,
+[data-theme="mono"] .hover\:bg-emerald-950\/25:hover {
+  background-color: #dedede !important;
+}
+
+/* Borders, Dividers & Rings in Monochrome Mode */
+[data-theme="mono"] .border-slate-800,
+[data-theme="mono"] .border-slate-800\/80,
+[data-theme="mono"] .border-slate-800\/70,
+[data-theme="mono"] .border-slate-800\/60,
+[data-theme="mono"] .border-slate-700,
+[data-theme="mono"] .border-slate-700\/50,
+[data-theme="mono"] .divide-slate-800 > :not([hidden]) ~ :not([hidden]),
+[data-theme="mono"] .divide-slate-800\/70 > :not([hidden]) ~ :not([hidden]),
+[data-theme="mono"] .divide-slate-700 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #cccccc !important;
+}
+
+[data-theme="mono"] .border-amber-400,
+[data-theme="mono"] .border-amber-500,
+[data-theme="mono"] .border-amber-500\/60,
+[data-theme="mono"] .border-amber-500\/50,
+[data-theme="mono"] .border-amber-500\/40,
+[data-theme="mono"] .border-amber-500\/30,
+[data-theme="mono"] .border-purple-400,
+[data-theme="mono"] .border-purple-500,
+[data-theme="mono"] .border-purple-500\/50,
+[data-theme="mono"] .border-purple-500\/40,
+[data-theme="mono"] .border-purple-500\/30,
+[data-theme="mono"] .border-blue-400,
+[data-theme="mono"] .border-blue-500,
+[data-theme="mono"] .border-blue-500\/50,
+[data-theme="mono"] .border-blue-500\/40,
+[data-theme="mono"] .border-blue-500\/30,
+[data-theme="mono"] .border-emerald-400,
+[data-theme="mono"] .border-emerald-500,
+[data-theme="mono"] .border-emerald-500\/50,
+[data-theme="mono"] .border-emerald-500\/40,
+[data-theme="mono"] .border-emerald-500\/30,
+[data-theme="mono"] .border-rose-500\/40,
+[data-theme="mono"] .border-indigo-500\/40,
+[data-theme="mono"] .hover\:border-amber-500\/60:hover,
+[data-theme="mono"] .hover\:border-amber-500\/50:hover,
+[data-theme="mono"] .focus\:border-amber-400:focus,
+[data-theme="mono"] .focus\:border-amber-500:focus {
+  border-color: #404040 !important;
+}
+
+[data-theme="mono"] .ring-amber-400,
+[data-theme="mono"] .ring-amber-500,
+[data-theme="mono"] .ring-amber-500\/40,
+[data-theme="mono"] .ring-emerald-400,
+[data-theme="mono"] .ring-emerald-500\/40,
+[data-theme="mono"] .ring-purple-400,
+[data-theme="mono"] .ring-blue-400 {
+  --tw-ring-color: #262626 !important;
+}
+
+[data-theme="mono"] .decoration-amber-500\/60 {
+  text-decoration-color: #525252 !important;
+}
+
+/* Monochrome Dark Texts on White Background (Targeting non-SVG elements so Icons & Moons keep their colors!) */
+[data-theme="mono"] .text-white:not(svg):not(svg *),
+[data-theme="mono"] .text-slate-100:not(svg):not(svg *),
+[data-theme="mono"] .text-slate-200:not(svg):not(svg *),
+[data-theme="mono"] .text-\[\#f5f2eb\]:not(svg):not(svg *),
+[data-theme="mono"] .text-\[\#fbf8f1\]:not(svg):not(svg *) {
+  color: #111111 !important;
+}
+
+[data-theme="mono"] .text-slate-300:not(svg):not(svg *) {
+  color: #262626 !important;
+}
+
+[data-theme="mono"] .text-slate-400:not(svg):not(svg *) {
+  color: #404040 !important;
+}
+
+[data-theme="mono"] .text-slate-500:not(svg):not(svg *),
+[data-theme="mono"] .text-slate-600:not(svg):not(svg *),
+[data-theme="mono"] .text-slate-700:not(svg):not(svg *) {
+  color: #525252 !important;
+}
+
+[data-theme="mono"] .text-\[\#f3e3a2\]:not(svg):not(svg *),
+[data-theme="mono"] .text-amber-100:not(svg):not(svg *),
+[data-theme="mono"] .text-amber-200:not(svg):not(svg *),
+[data-theme="mono"] .text-amber-300:not(svg):not(svg *),
+[data-theme="mono"] .text-amber-400:not(svg):not(svg *),
+[data-theme="mono"] .text-amber-500:not(svg):not(svg *),
+[data-theme="mono"] .text-amber-600:not(svg):not(svg *),
+[data-theme="mono"] .text-yellow-200:not(svg):not(svg *),
+[data-theme="mono"] .text-yellow-300:not(svg):not(svg *),
+[data-theme="mono"] .text-yellow-400:not(svg):not(svg *),
+[data-theme="mono"] .text-blue-200:not(svg):not(svg *),
+[data-theme="mono"] .text-blue-300:not(svg):not(svg *),
+[data-theme="mono"] .text-blue-400:not(svg):not(svg *),
+[data-theme="mono"] .text-purple-200:not(svg):not(svg *),
+[data-theme="mono"] .text-purple-300:not(svg):not(svg *),
+[data-theme="mono"] .text-purple-400:not(svg):not(svg *),
+[data-theme="mono"] .text-emerald-200:not(svg):not(svg *),
+[data-theme="mono"] .text-emerald-300:not(svg):not(svg *),
+[data-theme="mono"] .text-emerald-400:not(svg):not(svg *),
+[data-theme="mono"] .text-rose-200:not(svg):not(svg *),
+[data-theme="mono"] .text-rose-300:not(svg):not(svg *),
+[data-theme="mono"] .text-rose-400:not(svg):not(svg *),
+[data-theme="mono"] .text-indigo-200:not(svg):not(svg *),
+[data-theme="mono"] .text-indigo-300:not(svg):not(svg *),
+[data-theme="mono"] .text-indigo-400:not(svg):not(svg *),
+[data-theme="mono"] .hover\:text-amber-300:hover:not(svg):not(svg *),
+[data-theme="mono"] .hover\:text-amber-400:hover:not(svg):not(svg *),
+[data-theme="mono"] .group:hover .group-hover\:text-amber-300:not(svg):not(svg *),
+[data-theme="mono"] .group:hover .group-hover\:text-amber-400:not(svg):not(svg *) {
+  color: #171717 !important;
+}
+
+/* Solid CTA Buttons & Active Badges in Monochrome Mode (Deep Black Fill with Crisp White Text) */
+[data-theme="mono"] .bg-amber-500,
+[data-theme="mono"] .bg-amber-400,
+[data-theme="mono"] .bg-amber-500.text-slate-950,
+[data-theme="mono"] .bg-amber-400.text-slate-950,
+[data-theme="mono"] .bg-emerald-500,
+[data-theme="mono"] .bg-emerald-400,
+[data-theme="mono"] .bg-emerald-500.text-slate-950,
+[data-theme="mono"] .bg-purple-500,
+[data-theme="mono"] .bg-purple-400,
+[data-theme="mono"] .bg-purple-400.text-slate-950,
+[data-theme="mono"] .bg-blue-500,
+[data-theme="mono"] .bg-blue-400 {
+  background-color: #171717 !important;
+  border-color: #0a0a0a !important;
+  color: #ffffff !important;
+}
+
+[data-theme="mono"] .bg-amber-500 *:not(svg):not(svg *),
+[data-theme="mono"] .bg-amber-400 *:not(svg):not(svg *),
+[data-theme="mono"] .bg-emerald-500 *:not(svg):not(svg *),
+[data-theme="mono"] .bg-emerald-400 *:not(svg):not(svg *),
+[data-theme="mono"] .bg-purple-500 *:not(svg):not(svg *),
+[data-theme="mono"] .bg-purple-400 *:not(svg):not(svg *),
+[data-theme="mono"] .bg-blue-500 *:not(svg):not(svg *),
+[data-theme="mono"] .bg-blue-400 *:not(svg):not(svg *) {
+  color: #ffffff !important;
+}
+
+[data-theme="mono"] .bg-amber-500:hover,
+[data-theme="mono"] .bg-amber-400:hover,
+[data-theme="mono"] .bg-emerald-500:hover,
+[data-theme="mono"] .bg-emerald-400:hover,
+[data-theme="mono"] .bg-purple-500:hover,
+[data-theme="mono"] .bg-purple-400:hover,
+[data-theme="mono"] .bg-blue-500:hover,
+[data-theme="mono"] .bg-blue-400:hover {
+  background-color: #333333 !important;
+}
+
+/* Explicitly Preserve Icon Colors (Lucide & SVG Icons) in Monochrome Mode */
+[data-theme="mono"] svg.text-amber-100,
+[data-theme="mono"] svg.text-amber-200,
+[data-theme="mono"] svg.text-amber-300,
+[data-theme="mono"] svg.text-amber-400,
+[data-theme="mono"] svg.text-amber-500,
+[data-theme="mono"] svg.text-amber-600,
+[data-theme="mono"] svg.text-yellow-300,
+[data-theme="mono"] .text-amber-200 > svg,
+[data-theme="mono"] .text-amber-300 > svg,
+[data-theme="mono"] .text-amber-400 > svg,
+[data-theme="mono"] .text-amber-500 > svg,
+[data-theme="mono"] .bottom-icon-navbar button svg {
+  color: #d97706 !important;
+}
+
+[data-theme="mono"] .bg-amber-500 > svg,
+[data-theme="mono"] .bg-amber-400 > svg {
+  color: #fbbf24 !important;
+}
+
+[data-theme="mono"] svg.text-blue-200,
+[data-theme="mono"] svg.text-blue-300,
+[data-theme="mono"] svg.text-blue-400,
+[data-theme="mono"] .text-blue-200 > svg,
+[data-theme="mono"] .text-blue-300 > svg,
+[data-theme="mono"] .text-blue-400 > svg {
+  color: #2563eb !important;
+}
+
+[data-theme="mono"] .bg-blue-500 > svg {
+  color: #60a5fa !important;
+}
+
+[data-theme="mono"] svg.text-purple-200,
+[data-theme="mono"] svg.text-purple-300,
+[data-theme="mono"] svg.text-purple-400,
+[data-theme="mono"] .text-purple-200 > svg,
+[data-theme="mono"] .text-purple-300 > svg,
+[data-theme="mono"] .text-purple-400 > svg {
+  color: #7c3aed !important;
+}
+
+[data-theme="mono"] .bg-purple-500 > svg {
+  color: #c084fc !important;
+}
+
+[data-theme="mono"] svg.text-emerald-200,
+[data-theme="mono"] svg.text-emerald-300,
+[data-theme="mono"] svg.text-emerald-400,
+[data-theme="mono"] .text-emerald-200 > svg,
+[data-theme="mono"] .text-emerald-300 > svg,
+[data-theme="mono"] .text-emerald-400 > svg {
+  color: #059669 !important;
+}
+
+[data-theme="mono"] .bg-emerald-500 > svg,
+[data-theme="mono"] .bg-emerald-400 > svg {
+  color: #34d399 !important;
+}
+
+[data-theme="mono"] svg.text-rose-200,
+[data-theme="mono"] svg.text-rose-300,
+[data-theme="mono"] svg.text-rose-400,
+[data-theme="mono"] .text-rose-300 > svg,
+[data-theme="mono"] .text-rose-400 > svg {
+  color: #e11d48 !important;
+}
+
+[data-theme="mono"] svg.text-indigo-300,
+[data-theme="mono"] svg.text-indigo-400,
+[data-theme="mono"] .text-indigo-300 > svg,
+[data-theme="mono"] .text-indigo-400 > svg {
+  color: #4f46e5 !important;
+}
+
+/* Form Selects and Inputs in Monochrome Mode */
+[data-theme="mono"] select,
+[data-theme="mono"] input[type="text"],
+[data-theme="mono"] input[type="number"],
+[data-theme="mono"] input[type="date"],
+[data-theme="mono"] input[type="time"],
+[data-theme="mono"] textarea {
+  background-color: #ffffff !important;
+  color: #111111 !important;
+  border-color: #a3a3a3 !important;
+  color-scheme: light;
+}
+
+[data-theme="mono"] select option {
+  background-color: #ffffff !important;
+  color: #111111 !important;
+}
+
+/* ========================================================================== */
 /* ARCHIVAL PAPER PRINT STYLESHEET (@media print & @page)                     */
 /* Pure white background, adaptive 100vh page fill, zero wasted blank space   */
 /* ========================================================================== */
