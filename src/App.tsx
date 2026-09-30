@@ -340,7 +340,7 @@ export default function App() {
             </a>
             <span className="text-slate-500">·</span>
             <span className="text-amber-300 tabular-nums">
-              {language === 'pt' ? 'Versão 2.2' : 'Version 2.2'}
+              {language === 'pt' ? 'Versão 2.3' : 'Version 2.3'}
             </span>
           </div>
         </div>

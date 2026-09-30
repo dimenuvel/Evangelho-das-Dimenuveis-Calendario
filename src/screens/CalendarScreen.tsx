@@ -13,6 +13,7 @@ import { getLunarPhaseInfo, getLocalizedPhaseName, getPhaseCategory, MajorLunarC
 import { getObservancesForDay, calculateFeastOccurrences } from '../calendar/feastEngine';
 import { LunarPhaseIcon } from '../components/LunarPhaseIcon';
 import { NatalAstralMapWidget } from '../components/NatalAstralMapWidget';
+import { ChineseZodiacWidget } from '../components/ChineseZodiacWidget';
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Compass, Printer, Sparkles } from 'lucide-react';
 
 type PrintPaperSize =
@@ -51,7 +52,9 @@ export const CalendarScreen: React.FC<CalendarScreenProps> = ({
   const [selectedSacredYear, setSelectedSacredYear] = useState<number>(
     () => currentSacredDay.calendarYear
   );
-  const [activeSubTab, setActiveSubTab] = useState<'CALENDAR_GRID' | 'ASTRAL_DATA'>('CALENDAR_GRID');
+  const [activeSubTab, setActiveSubTab] = useState<
+    'CALENDAR_GRID' | 'ASTRAL_DATA' | 'CHINESE_ZODIAC'
+  >('CALENDAR_GRID');
   const [activeMonthFilter, setActiveMonthFilter] = useState<number | 'ALL'>('ALL');
   const [activeLunarPhaseFilter, setActiveLunarPhaseFilter] = useState<'ALL' | MajorLunarCategory>('ALL');
   const [paperSize, setPaperSize] = useState<PrintPaperSize>('AUTO');
@@ -660,8 +663,8 @@ export const CalendarScreen: React.FC<CalendarScreenProps> = ({
         )}
       </div>
 
-      {/* Top Sub-Tab Switcher: Tab 1 (Sacred Calendar) vs Tab 2 (Astral Data & 13 Zodiac Signs) */}
-      <div className="no-print border border-slate-800 bg-slate-950 p-1.5 grid grid-cols-1 sm:grid-cols-2 gap-1.5 font-serif">
+      {/* Top Sub-Tab Switcher: Tab 1 (Sacred Calendar) | Tab 2 (Astral Data & 13 Zodiac Signs) | Tab 3 (Chinese Zodiac & 4 Pillars) */}
+      <div className="no-print border border-slate-800 bg-slate-950 p-1.5 grid grid-cols-1 lg:grid-cols-3 gap-1.5 font-serif">
         <button
           type="button"
           onClick={() => setActiveSubTab('CALENDAR_GRID')}
@@ -693,6 +696,23 @@ export const CalendarScreen: React.FC<CalendarScreenProps> = ({
             {isPt
               ? 'II. Dados Astrais & 13 Signos (Mapa Astral Natal)'
               : 'II. Astral Data & 13 Signs (Natal Astral Map)'}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveSubTab('CHINESE_ZODIAC')}
+          className={`flex items-center justify-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-bold transition-colors cursor-pointer ${
+            activeSubTab === 'CHINESE_ZODIAC'
+              ? 'bg-amber-500 text-slate-950'
+              : 'bg-slate-900/60 text-slate-300 hover:bg-slate-900 hover:text-slate-100'
+          }`}
+        >
+          <Sparkles className="w-4 h-4 shrink-0" />
+          <span>
+            {isPt
+              ? 'III. Zodíaco Chinês & 4 Pilares (12 Guardiões)'
+              : 'III. Chinese Zodiac & 4 Pillars (12 Guardians)'}
           </span>
         </button>
       </div>
@@ -1287,6 +1307,17 @@ export const CalendarScreen: React.FC<CalendarScreenProps> = ({
           })}
         </div>
       </div>
+      )}
+
+      {/* ================================================================== */}
+      {/* TAB 3: CHINESE ZODIAC, SEXAGENARY CYCLE & FOUR PILLARS (BAZI)      */}
+      {/* ================================================================== */}
+      {activeSubTab === 'CHINESE_ZODIAC' && (
+        <ChineseZodiacWidget
+          config={config}
+          onUpdateConfig={onUpdateConfig}
+          language={language}
+        />
       )}
     </div>
   );

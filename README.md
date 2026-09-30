@@ -1,37 +1,47 @@
-# Evangelho das Dimenúveis — Calendário Bíblico Lunar & Milenar (v2.2)
+# Evangelho das Dimenúveis — Calendário Bíblico Lunar & Milenar (v2.3)
 
-[![Version](https://img.shields.io/badge/Vers%C3%A3o-2.2-f59e0b.svg)](https://dimenuvel.github.io/Evangelho-das-Dimenuveis-site/)
+[![Version](https://img.shields.io/badge/Vers%C3%A3o-2.3-f59e0b.svg)](https://dimenuvel.github.io/Evangelho-das-Dimenuveis-site/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-19.x-61dafb.svg)](https://react.dev/)
 [![Tailwind CSS](https://img.shields.io/badge/TailwindCSS-4.x-38bdf8.svg)](https://tailwindcss.com/)
 [![Licença: MIT](https://img.shields.io/badge/Licen%C3%A7a-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Um motor avançado de engenharia de calendários e aplicação web/mobile interativa (**v2.2**) que integra o **Tempo Sagrado Bíblico** (13 meses × 28 dias = 364 dias + Dia Zero = 365 dias), os **13 Signos Eclípticos do Zodíaco** (com o **13º Signo restaurado do Dragão** no Mês IX), o **Mapa Astral Natal Interativo de 13 Signos** (com data e hora exata de nascimento, geocodificação manual de Cidade/País natal e download de imagem em alta resolução), **Festas Bíblicas Dependentes de GPS & Hemisfério**, **Indicador Ao Vivo do Sábado com Contagem Regressiva ao Pôr do Sol**, **Oração Diária Bíblica**, **Cálculos Lunares Astronômicos**, **Cronologia Histórica a.C./d.C.** (sem Ano Zero), a **Grande Semana Milenar de 7.000 Anos** e a árvore arquitetônica temporal do **Evangelho das Dimenúveis**.
+Um motor avançado de engenharia de calendários e aplicação web/mobile interativa (**v2.3**) que integra o **Tempo Sagrado Bíblico** (13 meses × 28 dias = 364 dias + Dia Zero = 365 dias), os **13 Signos Eclípticos do Zodíaco** (com o **13º Signo restaurado do Dragão** no Mês IX), o **Mapa Astral Natal Interativo de 13 Signos**, o **Zodíaco Chinês, Ciclo Sexagenário (60 Anos) & Os 4 Pilares do Nascimento (*BaZi*)**, **Festas Bíblicas Dependentes de GPS & Hemisfério**, **Indicador Ao Vivo do Sábado com Contagem Regressiva ao Pôr do Sol**, **Oração Diária Bíblica**, **Cálculos Lunares Astronômicos**, **Cronologia Histórica a.C./d.C.** (sem Ano Zero), a **Grande Semana Milenar de 7.000 Anos** e a árvore arquitetônica temporal do **Evangelho das Dimenúveis**.
 
 ---
 
-## 🌟 Principais Funcionalidades (Novidades da Versão 2.2)
+## 🌟 Principais Funcionalidades (Novidades da Versão 2.3)
 
-- **Estrutura do Calendário Sagrado (13 × 28 + Dia 0) & Navegação em Duas Abas (Cap. II)**:
+- **Estrutura do Calendário Sagrado (13 × 28 + Dia 0) & Navegação em Três Abas (Cap. II)**:
   - **Aba I — `I. Calendário Sagrado (13 Meses × 28 Dias)`**:
     - **13 meses sagrados iguais** de exatamente **28 dias** (4 semanas perfeitas de 7 dias por mês).
     - **Dia Zero (0)**: O limiar não numerado do Ano Novo Sagrado que antecede o Mês I, Dia 1.
     - **Sábado Semanal Contínuo**: Ciclo ininterrupto de Sábados de 7 dias preservado através de fronteiras de meses e anos (**52 Sábados semanais** por ano sagrado nos dias **7, 14, 21 e 28**).
     - **Sábado Anual do Dia Zero**: O Dia Zero é classificado como Sábado Anual, ou *Sábado Maior / Grão-Sábado* quando coincide com o 7º dia semanal.
   - **Aba II — `II. Dados Astrais & 13 Signos (Mapa Astral Natal)`**:
-    - Separa os dados astrais, a matriz eclíptica dos 13 signos e o Mapa Astral Natal em uma aba dedicada no topo da página de Calendário para manter a leitura limpa e organizada.
+    - Dedicada exclusivamente à astronomia eclíptica dos 13 signos (*Mazzaroth*, Jó 38:32), ao 13º Signo restaurado do Dragão (Mês IX) e ao Mapa Astral Natal de 13 Signos.
+  - **Aba III — `III. Zodíaco Chinês & 4 Pilares (12 Guardiões)`**:
+    - Dedicada à astronomia oriental joviana (~12 anos), ao Ciclo Sexagenário de 60 anos (*Ganzhi* 干支), aos 5 Elementos (*Wu Xing* 五行) e aos 4 Pilares do Nascimento (*BaZi* 四柱八字).
 
 - **Os 13 Signos Eclípticos, O 13º Signo do Dragão & Mapa Astral Natal (Cap. II — Aba II)**:
   - Correlaciona e mapeia todos os **13 Signos do Zodíaco Eclíptico (Mazzaroth — Jó 38:32)** diretamente nos **13 Meses Sagrados de 28 dias** (`360° / 13 ≈ 27,69°` de arco eclíptico por mês):
     - **Mês I**: ♈ Áries (*Cordeiro*) · **Mês II**: ♉ Touro · **Mês III**: ♊ Gêmeos · **Mês IV**: ♋ Câncer · **Mês V**: ♌ Leão · **Mês VI**: ♍ Virgem (*Espiga*) · **Mês VII**: ♎ Libra (*Balança*) · **Mês VIII**: ♏ Escorpião · **Mês IX**: ⛎ **O Dragão (*Ophiuchus / Draco — 13º Signo Restaurado*)** · **Mês X**: ♐ Sagitário · **Mês XI**: ♑ Capricórnio · **Mês XII**: ♒ Aquário · **Mês XIII**: ♓ Peixes.
   - **Mapa Astral Natal Interativo de 13 Signos (Data, Hora Exata e Cidade Natal)**:
-    - **Roda Astral SVG de 13 Setores**: Renderiza a posição exata dos astros no momento do nascimento, com alternância entre visualização pelo **Eixo Ascendente (`ASC`)** e **Mês I (Áries) no Topo**.
-    - **Local de Nascimento Manual (Cidade & País + Coordenadas)**: Permite alternar entre o **GPS Atual / Padrão** e a **Cidade & País de Nascimento (Manual)** (com busca automática de coordenadas via OpenStreetMap Nominatim + gazetteer offline integrado, além de ajuste fino de Latitude e Longitude) para calcular com precisão o **Nascer do Sol Natal**, o **Signo Ascendente (`ASC`)** e o **Meio do Céu (`MC`)** mesmo quando o usuário não está fisicamente em sua cidade natal.
-    - **Download do Mapa Astral em Alta Resolução (`Baixar Mapa Astral` / `Download Astral Map`)**: Exporta o alinhamento da roda zodiacal de 13 signos, metadados de nascimento e efemérides natais como imagem **`.PNG` de alta definição** (`html-to-image` canvas capture + suporte nativo `AndroidBridge.savePngFile` no APK Android).
+    - **Roda Astral SVG de 13 Setores com Rótulos Tangenciais**: Renderiza a posição exata dos astros no momento do nascimento com nomes completos alinhados tangencialmente ao arco de cada signo (sem truncamento) e espaçamento radial/angular anticolisão.
+    - **Local de Nascimento Manual (Cidade & País + Coordenadas)**: Permite alternar entre o **GPS Atual / Padrão** e a **Cidade & País de Nascimento (Manual)** (com busca automática de coordenadas via OpenStreetMap Nominatim + gazetteer offline integrado, além de ajuste fino de Latitude e Longitude) para calcular com precisão o **Nascer do Sol Natal**, o **Signo Ascendente (`ASC`)** e o **Meio do Céu (`MC`)**.
+    - **Download do Mapa Astral em Alta Resolução (`2400 × 1660 px`)**: Exporta o alinhamento da roda zodiacal de 13 signos, metadados de nascimento, Tríade Natal, Efemérides de 10 Pontos e Aspectos Geométricos como pôster **`.PNG` arquivístico** (`html-to-image` `toCanvas` + quebra automática de linhas + suporte nativo `AndroidBridge.savePngFile` no APK Android).
     - **Inspeção Interativa de 10 Astros & Aspectos Geométricos Natais**:
-      - **I. Tríade Natal Principal**: **☉ Sol Natal** (Mês e Dia Sagrado de nascimento), **☽ Lua Natal & Fase na Hora** e **ASC Signo Ascendente** (com a Porta Celeste de 1 Enoque 72 ativa no nascimento).
+      - **I. Tríade Natal Principal**: **☉ Sol Natal**, **☽ Lua Natal & Fase na Hora** e **ASC Signo Ascendente** (com a Porta Celeste de 1 Enoque 72 ativa no nascimento).
       - **II. Efemérides Natais nos 13 Signos**: Inspetor interativo ao vivo para **☉ Sol**, **☽ Lua**, **ASC Ascendente**, **MC Meio do Céu**, **☊ Cabeça do Dragão (Nodo Norte)**, **☿ Mercúrio**, **♀ Vênus**, **♂ Marte**, **♃ Júpiter** e **♄ Saturno**.
-      - **III. Aspectos Geométricos de Alinhamento Natal**: Cálculo e leitura detalhada de **Conjunção (0°)**, **Sextil (60°)**, **Quadratura (90°)**, **Trígono (120°)** e **Oposição (180°)** com alto contraste tanto no **Modo Dia** quanto no **Modo Noite**.
+      - **III. Aspectos Geométricos de Alinhamento Natal**: Seleção individual e leitura detalhada de **Conjunção (0°)**, **Sextil (60°)**, **Quadratura (90°)**, **Trígono (120°)** e **Oposição (180°)**.
+
+- **Zodíaco Chinês, Ciclo Sexagenário (60 Anos) & Os 4 Pilares do Nascimento — BaZi (Cap. II — Aba III)**:
+  - **Limiar Astronômico do Ano Novo Lunar Chinês**: Calcula a conjunção exata da Lua Nova mais próxima de *Lichun* (`21 de janeiro a 20 de fevereiro`) para o ano de nascimento, atribuindo nascimentos de janeiro e início de fevereiro ao verdadeiro Ano Lunar Chinês.
+  - **Roda Interativa dos 12 Ramos Terrestres (*Dizhi* 地支) & Pentagrama dos 5 Elementos (*Wu Xing* 五行)**:
+    - Exibe os **12 Guardiões Terrestres**: 🐀 **Rato (*Zǐ* 子)**, 🐂 **Boi (*Chǒu* 丑)**, 🐅 **Tigre (*Yín* 寅)**, 🐇 **Coelho (*Mǎo* 卯)**, 🐉 **Dragão (*Chén* 辰)**, 🐍 **Serpente (*Sì* 巳)**, 🐎 **Cavalo (*Wǔ* 午)**, 🐐 **Cabra/Cordeiro (*Wèi* 未)**, 🐒 **Macaco (*Shēn* 申)**, 🐓 **Galo (*Yǒu* 酉)**, 🐕 **Cão (*Xū* 戌)** e 🐗 **Javali (*Hài* 亥)**, com suas respectivas **12 Vigílias Solares Duplas (*Shichen* 時辰 de 2 horas)** e o ciclo interno de geração (*Sheng*) e controle (*Ke*) dos **5 Elementos** (**Madeira 木**, **Fogo 火**, **Terra 土**, **Metal 金** e **Água 水**).
+  - **Os Quatro Pilares do Nascimento (*BaZi* 四柱八字)**:
+    - Sincronizado com a data gregoriana e hora exata de nascimento do usuário para calcular: **I. Pilar do Ano** (Signo Principal e Elemento Natal), **II. Pilar do Mês Solar** (Guardião da Estação), **III. Pilar do Dia** (*Mestre do Dia* / Ciclo Juliano de 60 dias) e **IV. Pilar da Hora Exata** (*Ascendente Oriental / Shichen*), além da **Ponte Cosmológica** entre o Dragão Oriental (*Qinglong / Chén*) e o 13º Signo do Dragão no Mês IX.
+  - **Download do Mapa Oriental em Alta Resolução (`Baixar Mapa Oriental` / `Download Chinese Chart`)**: Exporta o pôster completo de `2400 × 1640 px` em formato **`.PNG`** com a Roda de 12 Guardiões, os 4 Pilares (*BaZi*) e o equilíbrio dos 5 Elementos.
 
 - **Festas Bíblicas Dependentes de GPS & Inversão Sazonal de Hemisfério (Cap. III — Festas)**:
   - Cálculo dinâmico das **8 Solenidades de Levítico 23 (*Moedim*)**: *Páscoa (Pesach)*, *Pães Asmos*, *Primícias*, *Pentecostes (Shavuot)*, *Trombetas (Yom Teruah)*, *Dia da Expiação (Yom Kippur)*, *Tabernáculos (Sukkot — 7 dias)* e *Oitavo Dia (Shemini Atzeret — 1 dia)*.
@@ -91,7 +101,7 @@ $$\text{Arco Eclíptico Mensal} = \frac{364^\circ \text{ Ciclo Solar Numerado}}{
 - **Frontend**: React 19, TypeScript 5, Vite 8, Tailwind CSS v4, html-to-image (Exportação PNG do Mapa Astral)
 - **Tipografia**: Cormorant Garamond, EB Garamond, Lora (Estética editorial de livro clássico)
 - **Ícones & Animações**: Lucide React, Motion (Framer Motion)
-- **Astronomia**: SunCalc (Motor de posições solares, pôr do sol GPS e fases lunares) + Motor Eclíptico Natal de 13 Signos (`natalAstralMap.ts`)
+- **Astronomia**: SunCalc (Motor de posições solares, pôr do sol GPS e fases lunares) + Motores Natais Eclíptico de 13 Signos (`natalAstralMap.ts`) e Oriental de 12 Ramos / 4 Pilares BaZi (`chineseZodiac.ts`)
 - **Android Nativo**: Java 17, Android SDK 34, `WebViewAssetLoader`, `AlarmManager` (Notificações em 2º plano), `PrintManager` (Exportação PDF), `ActivityResultContracts` (Download nativo de `.PNG` e `.ICS`) e `CalendarContract` (Integração Google Agenda)
 
 ---
@@ -168,9 +178,9 @@ O projeto inclui uma estrutura nativa Android para o aplicativo **Calendário da
 Ao enviar código para a branch `main`/`master` (ou acionar manualmente em **Actions → Build Android APK → Run workflow** no GitHub):
 1. O GitHub Actions instala o Node.js 22, compila o aplicativo Vite (`npm run build`) e sincroniza o bundle em `android/app/src/main/assets/public/`.
 2. Configura automaticamente o **Java JDK 17 (Temurin)**, **Android SDK 34** e **Gradle 8.7**, baixando todas as dependências Maven/Gradle na nuvem.
-3. Gera e assina os arquivos sincronizados automaticamente com a versão do rodapé (`v2.2`):
-   - `Calendario-das-Dimenuveis-v2.2-release.apk` (Artifact: `Calendario-das-Dimenuveis-v2.2-release-apk` — APK Release assinado pronto para instalação)
-   - `Calendario-das-Dimenuveis-v2.2-debug.apk` (Artifact: `Calendario-das-Dimenuveis-v2.2-debug-apk` — APK Debug)
+3. Gera e assina os arquivos sincronizados automaticamente com a versão do rodapé (`v2.3`):
+   - `Calendario-das-Dimenuveis-v2.3-release.apk` (Artifact: `Calendario-das-Dimenuveis-v2.3-release-apk` — APK Release assinado pronto para instalação)
+   - `Calendario-das-Dimenuveis-v2.3-debug.apk` (Artifact: `Calendario-das-Dimenuveis-v2.3-debug-apk` — APK Debug)
 4. Disponibiliza ambos os APKs para download direto na seção **Artifacts** da execução do workflow no GitHub.
 
 ---
