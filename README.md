@@ -1,6 +1,5 @@
 # Evangelho das Dimenúveis — Calendário Bíblico Lunar & Milenar (v2.5)
 
-[![Version](https://img.shields.io/badge/Vers%C3%A3o-2.5-f59e0b.svg)](https://dimenuvel.github.io/Evangelho-das-Dimenuveis-site/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-19.x-61dafb.svg)](https://react.dev/)
 [![Tailwind CSS](https://img.shields.io/badge/TailwindCSS-4.x-38bdf8.svg)](https://tailwindcss.com/)
