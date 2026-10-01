@@ -1,5 +1,6 @@
 package com.dimenueveis.calendar;
 
+import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
@@ -27,21 +28,15 @@ import java.util.Locale;
 
 /**
  * Native Android Home Screen Widget Provider for Calendário das Dimenúveis.
- * Renders a true single-column vertical portrait horological card (width = 740px, height = 980..1480px)
- * matching the Studio example 1:1 across all 3 vertical grid sizes (3x4, 4x5, 4x6):
- * Section 1: Sacred Year + Civil Date + Sacred Date Headline + Subline + Live Clock + Solar/Night Watch
- * Section 2: Full-Width Lunar Phase Card (Disc + Phase + Illumination % + Lunar Age + 14-Part Enoch Bar)
- * Section 3: Full-Width GPS Location & Solar Ephemeris Card (City + Coordinates + Sunrise / Noon / Sunset)
- * Section 4: Full-Width Sabbath Sunset Countdown + 2-Line Stacked 7-Day Weekly Sabbath Rhythm Strip
- * Section 5 (4x5 & 4x6): Full-Width 13-Sign Mazzaroth & 1 Enoch Celestial Gate Card
- * Section 6 (4x5 & 4x6): Full-Width Next Appointed Feast (Leviticus 23) Card
- * Section 7 (4x6): Full-Width 7,000-Year Millennial Clock Progress Bar Card
- * Section 8 (4x6): Full-Width Daily Scriptural Watchword Verse Card
+ * Renders a true single-column vertical portrait horological card (width = 740px)
+ * matching the Studio example 1:1 across all 3 vertical grid sizes (3x4, 4x5, 4x6)
+ * and updates its hour & minutes in real time every minute.
  */
 public class DimenueveisAppWidgetProvider extends AppWidgetProvider {
 
     public static final String PREFS_NAME = "dimenueveis_widget_prefs";
     public static final String KEY_WIDGET_PAYLOAD_JSON = "widget_payload_json";
+    public static final String ACTION_WIDGET_MINUTE_TICK = "com.dimenueveis.calendar.ACTION_WIDGET_MINUTE_TICK";
 
     private static final String[] ROMAN_MONTHS = new String[]{
             "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII"
@@ -53,16 +48,64 @@ public class DimenueveisAppWidgetProvider extends AppWidgetProvider {
     };
 
     @Override
+    public void onEnabled(Context context) {
+        super.onEnabled(context);
+        refreshAllWidgets(context);
+    }
+
+    @Override
+    public void onDisabled(Context context) {
+        super.onDisabled(context);
+        cancelMinuteTick(context);
+    }
+
+    @Override
+    public void onReceive(Context context, Intent intent) {
+        super.onReceive(context, intent);
+        if (intent == null || intent.getAction() == null) return;
+        String action = intent.getAction();
+        if (ACTION_WIDGET_MINUTE_TICK.equals(action)
+                || Intent.ACTION_TIME_CHANGED.equals(action)
+                || Intent.ACTION_TIMEZONE_CHANGED.equals(action)
+                || Intent.ACTION_DATE_CHANGED.equals(action)
+                || Intent.ACTION_USER_PRESENT.equals(action)
+                || Intent.ACTION_SCREEN_ON.equals(action)) {
+            refreshAllWidgets(context);
+        }
+    }
+
+    @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         for (int appWidgetId : appWidgetIds) {
             updateSingleWidget(context, appWidgetManager, appWidgetId);
         }
+        scheduleNextMinuteTick(context);
     }
 
     @Override
     public void onAppWidgetOptionsChanged(Context context, AppWidgetManager appWidgetManager, int appWidgetId, Bundle newOptions) {
         super.onAppWidgetOptionsChanged(context, appWidgetManager, appWidgetId, newOptions);
         updateSingleWidget(context, appWidgetManager, appWidgetId);
+        scheduleNextMinuteTick(context);
+    }
+
+    public static void refreshAllWidgets(Context context) {
+        try {
+            AppWidgetManager manager = AppWidgetManager.getInstance(context);
+            if (manager != null) {
+                ComponentName cn = new ComponentName(context, DimenueveisAppWidgetProvider.class);
+                int[] ids = manager.getAppWidgetIds(cn);
+                if (ids != null && ids.length > 0) {
+                    for (int id : ids) {
+                        updateSingleWidget(context, manager, id);
+                    }
+                    scheduleNextMinuteTick(context);
+                } else {
+                    cancelMinuteTick(context);
+                }
+            }
+        } catch (Exception ignored) {
+        }
     }
 
     public static void savePayloadAndRefreshAll(Context context, String payloadJson) {
@@ -70,15 +113,53 @@ public class DimenueveisAppWidgetProvider extends AppWidgetProvider {
             SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
             prefs.edit().putString(KEY_WIDGET_PAYLOAD_JSON, payloadJson).apply();
         }
-        AppWidgetManager manager = AppWidgetManager.getInstance(context);
-        if (manager != null) {
-            ComponentName cn = new ComponentName(context, DimenueveisAppWidgetProvider.class);
-            int[] ids = manager.getAppWidgetIds(cn);
-            if (ids != null && ids.length > 0) {
-                for (int id : ids) {
-                    updateSingleWidget(context, manager, id);
-                }
+        refreshAllWidgets(context);
+    }
+
+    public static void scheduleNextMinuteTick(Context context) {
+        try {
+            AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+            if (alarmManager == null) return;
+
+            Intent intent = new Intent(context, DimenueveisAppWidgetProvider.class);
+            intent.setAction(ACTION_WIDGET_MINUTE_TICK);
+            int flags = PendingIntent.FLAG_UPDATE_CURRENT;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                flags |= PendingIntent.FLAG_IMMUTABLE;
             }
+            PendingIntent pi = PendingIntent.getBroadcast(context, 777, intent, flags);
+
+            long nowMs = System.currentTimeMillis();
+            long nextMinuteMs = ((nowMs / 60000L) + 1L) * 60000L + 150L;
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                if (alarmManager.canScheduleExactAlarms()) {
+                    alarmManager.setExact(AlarmManager.RTC, nextMinuteMs, pi);
+                } else {
+                    alarmManager.setWindow(AlarmManager.RTC, nextMinuteMs, 5000L, pi);
+                }
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                alarmManager.setExact(AlarmManager.RTC, nextMinuteMs, pi);
+            } else {
+                alarmManager.set(AlarmManager.RTC, nextMinuteMs, pi);
+            }
+        } catch (Exception ignored) {
+        }
+    }
+
+    public static void cancelMinuteTick(Context context) {
+        try {
+            AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+            if (alarmManager == null) return;
+            Intent intent = new Intent(context, DimenueveisAppWidgetProvider.class);
+            intent.setAction(ACTION_WIDGET_MINUTE_TICK);
+            int flags = PendingIntent.FLAG_UPDATE_CURRENT;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                flags |= PendingIntent.FLAG_IMMUTABLE;
+            }
+            PendingIntent pi = PendingIntent.getBroadcast(context, 777, intent, flags);
+            alarmManager.cancel(pi);
+        } catch (Exception ignored) {
         }
     }
 
@@ -110,6 +191,47 @@ public class DimenueveisAppWidgetProvider extends AppWidgetProvider {
         if ("3x4".equals(s) || "4x2".equals(s)) return "3x4";
         if ("4x5".equals(s) || "4x3".equals(s)) return "4x5";
         return "4x6";
+    }
+
+    private static int parseHHMMToMinutes(String hhmm, int defaultMinutes) {
+        if (hhmm == null || !hhmm.contains(":")) return defaultMinutes;
+        try {
+            String[] parts = hhmm.trim().split(":");
+            int h = Integer.parseInt(parts[0].replaceAll("[^0-9]", ""));
+            int m = Integer.parseInt(parts[1].replaceAll("[^0-9]", ""));
+            return h * 60 + m;
+        } catch (Exception e) {
+            return defaultMinutes;
+        }
+    }
+
+    private static String computeLiveBiblicalWatchLabel(int currentMinutesOfDay, int riseMinutes, int setMinutes) {
+        if (currentMinutesOfDay >= riseMinutes && currentMinutesOfDay < setMinutes) {
+            int daySpan = Math.max(1, setMinutes - riseMinutes);
+            int elapsed = currentMinutesOfDay - riseMinutes;
+            int solarHour = Math.min(12, Math.max(1, (elapsed * 12) / daySpan + 1));
+            if (solarHour <= 3) {
+                return solarHour + "ª Hora Solar · Vigília Matutina";
+            }
+            if (solarHour <= 6) {
+                return solarHour + "ª Hora Solar · Rumo ao Zênite";
+            }
+            if (solarHour <= 9) {
+                return solarHour + "ª Hora Solar · Declínio da Tarde";
+            }
+            return solarHour + "ª Hora Solar · Véspera do Pôr do Sol";
+        }
+        int hour = currentMinutesOfDay / 60;
+        if (hour >= 18 && hour < 21) {
+            return "1ª Vigília da Noite (Anoitecer)";
+        }
+        if (hour >= 21 || hour == 0) {
+            return "2ª Vigília da Noite (Meia-Noite)";
+        }
+        if (hour >= 1 && hour < 4) {
+            return "3ª Vigília da Noite (Canto do Galo)";
+        }
+        return "4ª Vigília da Noite (Alvorada)";
     }
 
     private static Bitmap renderWidgetBitmap(Context context) {
@@ -153,7 +275,6 @@ public class DimenueveisAppWidgetProvider extends AppWidgetProvider {
         String gregorianDateStr = new SimpleDateFormat("EEE, dd MMM yyyy", new Locale("pt", "BR")).format(now);
         String timeFormatted = new SimpleDateFormat("HH:mm", Locale.getDefault()).format(now);
         String ampmSuffix = "";
-        String biblicalWatchLabel = "Relógio Sagrado & Vigília Solar";
 
         double synodicAge = ((now.getTime() / 1000.0 - 947182440.0) / 86400.0) % 29.530588;
         if (synodicAge < 0) synodicAge += 29.530588;
@@ -214,12 +335,11 @@ public class DimenueveisAppWidgetProvider extends AppWidgetProvider {
                     showDailyVerse = cfg.optBoolean("showDailyVerse", true);
 
                     boolean use24 = cfg.optBoolean("use24HourFormat", true);
-                    boolean showSec = cfg.optBoolean("showSeconds", false);
                     if (use24) {
-                        timeFormatted = new SimpleDateFormat(showSec ? "HH:mm:ss" : "HH:mm", Locale.getDefault()).format(now);
+                        timeFormatted = new SimpleDateFormat("HH:mm", Locale.getDefault()).format(now);
                         ampmSuffix = "";
                     } else {
-                        timeFormatted = new SimpleDateFormat(showSec ? "hh:mm:ss" : "hh:mm", Locale.getDefault()).format(now);
+                        timeFormatted = new SimpleDateFormat("hh:mm", Locale.getDefault()).format(now);
                         ampmSuffix = cal.get(Calendar.AM_PM) == Calendar.PM ? "PM" : "AM";
                     }
                 }
@@ -228,7 +348,6 @@ public class DimenueveisAppWidgetProvider extends AppWidgetProvider {
                 sacredDateHeadline = obj.optString("sacredDateHeadline", sacredDateHeadline);
                 sacredSubline = obj.optString("sacredSubline", sacredSubline);
                 gregorianDateStr = obj.optString("gregorianDateStr", gregorianDateStr);
-                biblicalWatchLabel = obj.optString("biblicalWatchLabel", biblicalWatchLabel);
 
                 lunarPhaseLocalized = obj.optString("lunarPhaseLocalized", lunarPhaseLocalized);
                 lunarIllumPercent = obj.optInt("lunarIlluminationPercent", lunarIllumPercent);
@@ -246,7 +365,23 @@ public class DimenueveisAppWidgetProvider extends AppWidgetProvider {
                 sabbathStatusTitle = obj.optString("sabbathStatusTitle", sabbathStatusTitle);
                 sabbathTargetDateLabel = obj.optString("sabbathTargetDateLabel", sabbathTargetDateLabel);
                 sabbathSunsetLabel = obj.optString("sabbathSunsetLabel", sabbathSunsetLabel);
-                sabbathCountdownStr = obj.optString("sabbathCountdownStr", sabbathCountdownStr);
+
+                long targetSabMs = obj.optLong("sabbathTargetTimestampMs", 0L);
+                if (targetSabMs > now.getTime()) {
+                    long diffMin = Math.max(0L, (targetSabMs - now.getTime()) / 60000L);
+                    long cdD = diffMin / 1440L;
+                    long cdH = (diffMin % 1440L) / 60L;
+                    long cdM = diffMin % 60L;
+                    if (cdD > 0) {
+                        sabbathCountdownStr = String.format(Locale.US, "%dd %02dh %02dm", cdD, cdH, cdM);
+                    } else {
+                        sabbathCountdownStr = String.format(Locale.US, "%02dh %02dm", cdH, cdM);
+                    }
+                } else {
+                    String rawCd = obj.optString("sabbathCountdownStr", sabbathCountdownStr);
+                    sabbathCountdownStr = rawCd.replaceAll("\\s+\\d+s$", "");
+                }
+
                 dayOfWeek = obj.optInt("dayOfWeek", dayOfWeek);
                 isDayZero = obj.optBoolean("isDayZero", isDayZero);
 
@@ -268,6 +403,11 @@ public class DimenueveisAppWidgetProvider extends AppWidgetProvider {
             } catch (Exception ignored) {
             }
         }
+
+        int currentMinutesOfDay = cal.get(Calendar.HOUR_OF_DAY) * 60 + cal.get(Calendar.MINUTE);
+        int riseMin = parseHHMMToMinutes(sunriseStr, 372);
+        int setMin = parseHHMMToMinutes(sunsetStr, 1104);
+        String biblicalWatchLabel = computeLiveBiblicalWatchLabel(currentMinutesOfDay, riseMin, setMin);
 
         // Single-Column Vertical Stack matching the Studio Example 1:1
         boolean renderGps = showGpsAndSunTimes;
@@ -301,7 +441,7 @@ public class DimenueveisAppWidgetProvider extends AppWidgetProvider {
         }
         estimatedHeight += 32f; // bottom padding
 
-        int height = Math.max(820, Math.round(estimatedHeight));
+        int height = Math.max(420, Math.round(estimatedHeight));
         Bitmap bmp = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bmp);
 

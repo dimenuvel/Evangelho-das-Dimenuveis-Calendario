@@ -7,9 +7,11 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Color;
@@ -53,6 +55,16 @@ public class MainActivity extends AppCompatActivity {
     private static final String START_URL = "https://appassets.androidplatform.net/assets/public/index.html";
     private static final String NOTIFICATION_CHANNEL_ID = "dimenueveis_feasts_channel";
 
+    private static boolean widgetTickReceiverRegistered = false;
+    private static final BroadcastReceiver widgetTimeTickReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (context != null) {
+                DimenueveisAppWidgetProvider.refreshAllWidgets(context.getApplicationContext());
+            }
+        }
+    };
+
     private WebView webView;
     private String pendingGeolocationOrigin;
     private GeolocationPermissions.Callback pendingGeolocationCallback;
@@ -62,6 +74,22 @@ public class MainActivity extends AppCompatActivity {
     private ActivityResultLauncher<String> notificationPermissionLauncher;
     private ActivityResultLauncher<Intent> saveIcsDocumentLauncher;
     private ActivityResultLauncher<Intent> savePngDocumentLauncher;
+
+    private void ensureWidgetMinuteTickReceiverRegistered() {
+        if (!widgetTickReceiverRegistered) {
+            try {
+                IntentFilter filter = new IntentFilter();
+                filter.addAction(Intent.ACTION_TIME_TICK);
+                filter.addAction(Intent.ACTION_SCREEN_ON);
+                filter.addAction(Intent.ACTION_TIME_CHANGED);
+                filter.addAction(Intent.ACTION_TIMEZONE_CHANGED);
+                getApplicationContext().registerReceiver(widgetTimeTickReceiver, filter);
+                widgetTickReceiverRegistered = true;
+            } catch (Exception ignored) {
+            }
+        }
+        DimenueveisAppWidgetProvider.refreshAllWidgets(getApplicationContext());
+    }
 
     private boolean isLocationPermissionGranted() {
         return ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
@@ -96,6 +124,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         createNotificationChannelIfNeeded();
+        ensureWidgetMinuteTickReceiverRegistered();
 
         locationPermissionLauncher = registerForActivityResult(
                 new ActivityResultContracts.RequestMultiplePermissions(),

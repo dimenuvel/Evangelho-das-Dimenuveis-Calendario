@@ -79,7 +79,7 @@ export const DEFAULT_ANDROID_WIDGET_CONFIG: AndroidWidgetConfig = {
   frostedBlur: true,
   goldBorder: true,
   use24HourFormat: true,
-  showSeconds: true,
+  showSeconds: false,
   showGpsAndSunTimes: true,
   showSabbathCountdown: true,
   showWeeklySabbathBar: true,
@@ -110,6 +110,7 @@ export function loadAndroidWidgetConfig(): AndroidWidgetConfig {
       const normalized: AndroidWidgetConfig = {
         ...DEFAULT_ANDROID_WIDGET_CONFIG,
         ...parsed,
+        showSeconds: false,
         widgetSize: normalizeVerticalWidgetSize(parsed.widgetSize),
         alphaPercent:
           typeof parsed.alphaPercent === 'number'
@@ -176,6 +177,7 @@ export interface LiveAndroidWidgetSnapshot {
   sabbathTargetDateLabel: string;
   sabbathSunsetLabel: string;
   sabbathCountdownStr: string;
+  sabbathTargetTimestampMs: number;
 
   // 13-Sign Mazzaroth & 1 Enoch Gate
   zodiacSymbol: string;
@@ -325,20 +327,15 @@ export function buildLiveAndroidWidgetSnapshot(
 
   const hours24 = now.getHours();
   const minutes = now.getMinutes();
-  const seconds = now.getSeconds();
 
   let timeFormatted = '';
   let ampmSuffix = '';
   if (widgetConfig.use24HourFormat) {
-    timeFormatted = widgetConfig.showSeconds
-      ? `${pad2(hours24)}:${pad2(minutes)}:${pad2(seconds)}`
-      : `${pad2(hours24)}:${pad2(minutes)}`;
+    timeFormatted = `${pad2(hours24)}:${pad2(minutes)}`;
   } else {
     const h12 = hours24 % 12 || 12;
     ampmSuffix = hours24 >= 12 ? 'PM' : 'AM';
-    timeFormatted = widgetConfig.showSeconds
-      ? `${pad2(h12)}:${pad2(minutes)}:${pad2(seconds)}`
-      : `${pad2(h12)}:${pad2(minutes)}`;
+    timeFormatted = `${pad2(h12)}:${pad2(minutes)}`;
   }
 
   const biblicalWatchLabel = computeBiblicalWatchLabel(
@@ -387,16 +384,15 @@ export function buildLiveAndroidWidgetSnapshot(
     : nextWindow.startSunset.getTime();
 
   const diffMs = Math.max(0, targetTimestamp - nowMs);
-  const totalSec = Math.floor(diffMs / 1000);
-  const cdDays = Math.floor(totalSec / 86400);
-  const cdHours = Math.floor((totalSec % 86400) / 3600);
-  const cdMinutes = Math.floor((totalSec % 3600) / 60);
-  const cdSeconds = totalSec % 60;
+  const totalMin = Math.floor(diffMs / 60000);
+  const cdDays = Math.floor(totalMin / 1440);
+  const cdHours = Math.floor((totalMin % 1440) / 60);
+  const cdMinutes = totalMin % 60;
 
   const sabbathCountdownStr =
     cdDays > 0
-      ? `${cdDays}d ${pad2(cdHours)}h ${pad2(cdMinutes)}m ${pad2(cdSeconds)}s`
-      : `${pad2(cdHours)}h ${pad2(cdMinutes)}m ${pad2(cdSeconds)}s`;
+      ? `${cdDays}d ${pad2(cdHours)}h ${pad2(cdMinutes)}m`
+      : `${pad2(cdHours)}h ${pad2(cdMinutes)}m`;
 
   const targetSabbathDay = isSabbathActive ? activeWindow!.day : nextWindow.day;
   const sabbathTargetDateLabel =
@@ -545,6 +541,7 @@ export function buildLiveAndroidWidgetSnapshot(
     sabbathTargetDateLabel,
     sabbathSunsetLabel,
     sabbathCountdownStr,
+    sabbathTargetTimestampMs: targetTimestamp,
     zodiacSymbol,
     zodiacName,
     zodiacArchetype,
