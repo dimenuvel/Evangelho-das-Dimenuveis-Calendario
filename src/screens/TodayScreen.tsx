@@ -4,13 +4,14 @@
  * Sabbath status, dynamic feast detection/countdown, astronomical lunar phase, and Millennial position.
  */
 
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { CalendarConfiguration, CalendarDay } from '../types/calendar';
 import { Language, TRANSLATIONS } from '../i18n/translations';
-import { solarDateToSacredDate } from '../calendar/sacredCalendar';
+import { generateSacredYearDays, solarDateToSacredDate } from '../calendar/sacredCalendar';
 import { getLunarPhaseInfo, getLocalizedPhaseName } from '../astronomy/moon';
 import { getSunTimes } from '../astronomy/sun';
 import { calculateMillennialPosition } from '../chronology/chronologyEngine';
+import { getChronologyModelById } from '../chronology/models';
 import { getSabbathBadgeLabel } from '../calendar/sabbath';
 import { getDailyPrayerForSacredDay } from '../calendar/dailyPrayer';
 import { getMonthDisplayTitle } from '../calendar/months';
@@ -19,6 +20,7 @@ import { LunarPhaseIcon } from '../components/LunarPhaseIcon';
 import { DataSourceBadge } from '../components/DataSourceBadge';
 import { AzimuthalCosmologyMap } from '../components/AzimuthalCosmologyMap';
 import { SabbathIndicatorWidget } from '../components/SabbathIndicatorWidget';
+import { EditableYearControl } from '../components/EditableYearControl';
 import { ArrowRight, MapPin, BookOpen } from 'lucide-react';
 
 interface TodayScreenProps {
@@ -42,13 +44,48 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
 }) => {
   const t = TRANSLATIONS[language];
   const isPt = language === 'pt';
-  const currentSacredDay = solarDateToSacredDate(systemDate, config.lunarAnchorMode);
+  const baseSacredDay = useMemo(
+    () => solarDateToSacredDate(systemDate, config.lunarAnchorMode),
+    [systemDate, config.lunarAnchorMode]
+  );
+  const [selectedSacredYear, setSelectedSacredYear] = useState<number>(
+    () => baseSacredDay.calendarYear
+  );
+
+  const currentSacredDay = useMemo(() => {
+    if (selectedSacredYear === baseSacredDay.calendarYear) {
+      return baseSacredDay;
+    }
+    const targetDays = generateSacredYearDays(selectedSacredYear, config.lunarAnchorMode);
+    if (baseSacredDay.kind === 'DAY_ZERO') {
+      return targetDays[0];
+    }
+    const matched = targetDays.find(
+      (d) => d.kind === 'NUMBERED_DAY' && d.dayOfYear === baseSacredDay.dayOfYear
+    );
+    return matched || targetDays[0];
+  }, [selectedSacredYear, baseSacredDay, config.lunarAnchorMode]);
+
+  const effectiveDate = useMemo(() => {
+    if (selectedSacredYear === baseSacredDay.calendarYear) {
+      return systemDate;
+    }
+    const d = new Date(currentSacredDay.gregorianDate);
+    d.setHours(
+      systemDate.getHours(),
+      systemDate.getMinutes(),
+      systemDate.getSeconds(),
+      0
+    );
+    return d;
+  }, [selectedSacredYear, baseSacredDay.calendarYear, currentSacredDay.gregorianDate, systemDate]);
+
   const isZero = currentSacredDay.kind === 'DAY_ZERO';
 
-  const lunarInfo = getLunarPhaseInfo(systemDate);
+  const lunarInfo = getLunarPhaseInfo(effectiveDate);
   const localizedPhaseName = getLocalizedPhaseName(lunarInfo.phaseName, language);
   const sunTimes = getSunTimes(
-    systemDate,
+    effectiveDate,
     config.userLocation?.latitude,
     config.userLocation?.longitude
   );
@@ -59,8 +96,9 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
         ? 'Jerusalém (Padrão)'
         : 'Jerusalem (Default)'
       : rawCity;
+  const activeModel = getChronologyModelById(config.chronologyModelId, language);
   const millennialPos = calculateMillennialPosition(
-    systemDate.getFullYear(),
+    selectedSacredYear - activeModel.creationEpochBCE + 1,
     config.chronologyModelId,
     config.joshuaAdjustmentStatus === 'ACCEPTED' ? 1 : 0,
     language
@@ -80,7 +118,7 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
     config.userLocation
   );
   const { activeFeast, nextFeast } = getCurrentOrNextFeast(
-    systemDate,
+    effectiveDate,
     config.lunarAnchorMode,
     config.feastCalendarModel,
     language,
@@ -132,8 +170,15 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
           {/* Left 7 Cols: Primary Sacred Date & Appointed Time Status */}
           <div className="lg:col-span-7 p-4 sm:p-6 space-y-4 sm:space-y-5 flex flex-col justify-between">
             <div className="space-y-2.5">
-              <div className="flex items-center gap-2 text-xs font-serif text-amber-400 uppercase tracking-wider tabular-nums whitespace-nowrap">
-                <span className="font-semibold">{t.today.sacredYear} {currentSacredDay.calendarYear}</span>
+              <div className="flex flex-wrap items-center gap-2 text-xs font-serif text-amber-400 uppercase tracking-wider tabular-nums">
+                <EditableYearControl
+                  year={selectedSacredYear}
+                  onChange={setSelectedSacredYear}
+                  defaultYear={baseSacredDay.calendarYear}
+                  label={t.today.sacredYear}
+                  size="sm"
+                  isPt={isPt}
+                />
                 <span className="text-slate-500">·</span>
                 <span className="italic normal-case text-slate-300">
                   {translateAnchorMode(config.lunarAnchorMode)}
@@ -384,7 +429,7 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
 
       {/* Interactive Flat Earth Azimuthal Equidistant Cosmology Map */}
       <AzimuthalCosmologyMap
-        systemDate={systemDate}
+        systemDate={effectiveDate}
         lunarAnchorMode={config.lunarAnchorMode}
         language={language}
         observerLat={config.userLocation?.latitude}

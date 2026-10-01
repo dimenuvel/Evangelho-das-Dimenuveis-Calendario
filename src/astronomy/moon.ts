@@ -266,18 +266,25 @@ function getPrevPhaseInfo(date: Date, currentPhaseValue: number): { name: string
   return { name: prevTarget.name, date: prevDate };
 }
 
+function createFullUTCDate(year: number, monthIndex: number, day: number, hour = 0): Date {
+  const d = new Date(0);
+  d.setUTCFullYear(year, monthIndex, day);
+  d.setUTCHours(hour, 0, 0, 0);
+  return d;
+}
+
 export function getSpringNewMoon(gregorianYear: number): Date {
   const cachedTime = springNewMoonCache.get(gregorianYear);
   if (cachedTime !== undefined) {
     return new Date(cachedTime);
   }
 
-  const equinoxApprox = new Date(Date.UTC(gregorianYear, 2, 20, 12, 0, 0));
+  const equinoxApprox = createFullUTCDate(gregorianYear, 2, 20, 12);
   let bestDate = equinoxApprox;
   let minPhase = 1.0;
 
-  const startTime = new Date(Date.UTC(gregorianYear, 2, 5)).getTime();
-  const endTime = new Date(Date.UTC(gregorianYear, 3, 20)).getTime();
+  const startTime = createFullUTCDate(gregorianYear, 2, 5, 0).getTime();
+  const endTime = createFullUTCDate(gregorianYear, 3, 20, 0).getTime();
 
   for (let t = startTime; t <= endTime; t += 3600 * 1000 * 4) {
     const d = new Date(t);

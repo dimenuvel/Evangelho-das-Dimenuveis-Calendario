@@ -4,7 +4,7 @@
  * architectural feature walkthrough, and usage instructions (Bilingual EN/PT).
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Language, TRANSLATIONS } from '../i18n/translations';
 import { CalendarConfiguration } from '../types/calendar';
 import { resolveSacredBirthday, solarDateToSacredDate } from '../calendar/sacredCalendar';
@@ -45,6 +45,7 @@ interface TourGuideModalProps {
   onSelectLanguage: (lang: Language) => void;
   theme: 'night' | 'day' | 'mono';
   onToggleTheme: () => void;
+  onSelectTheme?: (theme: 'night' | 'day' | 'mono') => void;
   onNavigateTab: (tab: NavTab) => void;
   config: CalendarConfiguration;
   onUpdateConfig: (partial: Partial<CalendarConfiguration>) => void;
@@ -62,6 +63,7 @@ export const TourGuideModal: React.FC<TourGuideModalProps> = ({
   onSelectLanguage,
   theme,
   onToggleTheme,
+  onSelectTheme,
   onNavigateTab,
   config,
   onUpdateConfig,
@@ -73,8 +75,28 @@ export const TourGuideModal: React.FC<TourGuideModalProps> = ({
   );
   const [hasAutoTriggeredOnStep3, setHasAutoTriggeredOnStep3] = useState(false);
   const [birthdaySavedToast, setBirthdaySavedToast] = useState(false);
+  const [showHeaderThemePreview, setShowHeaderThemePreview] = useState(false);
+  const headerThemeMenuRef = useRef<HTMLDivElement | null>(null);
   const isPt = language === 'pt';
   const t = TRANSLATIONS[language];
+
+  useEffect(() => {
+    if (!showHeaderThemePreview) return;
+    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
+      if (
+        headerThemeMenuRef.current &&
+        !headerThemeMenuRef.current.contains(e.target as Node)
+      ) {
+        setShowHeaderThemePreview(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [showHeaderThemePreview]);
 
   const currentSacredYear = solarDateToSacredDate(new Date(), config.lunarAnchorMode).calendarYear;
   const resolvedBirthday = config.userBirthdayGregorian
@@ -152,14 +174,14 @@ export const TourGuideModal: React.FC<TourGuideModalProps> = ({
         ? 'Evangelho das Dimenúveis'
         : 'Gospel of Dimenuous',
       subtitle: isPt
-        ? 'Almanaque Bíblico Lunar, Sagrado e Milenar · Versão 2.4'
-        : 'Biblical Lunar, Sacred & Millennial Almanac · Version 2.4',
+        ? 'Almanaque Bíblico Lunar, Sagrado e Milenar'
+        : 'Biblical Lunar, Sacred & Millennial Almanac',
       content: (
         <div className="space-y-5">
           <p className="text-sm font-serif text-slate-200 leading-relaxed">
             {isPt
-              ? 'Este instrumento editorial e astronômico (v2.4) integra o Calendário Sagrado de 13 Meses × 28 Dias (364 dias + Dia Zero), os 13 Signos Eclípticos (incluindo o 13º Signo restaurado do Dragão no Mês IX), o Mapa Astral Natal de 13 Signos, o Zodíaco Chinês & 4 Pilares (BaZi), o Indicador Ao Vivo do Sábado, a Oração Diária Bíblica, as Festas de Levítico 23 e o Relógio Milenar de 7.000 anos.'
-              : 'This editorial and astronomical instrument (v2.4) integrates the 13-Month × 28-Day Sacred Calendar (364 days + Day Zero), the 13 Ecliptic Zodiac Signs (including the restored 13th Sign of the Dragon in Month IX), the 13-Sign Natal Astral Map, the Chinese Zodiac & 4 Pillars (BaZi), the Live Sabbath Indicator, the Daily Scriptural Prayer, Leviticus 23 Feasts, and the 7,000-Year Millennial Clock.'}
+              ? 'Este instrumento editorial e astronômico integra o Calendário Sagrado de 13 Meses × 28 Dias (364 dias + Dia Zero), os 13 Signos Eclípticos (incluindo o 13º Signo restaurado do Dragão no Mês IX), o Mapa Astral Natal de 13 Signos, o Zodíaco Chinês & 4 Pilares (BaZi), o Indicador Ao Vivo do Sábado, a Oração Diária Bíblica, as Festas de Levítico 23 e o Relógio Milenar de 7.000 anos.'
+              : 'This editorial and astronomical instrument integrates the 13-Month × 28-Day Sacred Calendar (364 days + Day Zero), the 13 Ecliptic Zodiac Signs (including the restored 13th Sign of the Dragon in Month IX), the 13-Sign Natal Astral Map, the Chinese Zodiac & 4 Pillars (BaZi), the Live Sabbath Indicator, the Daily Scriptural Prayer, Leviticus 23 Feasts, and the 7,000-Year Millennial Clock.'}
           </p>
 
           {/* Interactive Language & Theme Switcher Cards */}
@@ -184,61 +206,101 @@ export const TourGuideModal: React.FC<TourGuideModalProps> = ({
               <LanguageSelector language={language} onSelectLanguage={onSelectLanguage} />
             </div>
 
-            {/* Day / Night / Monochrome Reading Mode Box */}
-            <div className="border border-slate-700 bg-slate-900/50 p-4 flex items-center justify-between gap-4">
-              <div className="space-y-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-serif uppercase tracking-wider text-amber-400 font-semibold whitespace-nowrap">
-                    {isPt ? '2. Tema Visual' : '2. Visual Theme'}
-                  </span>
-                  <span className="text-xs font-serif italic text-slate-300 whitespace-nowrap">
-                    (
-                    {theme === 'day'
-                      ? isPt
-                        ? 'Dia'
-                        : 'Day'
-                      : theme === 'night'
+            {/* Day / Night / Monochrome Reading Mode Box with Live Visual Previews */}
+            <div className="border border-slate-700 bg-slate-900/50 p-4 space-y-3">
+              <div className="flex items-center justify-between gap-4">
+                <div className="space-y-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-serif uppercase tracking-wider text-amber-400 font-semibold whitespace-nowrap">
+                      {isPt ? '2. Tema Visual' : '2. Visual Theme'}
+                    </span>
+                    <span className="text-xs font-serif italic text-slate-300 whitespace-nowrap">
+                      (
+                      {theme === 'day'
                         ? isPt
-                          ? 'Noite'
-                          : 'Night'
-                        : isPt
-                          ? 'Monocromático'
-                          : 'Monochrome'}
-                    )
+                          ? 'Dia'
+                          : 'Day'
+                        : theme === 'night'
+                          ? isPt
+                            ? 'Noite'
+                            : 'Night'
+                          : isPt
+                            ? 'Monocromático'
+                            : 'Monochrome'}
+                      )
+                    </span>
+                  </div>
+                  <p className="text-xs font-serif text-slate-300 leading-relaxed">
+                    {isPt
+                      ? 'Alterne entre Monocromático (Padrão), Dia Solar e Noite:'
+                      : 'Switch between Monochrome (Default), Solar Day, and Night:'}
+                  </p>
+                </div>
+                <div className="inline-flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-900 border border-slate-700 text-slate-200 shrink-0">
+                  <span key={theme} className="inline-flex items-center justify-center animate-theme-icon">
+                    {theme === 'day' ? (
+                      <Sun className="w-4 h-4 text-amber-500" />
+                    ) : theme === 'night' ? (
+                      <Moon className="w-4 h-4 text-blue-300" />
+                    ) : (
+                      <Contrast className="w-4 h-4 text-amber-400" />
+                    )}
                   </span>
                 </div>
-                <p className="text-xs font-serif text-slate-300 leading-relaxed">
-                  {isPt
-                    ? 'Toque no botão circular para alternar entre os modos Dia, Noite e Monocromático.'
-                    : 'Tap the circular button to cycle between Day, Night, and Monochrome modes.'}
-                </p>
               </div>
-              <button
-                type="button"
-                onClick={onToggleTheme}
-                className="inline-flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-900 border border-slate-700 hover:border-amber-500/60 text-slate-200 transition-colors cursor-pointer shrink-0"
-                title={
-                  theme === 'day'
-                    ? isPt
-                      ? 'Modo Dia ativo — Clique para Modo Noite'
-                      : 'Day Mode active — Click for Night Mode'
-                    : theme === 'night'
-                      ? isPt
-                        ? 'Modo Noite ativo — Clique para Modo Monocromático'
-                        : 'Night Mode active — Click for Monochrome Mode'
-                      : isPt
-                        ? 'Modo Monocromático ativo — Clique para Modo Dia'
-                        : 'Monochrome Mode active — Click for Day Mode'
-                }
-              >
-                {theme === 'day' ? (
-                  <Sun className="w-4 h-4 text-amber-500" />
-                ) : theme === 'night' ? (
-                  <Moon className="w-4 h-4 text-blue-300" />
-                ) : (
-                  <Contrast className="w-4 h-4 text-amber-400" />
-                )}
-              </button>
+
+              {/* 3 Interactive Visual Theme Swatches */}
+              <div className="grid grid-cols-3 gap-2 pt-0.5">
+                {[
+                  {
+                    id: 'mono' as const,
+                    swatchClass: 'theme-swatch-mono',
+                    label: isPt ? 'Monocromático' : 'Monochrome',
+                    icon: <Contrast className="w-3.5 h-3.5 text-amber-500 shrink-0" />,
+                  },
+                  {
+                    id: 'day' as const,
+                    swatchClass: 'theme-swatch-day',
+                    label: isPt ? 'Dia Solar' : 'Solar Day',
+                    icon: <Sun className="w-3.5 h-3.5 text-amber-500 shrink-0" />,
+                  },
+                  {
+                    id: 'night' as const,
+                    swatchClass: 'theme-swatch-night',
+                    label: isPt ? 'Noturno' : 'Night',
+                    icon: <Moon className="w-3.5 h-3.5 text-blue-300 shrink-0" />,
+                  },
+                ].map((opt) => {
+                  const isCurrent = theme === opt.id;
+                  return (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => {
+                        if (onSelectTheme) {
+                          onSelectTheme(opt.id);
+                        } else {
+                          onToggleTheme();
+                        }
+                      }}
+                      className={`theme-swatch-lock ${opt.swatchClass} p-2 border text-left transition-transform cursor-pointer flex flex-col justify-between gap-1 ${
+                        isCurrent ? 'ring-2 ring-amber-500 scale-[1.02]' : 'opacity-85 hover:opacity-100'
+                      }`}
+                    >
+                      <div className="theme-swatch-lock flex items-center justify-between gap-1">
+                        <span className="theme-swatch-lock swatch-title text-[10.5px] font-bold truncate">
+                          {opt.label}
+                        </span>
+                        {opt.icon}
+                      </div>
+                      <div className="theme-swatch-lock swatch-chip px-1.5 py-0.5 border text-[9.5px] font-bold flex items-center justify-between">
+                        <span className="theme-swatch-lock">Aa · XIII</span>
+                        <span className="theme-swatch-lock" style={{ color: '#eab308' }}>☽</span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
 
@@ -551,8 +613,8 @@ export const TourGuideModal: React.FC<TourGuideModalProps> = ({
               </h4>
               <p className="text-xs text-slate-300 leading-relaxed">
                 {isPt
-                  ? 'Compare Ussher (4004 a.C.), Rabínico Tradicional (3761 a.C.), Septuaginta LXX (5508 a.C.) e Época Sagrada Dimenúveis (4026 a.C.) com transição exata de 1 a.C. para 1 d.C. sem Ano Zero.'
-                  : 'Compare Ussher (4004 BCE), Traditional Rabbinic (3761 BCE), Septuagint LXX (5508 BCE), and Dimenuous Sacred Epoch (4026 BCE) with strict 1 BCE to 1 CE transition (no Year Zero).'}
+                  ? 'Compare Ussher (4004 a.C.), Rabínico Tradicional (3761 a.C.), Septuaginta LXX (5508 a.C.) e Época Sagrada Dimenúveis (4025 a.C.) com transição exata de 1 a.C. para 1 d.C. sem Ano Zero.'
+                  : 'Compare Ussher (4004 BCE), Traditional Rabbinic (3761 BCE), Septuagint LXX (5508 BCE), and Dimenuous Sacred Epoch (4025 BCE) with strict 1 BCE to 1 CE transition (no Year Zero).'}
               </p>
             </div>
 
@@ -697,33 +759,116 @@ export const TourGuideModal: React.FC<TourGuideModalProps> = ({
             {/* Circular Flag Language Switcher Button (Same as Navbar) */}
             <LanguageSelector language={language} onSelectLanguage={onSelectLanguage} />
 
-            {/* Circular Day/Night/Monochrome Mode Switcher Button (Same as Navbar) */}
-            <button
-              type="button"
-              onClick={onToggleTheme}
-              className="inline-flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-900 border border-slate-700 hover:border-amber-500/60 text-slate-200 transition-colors cursor-pointer shrink-0"
-              title={
-                theme === 'day'
-                  ? isPt
-                    ? 'Alternar para Modo Noite'
-                    : 'Switch to Night Mode'
-                  : theme === 'night'
-                    ? isPt
-                      ? 'Alternar para Modo Monocromático'
-                      : 'Switch to Monochrome Mode'
-                    : isPt
-                      ? 'Alternar para Modo Dia'
-                      : 'Switch to Day Mode'
-              }
-            >
-              {theme === 'day' ? (
-                <Sun className="w-4 h-4 text-amber-500" />
-              ) : theme === 'night' ? (
-                <Moon className="w-4 h-4 text-blue-300" />
-              ) : (
-                <Contrast className="w-4 h-4 text-amber-400" />
+            {/* Circular Day/Night/Monochrome Mode Switcher Button (Opens Preview on Current Theme) */}
+            <div ref={headerThemeMenuRef} className="relative">
+              <button
+                type="button"
+                onClick={() => setShowHeaderThemePreview((prev) => !prev)}
+                aria-expanded={showHeaderThemePreview}
+                aria-haspopup="true"
+                className="inline-flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-900 border border-slate-700 hover:border-amber-500/60 text-slate-200 transition-colors cursor-pointer shrink-0"
+                title={
+                  isPt
+                    ? 'Abrir seletor e pré-visualização de Tema Visual'
+                    : 'Open Visual Theme preview & selector'
+                }
+              >
+                <span key={theme} className="inline-flex items-center justify-center animate-theme-icon">
+                  {theme === 'day' ? (
+                    <Sun className="w-4 h-4 text-amber-500" />
+                  ) : theme === 'night' ? (
+                    <Moon className="w-4 h-4 text-blue-300" />
+                  ) : (
+                    <Contrast className="w-4 h-4 text-amber-400" />
+                  )}
+                </span>
+              </button>
+
+              {showHeaderThemePreview && (
+                <div
+                  role="region"
+                  aria-label={isPt ? 'Pré-visualização de Tema Visual' : 'Visual Theme Preview'}
+                  className="absolute right-0 mt-2 w-72 sm:w-80 p-3 bg-slate-950 border border-slate-700 shadow-2xl z-50 font-serif animate-theme-preview"
+                >
+                  <div className="flex items-center justify-between gap-2 pb-2 mb-2 border-b border-slate-800">
+                    <span className="text-[11px] uppercase tracking-wider font-bold text-amber-400">
+                      {isPt ? 'Selecionar Tema Visual' : 'Select Visual Theme'}
+                    </span>
+                    <span className="text-[11px] italic text-slate-300">
+                      {theme === 'mono'
+                        ? isPt
+                          ? 'Atual: Monocromático'
+                          : 'Current: Monochrome'
+                        : theme === 'day'
+                          ? isPt
+                            ? 'Atual: Dia Solar'
+                            : 'Current: Solar Day'
+                          : isPt
+                            ? 'Atual: Noturno'
+                            : 'Current: Night'}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {[
+                      {
+                        id: 'mono' as const,
+                        swatchClass: 'theme-swatch-mono',
+                        label: isPt ? 'Mono' : 'Mono',
+                        sub: isPt ? 'Alvo & Preto' : 'White & Ink',
+                        icon: <Contrast className="w-3.5 h-3.5 text-amber-500 shrink-0" />,
+                      },
+                      {
+                        id: 'day' as const,
+                        swatchClass: 'theme-swatch-day',
+                        label: isPt ? 'Dia' : 'Day',
+                        sub: isPt ? 'Pergaminho' : 'Parchment',
+                        icon: <Sun className="w-3.5 h-3.5 text-amber-500 shrink-0" />,
+                      },
+                      {
+                        id: 'night' as const,
+                        swatchClass: 'theme-swatch-night',
+                        label: isPt ? 'Noite' : 'Night',
+                        sub: isPt ? 'Obsidiana' : 'Obsidian',
+                        icon: <Moon className="w-3.5 h-3.5 text-blue-300 shrink-0" />,
+                      },
+                    ].map((opt) => {
+                      const isCurrent = theme === opt.id;
+                      return (
+                        <button
+                          key={opt.id}
+                          type="button"
+                          onClick={() => {
+                            if (onSelectTheme) {
+                              onSelectTheme(opt.id);
+                            } else {
+                              onToggleTheme();
+                            }
+                          }}
+                          className={`theme-swatch-lock ${opt.swatchClass} p-2 border text-left transition-transform cursor-pointer flex flex-col justify-between gap-1.5 ${
+                            isCurrent ? 'ring-2 ring-amber-500 scale-[1.02]' : 'opacity-85 hover:opacity-100'
+                          }`}
+                        >
+                          <div className="theme-swatch-lock flex items-center justify-between gap-1">
+                            <span className="theme-swatch-lock swatch-title text-[11px] font-bold leading-none">
+                              {opt.label}
+                            </span>
+                            {opt.icon}
+                          </div>
+                          <div className="theme-swatch-lock swatch-chip px-1.5 py-0.5 border text-[10px] font-bold flex items-center justify-between">
+                            <span className="theme-swatch-lock">Aa · XIII</span>
+                            <span className="theme-swatch-lock" style={{ color: '#eab308' }}>☽</span>
+                          </div>
+                          <div className="theme-swatch-lock swatch-sub text-[9.5px] italic leading-tight truncate">
+                            {opt.sub}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               )}
-            </button>
+            </div>
 
             {/* Close Button */}
             <button

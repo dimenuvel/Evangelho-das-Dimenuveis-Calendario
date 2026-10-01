@@ -24,7 +24,8 @@ import { FeastDetailModal } from '../components/FeastDetailModal';
 import { GoogleCalendarSyncModal } from '../components/GoogleCalendarSyncModal';
 import { LunarPhaseIcon } from '../components/LunarPhaseIcon';
 import { DataSourceBadge } from '../components/DataSourceBadge';
-import { ChevronLeft, ChevronRight, Calendar, Gift, Bell, CheckCircle2, MapPin } from 'lucide-react';
+import { EditableYearControl } from '../components/EditableYearControl';
+import { Calendar, Gift, Bell, CheckCircle2, MapPin } from 'lucide-react';
 
 interface AppointedTimesScreenProps {
   systemDate: Date;
@@ -40,9 +41,8 @@ export const AppointedTimesScreen: React.FC<AppointedTimesScreenProps> = ({
   language,
 }) => {
   const isPt = language === 'pt';
-  const [selectedSacredYear, setSelectedSacredYear] = useState<number>(
-    systemDate.getFullYear() + 4024
-  );
+  const defaultSacredYear = systemDate.getFullYear() + 4024;
+  const [selectedSacredYear, setSelectedSacredYear] = useState<number>(defaultSacredYear);
   const [selectedFeastModal, setSelectedFeastModal] = useState<CalculatedFeastOccurrence | null>(null);
   const [calendarSyncOccurrences, setCalendarSyncOccurrences] = useState<CalculatedFeastOccurrence[] | null>(null);
   const [notifSettings, setNotifSettings] = useState<NotificationSettings>(
@@ -272,25 +272,14 @@ export const AppointedTimesScreen: React.FC<AppointedTimesScreenProps> = ({
               <span>{isPt ? 'Incluir no Google Agenda' : 'Add to Google Calendar'}</span>
             </button>
 
-            <div className="inline-flex items-center border border-slate-700 bg-slate-950 divide-x divide-slate-700 whitespace-nowrap">
-              <button
-                onClick={() => setSelectedSacredYear((prev) => prev - 1)}
-                className="p-1.5 hover:bg-slate-900 text-slate-200 transition-colors cursor-pointer"
-                title={isPt ? 'Ano Sagrado Anterior' : 'Previous Sacred Year'}
-              >
-                <ChevronLeft className="w-3.5 h-3.5" />
-              </button>
-              <span className="px-3 py-1 font-semibold text-amber-400 tabular-nums">
-                {isPt ? 'Ano Sagrado' : 'Sacred Year'} {selectedSacredYear}
-              </span>
-              <button
-                onClick={() => setSelectedSacredYear((prev) => prev + 1)}
-                className="p-1.5 hover:bg-slate-900 text-slate-200 transition-colors cursor-pointer"
-                title={isPt ? 'Próximo Ano Sagrado' : 'Next Sacred Year'}
-              >
-                <ChevronRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
+            <EditableYearControl
+              year={selectedSacredYear}
+              onChange={setSelectedSacredYear}
+              defaultYear={defaultSacredYear}
+              label={isPt ? 'Ano Sagrado' : 'Sacred Year'}
+              size="sm"
+              isPt={isPt}
+            />
           </div>
         </div>
       </div>

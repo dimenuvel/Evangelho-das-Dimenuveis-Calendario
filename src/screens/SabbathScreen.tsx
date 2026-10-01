@@ -11,6 +11,7 @@ import { generateSacredYearDays, solarDateToSacredDate } from '../calendar/sacre
 import { getSabbathBadgeLabel } from '../calendar/sabbath';
 import { getMonthDisplayTitle } from '../calendar/months';
 import { getSunTimes } from '../astronomy/sun';
+import { EditableYearControl } from '../components/EditableYearControl';
 import { Sunset, MapPin, Clock, Sparkles } from 'lucide-react';
 
 interface SabbathScreenProps {
@@ -69,21 +70,27 @@ export const SabbathScreen: React.FC<SabbathScreenProps> = ({ systemDate, config
     () => solarDateToSacredDate(systemDate, config.lunarAnchorMode),
     [systemDate, config.lunarAnchorMode]
   );
-  const currentSacredYear = currentSacredDay.calendarYear;
+  const defaultSacredYear = currentSacredDay.calendarYear;
+  const [selectedSacredYear, setSelectedSacredYear] = useState<number>(
+    () => currentSacredDay.calendarYear
+  );
 
   const sabbathDays = useMemo(() => {
-    const days = generateSacredYearDays(currentSacredYear, config.lunarAnchorMode);
+    const days = generateSacredYearDays(selectedSacredYear, config.lunarAnchorMode);
     return days.filter(
       (d) => d.kind === 'DAY_ZERO' || (d.kind === 'NUMBERED_DAY' && d.isWeeklySabbath)
     );
-  }, [currentSacredYear, config.lunarAnchorMode]);
+  }, [selectedSacredYear, config.lunarAnchorMode]);
 
   // Compute GPS sunset windows for current and next sacred year so we always find the next Sabbath
   const { activeSabbathWindow, nextSabbathWindow } = useMemo(() => {
-    const nextYearDays = generateSacredYearDays(currentSacredYear + 1, config.lunarAnchorMode).filter(
+    const currentYearSabbaths = generateSacredYearDays(defaultSacredYear, config.lunarAnchorMode).filter(
       (d) => d.kind === 'DAY_ZERO' || (d.kind === 'NUMBERED_DAY' && d.isWeeklySabbath)
     );
-    const allCandidateSabbaths = [...sabbathDays, ...nextYearDays];
+    const nextYearDays = generateSacredYearDays(defaultSacredYear + 1, config.lunarAnchorMode).filter(
+      (d) => d.kind === 'DAY_ZERO' || (d.kind === 'NUMBERED_DAY' && d.isWeeklySabbath)
+    );
+    const allCandidateSabbaths = [...currentYearSabbaths, ...nextYearDays];
 
     const windows: SabbathWindow[] = allCandidateSabbaths.map((sabbathDay) => {
       // In biblical evening-to-evening reckoning, the Sabbath begins at GPS sunset on the eve
@@ -113,7 +120,7 @@ export const SabbathScreen: React.FC<SabbathScreenProps> = ({ systemDate, config
       activeSabbathWindow: active,
       nextSabbathWindow: next,
     };
-  }, [sabbathDays, currentSacredYear, config.lunarAnchorMode, latitude, longitude, now]);
+  }, [defaultSacredYear, config.lunarAnchorMode, latitude, longitude, now]);
 
   // Calculate remaining days, hours, minutes, seconds until the next Sabbath begins at GPS sunset
   const diffMs = Math.max(0, nextSabbathWindow.startSunset.getTime() - now.getTime());
@@ -344,16 +351,27 @@ export const SabbathScreen: React.FC<SabbathScreenProps> = ({ systemDate, config
 
       {/* Unbroken Continuity Proof & Full Schedule Ledger */}
       <div className="border border-slate-800 bg-slate-950 divide-y divide-slate-800">
-        <div className="p-4 sm:p-5 bg-slate-900/40 space-y-1.5">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <h3 className="text-base sm:text-lg font-serif font-bold text-slate-100 whitespace-nowrap">
-              {t.sabbath.continuityProofTitle} ({currentSacredYear})
+        <div className="p-4 sm:p-5 bg-slate-900/40 space-y-2">
+          <div className="flex flex-wrap items-center justify-between gap-2.5">
+            <h3 className="text-base sm:text-lg font-serif font-bold text-slate-100 whitespace-nowrap flex items-baseline gap-1.5">
+              <span>{t.sabbath.continuityProofTitle}</span>
+              <span className="text-amber-400">({selectedSacredYear})</span>
             </h3>
-            <span className="text-xs font-serif italic text-emerald-400 tabular-nums font-semibold whitespace-nowrap">
-              {isPt
-                ? `Total: ${sabbathDays.length} (1 Dia Zero + 52 Semanais)`
-                : `Total: ${sabbathDays.length} (1 Day Zero + 52 Weekly)`}
-            </span>
+            <div className="flex flex-wrap items-center gap-2.5">
+              <EditableYearControl
+                year={selectedSacredYear}
+                onChange={setSelectedSacredYear}
+                defaultYear={defaultSacredYear}
+                label={isPt ? 'Ano Sagrado' : 'Sacred Year'}
+                size="sm"
+                isPt={isPt}
+              />
+              <span className="text-xs font-serif italic text-emerald-400 tabular-nums font-semibold whitespace-nowrap">
+                {isPt
+                  ? `Total: ${sabbathDays.length} (1 Dia Zero + 52 Semanais)`
+                  : `Total: ${sabbathDays.length} (1 Day Zero + 52 Weekly)`}
+              </span>
+            </div>
           </div>
           <p className="text-xs text-slate-300 leading-relaxed">
             {t.sabbath.proofText}

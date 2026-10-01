@@ -106,18 +106,29 @@ export default function App() {
     const saved = localStorage.getItem('dimenueveis_theme');
     return saved === 'day' || saved === 'night' || saved === 'mono' ? saved : 'mono';
   });
+  const themeTransitionTimerRef = React.useRef<number | null>(null);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('dimenueveis_theme', theme);
   }, [theme]);
 
+  const applySmoothThemeChange = (nextTheme: 'night' | 'day' | 'mono') => {
+    document.documentElement.classList.add('theme-transitioning');
+    if (themeTransitionTimerRef.current) {
+      window.clearTimeout(themeTransitionTimerRef.current);
+    }
+    setTheme(nextTheme);
+    themeTransitionTimerRef.current = window.setTimeout(() => {
+      document.documentElement.classList.remove('theme-transitioning');
+      themeTransitionTimerRef.current = null;
+    }, 420);
+  };
+
   const toggleTheme = () => {
-    setTheme((prev) => {
-      if (prev === 'day') return 'night';
-      if (prev === 'night') return 'mono';
-      return 'day';
-    });
+    const nextTheme =
+      theme === 'day' ? 'night' : theme === 'night' ? 'mono' : 'day';
+    applySmoothThemeChange(nextTheme);
   };
 
   // Keep configuration persisted
@@ -169,6 +180,7 @@ export default function App() {
         systemDate={systemDate}
         theme={theme}
         onToggleTheme={toggleTheme}
+        onSelectTheme={applySmoothThemeChange}
         language={language}
         onSelectLanguage={handleSelectLanguage}
         onOpenTour={() => setIsTourOpen(true)}
@@ -182,6 +194,7 @@ export default function App() {
         onSelectLanguage={handleSelectLanguage}
         theme={theme}
         onToggleTheme={toggleTheme}
+        onSelectTheme={applySmoothThemeChange}
         onNavigateTab={setActiveTab}
         config={config}
         onUpdateConfig={handleUpdateConfig}
@@ -189,7 +202,11 @@ export default function App() {
       />
 
       {/* Main Workspace Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <main
+        className={`flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 ${
+          activeTab === 'TESTS' ? 'pb-6' : 'pb-24'
+        }`}
+      >
         {activeTab === 'TODAY' && (
           <TodayScreen
             systemDate={systemDate}
@@ -304,51 +321,53 @@ export default function App() {
         onLocationResolved={handleGpsLocationResolved}
       />
 
-      {/* Editorial Colophon Footer (padded for fixed bottom icon navbar) */}
-      <footer className="mt-auto border-t border-slate-800 bg-[#0b0e14] pt-6 pb-24 text-sm font-serif text-slate-300">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="space-y-1 text-center sm:text-left">
-            <div className="text-lg sm:text-xl font-bold text-slate-100 font-serif leading-snug">
+      {/* Editorial Colophon Footer — Displayed exclusively on Chapter XI (Tests / Chapter 11) */}
+      {activeTab === 'TESTS' && (
+        <footer className="mt-auto border-t border-slate-800 bg-[#0b0e14] pt-6 pb-24 text-sm font-serif text-slate-300">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="space-y-1 text-center sm:text-left">
+              <div className="text-lg sm:text-xl font-bold text-slate-100 font-serif leading-snug">
+                <a
+                  href="https://dimenuvel.github.io/Evangelho-das-Dimenuveis-site/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-amber-400 underline decoration-amber-500/60 underline-offset-4 transition-colors"
+                >
+                  {t.appTitle}
+                </a>
+              </div>
+              <div className="text-xs sm:text-sm font-medium text-slate-200 font-serif">
+                {t.appSubtitle}
+              </div>
+              <div className="text-xs italic text-slate-300 pt-0.5">
+                {language === 'pt'
+                  ? 'Dia Zero + 13 Meses × 28 Dias = 364 Dias · Sábado Contínuo · A Grande Semana de 7.000 Anos'
+                  : 'Day Zero + 13 Months × 28 Days = 364 Days · Continuous Sabbath · The 7,000-Year Great Week'}
+              </div>
+            </div>
+            <div className="flex items-center gap-3 text-sm font-serif font-semibold shrink-0">
               <a
-                href="https://dimenuvel.github.io/Evangelho-das-Dimenuveis-site/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-amber-400 underline decoration-amber-500/60 underline-offset-4 transition-colors"
+                href="mailto:samuel.tiem@proton.me?subject=Calend%C3%A1rio%20das%20Dimen%C3%BAveis"
+                onClick={(e) => {
+                  const mailtoUrl =
+                    'mailto:samuel.tiem@proton.me?subject=Calend%C3%A1rio%20das%20Dimen%C3%BAveis';
+                  if (typeof window !== 'undefined' && window.AndroidBridge?.openExternalUrl) {
+                    e.preventDefault();
+                    window.AndroidBridge.openExternalUrl(mailtoUrl);
+                  }
+                }}
+                className="text-amber-400 hover:text-amber-300 underline decoration-amber-500/60 underline-offset-4 transition-colors"
               >
-                {t.appTitle}
+                {language === 'pt' ? 'Contato' : 'Contact'}
               </a>
-            </div>
-            <div className="text-xs sm:text-sm font-medium text-slate-200 font-serif">
-              {t.appSubtitle}
-            </div>
-            <div className="text-xs italic text-slate-300 pt-0.5">
-              {language === 'pt'
-                ? 'Dia Zero + 13 Meses × 28 Dias = 364 Dias · Sábado Contínuo · A Grande Semana de 7.000 Anos'
-                : 'Day Zero + 13 Months × 28 Days = 364 Days · Continuous Sabbath · The 7,000-Year Great Week'}
+              <span className="text-slate-500">·</span>
+              <span className="text-amber-300 tabular-nums">
+                {language === 'pt' ? 'Versão 2.5' : 'Version 2.5'}
+              </span>
             </div>
           </div>
-          <div className="flex items-center gap-3 text-sm font-serif font-semibold shrink-0">
-            <a
-              href="mailto:samuel.tiem@proton.me?subject=Calend%C3%A1rio%20das%20Dimen%C3%BAveis"
-              onClick={(e) => {
-                const mailtoUrl =
-                  'mailto:samuel.tiem@proton.me?subject=Calend%C3%A1rio%20das%20Dimen%C3%BAveis';
-                if (typeof window !== 'undefined' && window.AndroidBridge?.openExternalUrl) {
-                  e.preventDefault();
-                  window.AndroidBridge.openExternalUrl(mailtoUrl);
-                }
-              }}
-              className="text-amber-400 hover:text-amber-300 underline decoration-amber-500/60 underline-offset-4 transition-colors"
-            >
-              {language === 'pt' ? 'Contato' : 'Contact'}
-            </a>
-            <span className="text-slate-500">·</span>
-            <span className="text-amber-300 tabular-nums">
-              {language === 'pt' ? 'Versão 2.4' : 'Version 2.4'}
-            </span>
-          </div>
-        </div>
-      </footer>
+        </footer>
+      )}
     </div>
   );
 }

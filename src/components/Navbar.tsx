@@ -4,7 +4,7 @@
  * for Gospel of Dimenuous / Evangelho das Dimenúveis.
  */
 
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Language, TRANSLATIONS } from '../i18n/translations';
 import { LanguageSelector } from './LanguageSelector';
 import {
@@ -44,6 +44,7 @@ interface NavbarProps {
   systemDate: Date;
   theme: 'night' | 'day' | 'mono';
   onToggleTheme: () => void;
+  onSelectTheme?: (theme: 'night' | 'day' | 'mono') => void;
   language: Language;
   onSelectLanguage: (lang: Language) => void;
   onOpenTour?: () => void;
@@ -55,12 +56,30 @@ export const Navbar: React.FC<NavbarProps> = ({
   systemDate,
   theme,
   onToggleTheme,
+  onSelectTheme,
   language,
   onSelectLanguage,
   onOpenTour,
 }) => {
   const t = TRANSLATIONS[language];
   const isPt = language === 'pt';
+  const [showThemePreview, setShowThemePreview] = useState(false);
+  const themeMenuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!showThemePreview) return;
+    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
+      if (themeMenuRef.current && !themeMenuRef.current.contains(e.target as Node)) {
+        setShowThemePreview(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [showThemePreview]);
 
   const navItems: {
     id: NavTab;
@@ -190,45 +209,122 @@ export const Navbar: React.FC<NavbarProps> = ({
                 onSelectLanguage={onSelectLanguage}
               />
 
-              <button
-                type="button"
-                onClick={onToggleTheme}
-                className="inline-flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-900 border border-slate-700 hover:border-amber-500/60 text-slate-200 transition-colors cursor-pointer shrink-0"
-                title={
-                  theme === 'day'
-                    ? isPt
-                      ? 'Modo Dia Solar — Alternar para Modo Noturno'
-                      : 'Solar Day Mode — Switch to Night Mode'
-                    : theme === 'night'
-                      ? isPt
-                        ? 'Modo Noturno — Alternar para Modo Monocromático'
-                        : 'Night Mode — Switch to Monochrome Mode'
-                      : isPt
-                        ? 'Modo Monocromático — Alternar para Modo Dia Solar'
-                        : 'Monochrome Mode — Switch to Solar Day Mode'
-                }
-                aria-label={
-                  theme === 'day'
-                    ? isPt
-                      ? 'Alternar para Modo Noturno'
-                      : 'Switch to Night Mode'
-                    : theme === 'night'
-                      ? isPt
-                        ? 'Alternar para Modo Monocromático'
-                        : 'Switch to Monochrome Mode'
-                      : isPt
-                        ? 'Alternar para Modo Dia Solar'
-                        : 'Switch to Solar Day Mode'
-                }
-              >
-                {theme === 'day' ? (
-                  <Sun className="w-4 h-4 text-amber-500" />
-                ) : theme === 'night' ? (
-                  <Moon className="w-4 h-4 text-blue-300" />
-                ) : (
-                  <Contrast className="w-4 h-4 text-amber-400" />
+              <div ref={themeMenuRef} className="relative">
+                <button
+                  type="button"
+                  onClick={() => setShowThemePreview((prev) => !prev)}
+                  aria-expanded={showThemePreview}
+                  aria-haspopup="true"
+                  className="inline-flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-900 border border-slate-700 hover:border-amber-500/60 text-slate-200 transition-colors cursor-pointer shrink-0"
+                  title={
+                    isPt
+                      ? 'Abrir seletor e pré-visualização de Tema Visual'
+                      : 'Open Visual Theme preview & selector'
+                  }
+                  aria-label={
+                    isPt
+                      ? 'Abrir seletor de Tema Visual'
+                      : 'Open Visual Theme selector'
+                  }
+                >
+                  <span key={theme} className="inline-flex items-center justify-center animate-theme-icon">
+                    {theme === 'day' ? (
+                      <Sun className="w-4 h-4 text-amber-500" />
+                    ) : theme === 'night' ? (
+                      <Moon className="w-4 h-4 text-blue-300" />
+                    ) : (
+                      <Contrast className="w-4 h-4 text-amber-400" />
+                    )}
+                  </span>
+                </button>
+
+                {/* Live Visual Theme Preview & Selector Popover (Opens on Current Theme) */}
+                {showThemePreview && (
+                  <div
+                    role="region"
+                    aria-label={isPt ? 'Pré-visualização de Tema Visual' : 'Visual Theme Preview'}
+                    className="absolute right-0 mt-2 w-72 sm:w-80 p-3 bg-slate-950 border border-slate-700 shadow-2xl z-50 font-serif animate-theme-preview"
+                  >
+                    <div className="flex items-center justify-between gap-2 pb-2 mb-2 border-b border-slate-800">
+                      <span className="text-[11px] uppercase tracking-wider font-bold text-amber-400">
+                        {isPt ? 'Selecionar Tema Visual' : 'Select Visual Theme'}
+                      </span>
+                      <span className="text-[11px] italic text-slate-300">
+                        {theme === 'mono'
+                          ? isPt
+                            ? 'Atual: Monocromático'
+                            : 'Current: Monochrome'
+                          : theme === 'day'
+                            ? isPt
+                              ? 'Atual: Dia Solar'
+                              : 'Current: Solar Day'
+                            : isPt
+                              ? 'Atual: Noturno'
+                              : 'Current: Night'}
+                      </span>
+                    </div>
+
+                    {/* 3 Authentic Visual Swatch Cards */}
+                    <div className="grid grid-cols-3 gap-1.5">
+                      {[
+                        {
+                          id: 'mono' as const,
+                          swatchClass: 'theme-swatch-mono',
+                          label: isPt ? 'Mono' : 'Mono',
+                          sub: isPt ? 'Alvo & Preto' : 'White & Ink',
+                          icon: <Contrast className="w-3.5 h-3.5 text-amber-500 shrink-0" />,
+                        },
+                        {
+                          id: 'day' as const,
+                          swatchClass: 'theme-swatch-day',
+                          label: isPt ? 'Dia' : 'Day',
+                          sub: isPt ? 'Pergaminho' : 'Parchment',
+                          icon: <Sun className="w-3.5 h-3.5 text-amber-500 shrink-0" />,
+                        },
+                        {
+                          id: 'night' as const,
+                          swatchClass: 'theme-swatch-night',
+                          label: isPt ? 'Noite' : 'Night',
+                          sub: isPt ? 'Obsidiana' : 'Obsidian',
+                          icon: <Moon className="w-3.5 h-3.5 text-blue-300 shrink-0" />,
+                        },
+                      ].map((opt) => {
+                        const isCurrent = theme === opt.id;
+                        return (
+                          <button
+                            key={opt.id}
+                            type="button"
+                            onClick={() => {
+                              if (onSelectTheme) {
+                                onSelectTheme(opt.id);
+                              } else {
+                                onToggleTheme();
+                              }
+                            }}
+                            className={`theme-swatch-lock ${opt.swatchClass} p-2 border text-left transition-transform cursor-pointer flex flex-col justify-between gap-1.5 ${
+                              isCurrent ? 'ring-2 ring-amber-500 scale-[1.02]' : 'opacity-85 hover:opacity-100'
+                            }`}
+                          >
+                            <div className="theme-swatch-lock flex items-center justify-between gap-1">
+                              <span className="theme-swatch-lock swatch-title text-[11px] font-bold leading-none">
+                                {opt.label}
+                              </span>
+                              {opt.icon}
+                            </div>
+                            <div className="theme-swatch-lock swatch-chip px-1.5 py-0.5 border text-[10px] font-bold flex items-center justify-between">
+                              <span className="theme-swatch-lock">Aa · XIII</span>
+                              <span className="theme-swatch-lock" style={{ color: '#eab308' }}>☽</span>
+                            </div>
+                            <div className="theme-swatch-lock swatch-sub text-[9.5px] italic leading-tight truncate">
+                              {opt.sub}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
                 )}
-              </button>
+              </div>
 
               {onOpenTour && (
                 <button

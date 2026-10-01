@@ -4,13 +4,14 @@
  * toggling Joshua 10 historical corrections, and testing lunar anchoring modes.
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { CalendarConfiguration } from '../types/calendar';
 import { Language, TRANSLATIONS } from '../i18n/translations';
 import { getLocalizedChronologyModels } from '../chronology/models';
 import { calculateMillennialPosition } from '../chronology/chronologyEngine';
 import { calculateCalendarDrift } from '../chronology/conversions';
 import { DataSourceBadge } from '../components/DataSourceBadge';
+import { EditableYearControl } from '../components/EditableYearControl';
 
 interface ChronologyLabScreenProps {
   systemDate: Date;
@@ -29,7 +30,9 @@ export const ChronologyLabScreen: React.FC<ChronologyLabScreenProps> = ({
   const isPt = language === 'pt';
   const driftAnalysis = calculateCalendarDrift(language);
 
-  const currentGregorianYear = systemDate.getFullYear();
+  const defaultSacredYear = systemDate.getFullYear() + 4024;
+  const [selectedSacredYear, setSelectedSacredYear] = useState<number>(defaultSacredYear);
+  const currentGregorianYear = selectedSacredYear - 4024;
   const joshuaOffsetDays = config.joshuaAdjustmentStatus === 'ACCEPTED' ? 1 : 0;
 
   const localizedModels = getLocalizedChronologyModels(language);
@@ -131,8 +134,18 @@ export const ChronologyLabScreen: React.FC<ChronologyLabScreenProps> = ({
 
       {/* Side-by-Side Model Comparison Table */}
       <div className="border border-slate-800 bg-slate-950 overflow-x-auto">
-        <div className="px-4 sm:px-5 py-3 bg-slate-900/50 border-b border-slate-800 text-xs font-serif font-bold uppercase tracking-wider text-amber-400 whitespace-nowrap">
-          {t.chronologyLab.matrixTitle} ({t.chronologyLab.targetYear} {currentGregorianYear} {isPt ? 'd.C.' : 'CE'})
+        <div className="px-4 sm:px-5 py-3 bg-slate-900/50 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2 text-xs font-serif">
+          <span className="font-bold uppercase tracking-wider text-amber-400 whitespace-nowrap">
+            {t.chronologyLab.matrixTitle} ({t.chronologyLab.targetYear} {currentGregorianYear} {isPt ? 'd.C.' : 'CE'})
+          </span>
+          <EditableYearControl
+            year={selectedSacredYear}
+            onChange={setSelectedSacredYear}
+            defaultYear={defaultSacredYear}
+            label={isPt ? 'Ano Sagrado' : 'Sacred Year'}
+            size="sm"
+            isPt={isPt}
+          />
         </div>
 
         <table className="w-full text-left border-collapse text-xs font-serif tabular-nums whitespace-nowrap">

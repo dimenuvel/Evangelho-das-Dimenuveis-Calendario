@@ -96,6 +96,124 @@
   width: 7px;
   height: 7px;
 }
+
+/* ========================================================================== */
+/* SMOOTH THEME TRANSITION ANIMATION & VISUAL PREVIEW SWATCHES                */
+/* ========================================================================== */
+
+html.theme-transitioning,
+html.theme-transitioning body,
+html.theme-transitioning header,
+html.theme-transitioning nav,
+html.theme-transitioning main,
+html.theme-transitioning footer,
+html.theme-transitioning div:not(.theme-swatch-lock),
+html.theme-transitioning section,
+html.theme-transitioning article,
+html.theme-transitioning aside,
+html.theme-transitioning button:not(.theme-swatch-lock),
+html.theme-transitioning a,
+html.theme-transitioning span:not(.theme-swatch-lock),
+html.theme-transitioning p,
+html.theme-transitioning h1,
+html.theme-transitioning h2,
+html.theme-transitioning h3,
+html.theme-transitioning h4,
+html.theme-transitioning input,
+html.theme-transitioning select,
+html.theme-transitioning textarea {
+  transition:
+    background-color 380ms cubic-bezier(0.22, 1, 0.36, 1),
+    color 340ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 380ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 380ms cubic-bezier(0.22, 1, 0.36, 1) !important;
+}
+
+@keyframes themeIconMorph {
+  0% {
+    opacity: 0;
+    transform: rotate(-95deg) scale(0.5);
+  }
+  65% {
+    opacity: 1;
+    transform: rotate(10deg) scale(1.12);
+  }
+  100% {
+    opacity: 1;
+    transform: rotate(0deg) scale(1);
+  }
+}
+
+.animate-theme-icon {
+  animation: themeIconMorph 380ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes themePreviewSlide {
+  0% {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-theme-preview {
+  animation: themePreviewSlide 220ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Fixed-palette miniature visual preview swatches (unaffected by active data-theme) */
+.theme-swatch-mono {
+  background-color: #ffffff !important;
+  color: #111111 !important;
+  border-color: #525252 !important;
+}
+.theme-swatch-mono .swatch-title {
+  color: #111111 !important;
+}
+.theme-swatch-mono .swatch-sub {
+  color: #404040 !important;
+}
+.theme-swatch-mono .swatch-chip {
+  background-color: #efefef !important;
+  border-color: #cccccc !important;
+  color: #111111 !important;
+}
+
+.theme-swatch-day {
+  background-color: #fcfaf5 !important;
+  color: #14110d !important;
+  border-color: #9a3412 !important;
+}
+.theme-swatch-day .swatch-title {
+  color: #7c2d12 !important;
+}
+.theme-swatch-day .swatch-sub {
+  color: #362e23 !important;
+}
+.theme-swatch-day .swatch-chip {
+  background-color: #f8e7b8 !important;
+  border-color: #b8ab93 !important;
+  color: #7c2d12 !important;
+}
+
+.theme-swatch-night {
+  background-color: #0c0e14 !important;
+  color: #fbf8f1 !important;
+  border-color: #3f4d6e !important;
+}
+.theme-swatch-night .swatch-title {
+  color: #fcd34d !important;
+}
+.theme-swatch-night .swatch-sub {
+  color: #d5cbb4 !important;
+}
+.theme-swatch-night .swatch-chip {
+  background-color: #161b29 !important;
+  border-color: #2e3852 !important;
+  color: #93c5fd !important;
+}
 ::-webkit-scrollbar-track {
   background: #0b0e14;
 }
@@ -378,6 +496,11 @@
 }
 
 /* Primary & Secondary Ink Colors in Day Mode */
+[data-theme="day"] .active-location-readout {
+  color: #000000 !important;
+  font-weight: 700 !important;
+}
+
 [data-theme="day"] .text-white,
 [data-theme="day"] .text-slate-100,
 [data-theme="day"] .text-slate-200 {
@@ -403,7 +526,10 @@
 [data-theme="day"] .text-amber-100,
 [data-theme="day"] .text-amber-200,
 [data-theme="day"] .text-amber-300,
+[data-theme="day"] .text-amber-300\/90,
+[data-theme="day"] .text-amber-300\/80,
 [data-theme="day"] .text-amber-400,
+[data-theme="day"] .text-amber-400\/90,
 [data-theme="day"] .text-amber-500,
 [data-theme="day"] .text-yellow-300 {
   color: #7c2d12 !important;
@@ -713,6 +839,11 @@
 }
 
 /* Monochrome Dark Texts on White Background (Targeting non-SVG elements so Icons & Moons keep their colors!) */
+[data-theme="mono"] .active-location-readout {
+  color: #000000 !important;
+  font-weight: 700 !important;
+}
+
 [data-theme="mono"] .text-white:not(svg):not(svg *),
 [data-theme="mono"] .text-slate-100:not(svg):not(svg *),
 [data-theme="mono"] .text-slate-200:not(svg):not(svg *),
@@ -739,7 +870,10 @@
 [data-theme="mono"] .text-amber-100:not(svg):not(svg *),
 [data-theme="mono"] .text-amber-200:not(svg):not(svg *),
 [data-theme="mono"] .text-amber-300:not(svg):not(svg *),
+[data-theme="mono"] .text-amber-300\/90:not(svg):not(svg *),
+[data-theme="mono"] .text-amber-300\/80:not(svg):not(svg *),
 [data-theme="mono"] .text-amber-400:not(svg):not(svg *),
+[data-theme="mono"] .text-amber-400\/90:not(svg):not(svg *),
 [data-theme="mono"] .text-amber-500:not(svg):not(svg *),
 [data-theme="mono"] .text-amber-600:not(svg):not(svg *),
 [data-theme="mono"] .text-yellow-200:not(svg):not(svg *),

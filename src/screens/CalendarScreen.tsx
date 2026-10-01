@@ -14,7 +14,8 @@ import { getObservancesForDay, calculateFeastOccurrences } from '../calendar/fea
 import { LunarPhaseIcon } from '../components/LunarPhaseIcon';
 import { NatalAstralMapWidget } from '../components/NatalAstralMapWidget';
 import { ChineseZodiacWidget } from '../components/ChineseZodiacWidget';
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Compass, Printer, Sparkles } from 'lucide-react';
+import { EditableYearControl } from '../components/EditableYearControl';
+import { Calendar as CalendarIcon, Compass, Printer, Sparkles } from 'lucide-react';
 
 type PrintPaperSize =
   | 'AUTO'
@@ -723,8 +724,14 @@ export const CalendarScreen: React.FC<CalendarScreenProps> = ({
       <div className="border border-slate-800 bg-slate-950 divide-y divide-slate-800 print-calendar-header no-print">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 p-4 sm:p-5">
           <div>
-            <h2 className="text-lg sm:text-2xl font-serif font-bold text-slate-100 tabular-nums whitespace-nowrap">
-              {t.calendar.yearTitle} {selectedSacredYear}
+            <h2 className="text-lg sm:text-2xl font-serif font-bold text-slate-100 tabular-nums whitespace-nowrap flex items-baseline gap-1.5">
+              <span>{t.calendar.yearTitle}</span>
+              <EditableYearControl
+                variant="inline"
+                year={selectedSacredYear}
+                onChange={setSelectedSacredYear}
+                isPt={isPt}
+              />
             </h2>
             <p className="text-xs text-slate-300 font-serif italic mt-0.5 whitespace-nowrap">
               {t.calendar.subtitle}
@@ -732,26 +739,14 @@ export const CalendarScreen: React.FC<CalendarScreenProps> = ({
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            {/* Year Stepper */}
-            <div className="inline-flex items-center border border-slate-700 bg-slate-900 divide-x divide-slate-700 font-serif text-xs shrink-0">
-              <button
-                onClick={() => setSelectedSacredYear((prev) => prev - 1)}
-                className="p-2 hover:bg-slate-800 text-slate-200 transition-colors cursor-pointer"
-                title={isPt ? 'Ano Sagrado Anterior' : 'Previous Sacred Year'}
-              >
-                <ChevronLeft className="w-3.5 h-3.5" />
-              </button>
-              <span className="px-3 py-1.5 font-semibold text-amber-400 tabular-nums whitespace-nowrap">
-                {isPt ? 'Ano' : 'Year'} {selectedSacredYear}
-              </span>
-              <button
-                onClick={() => setSelectedSacredYear((prev) => prev + 1)}
-                className="p-2 hover:bg-slate-800 text-slate-200 transition-colors cursor-pointer"
-                title={isPt ? 'Próximo Ano Sagrado' : 'Next Sacred Year'}
-              >
-                <ChevronRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
+            {/* Editable Year Stepper */}
+            <EditableYearControl
+              year={selectedSacredYear}
+              onChange={setSelectedSacredYear}
+              defaultYear={currentSacredDay.calendarYear}
+              label={isPt ? 'Ano' : 'Year'}
+              isPt={isPt}
+            />
 
             {/* Month Filter */}
             <select

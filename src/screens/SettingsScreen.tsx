@@ -326,7 +326,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                 )}
               </div>
             </div>
-            <div className="text-xs font-serif italic text-amber-300/90 whitespace-nowrap truncate">
+            <div className="active-location-readout text-xs font-serif font-bold text-amber-300 whitespace-nowrap truncate">
               {isPt ? 'Local Ativo:' : 'Active Location:'}{' '}
               {!localConfig.userLocation?.cityName || localConfig.userLocation.cityName === 'Jerusalem (Default)'
                 ? isPt

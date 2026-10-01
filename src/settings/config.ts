@@ -12,7 +12,7 @@ export const DEFAULT_CALENDAR_CONFIG: CalendarConfiguration = {
   annualDayZero: true,
   lunarAnchorMode: 'CONJUNCTION',
   feastCalendarModel: 'BIBLICAL_LUNAR',
-  chronologyModelId: 'ussher',
+  chronologyModelId: 'astronomical-sacred',
   joshuaAdjustmentStatus: 'PROPOSED',
   customMonthNames: [
     'Month I', 'Month II', 'Month III', 'Month IV', 'Month V', 'Month VI', 'Month VII',
@@ -26,14 +26,24 @@ export const DEFAULT_CALENDAR_CONFIG: CalendarConfiguration = {
 };
 
 const STORAGE_KEY = 'dimenueveis_calendar_config_v1';
+const MODEL_MIGRATION_KEY = 'dimenueveis_model_migrated_v24';
 
 export function loadStoredConfiguration(): CalendarConfiguration {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
+      if (
+        parsed.chronologyModelId === 'ussher' &&
+        localStorage.getItem(MODEL_MIGRATION_KEY) !== 'true'
+      ) {
+        parsed.chronologyModelId = 'astronomical-sacred';
+        localStorage.setItem(MODEL_MIGRATION_KEY, 'true');
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...DEFAULT_CALENDAR_CONFIG, ...parsed }));
+      }
       return { ...DEFAULT_CALENDAR_CONFIG, ...parsed };
     }
+    localStorage.setItem(MODEL_MIGRATION_KEY, 'true');
   } catch (e) {
     console.warn('Failed to load configuration from localStorage, using default:', e);
   }

@@ -17,9 +17,10 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { Language } from '../i18n/translations';
 import { getLunarPhaseInfo, getLocalizedPhaseName } from '../astronomy/moon';
-import { solarDateToSacredDate } from '../calendar/sacredCalendar';
+import { generateSacredYearDays, solarDateToSacredDate } from '../calendar/sacredCalendar';
 import { LunarAnchorMode } from '../types/calendar';
 import { LunarPhaseIcon } from './LunarPhaseIcon';
+import { EditableYearControl } from './EditableYearControl';
 import {
   Play,
   Pause,
@@ -1481,15 +1482,43 @@ export const AzimuthalCosmologyMap: React.FC<AzimuthalCosmologyMapProps> = ({
               </span>
             </div>
 
-            <div className="flex flex-wrap items-baseline justify-between gap-2">
-              <div className="text-base sm:text-lg font-bold text-slate-100">
-                {sacredDay.kind === 'DAY_ZERO'
-                  ? isPt
-                    ? `Ano Sagrado ${sacredDay.calendarYear} · Dia Zero`
-                    : `Sacred Year ${sacredDay.calendarYear} · Day Zero`
-                  : isPt
-                  ? `Ano ${sacredDay.calendarYear} · Mês ${(sacredDay as any).month}, Dia ${(sacredDay as any).dayOfMonth}`
-                  : `Year ${sacredDay.calendarYear} · Month ${(sacredDay as any).month}, Day ${(sacredDay as any).dayOfMonth}`}
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center gap-2 text-sm sm:text-base font-bold text-slate-100">
+                <EditableYearControl
+                  year={sacredDay.calendarYear}
+                  onChange={(nextSacredYear) => {
+                    const targetDays = generateSacredYearDays(nextSacredYear, lunarAnchorMode);
+                    const targetDay =
+                      sacredDay.kind === 'DAY_ZERO'
+                        ? targetDays[0]
+                        : targetDays.find(
+                            (d) =>
+                              d.kind === 'NUMBERED_DAY' &&
+                              d.dayOfYear === sacredDay.dayOfYear
+                          ) || targetDays[0];
+                    const nextSimDate = new Date(targetDay.gregorianDate);
+                    nextSimDate.setUTCHours(
+                      simulatedDate.getUTCHours(),
+                      simulatedDate.getUTCMinutes(),
+                      simulatedDate.getUTCSeconds(),
+                      0
+                    );
+                    setIsPlaying(false);
+                    setTimeOffsetMs(nextSimDate.getTime() - systemDate.getTime());
+                  }}
+                  label={isPt ? 'Ano' : 'Year'}
+                  size="sm"
+                  isPt={isPt}
+                />
+                <span>
+                  {sacredDay.kind === 'DAY_ZERO'
+                    ? isPt
+                      ? '· Dia Zero'
+                      : '· Day Zero'
+                    : isPt
+                    ? `· Mês ${(sacredDay as any).month}, Dia ${(sacredDay as any).dayOfMonth}`
+                    : `· Month ${(sacredDay as any).month}, Day ${(sacredDay as any).dayOfMonth}`}
+                </span>
               </div>
               <span className="text-xs italic text-emerald-400 tabular-nums">
                 {sacredDay.kind === 'DAY_ZERO'
@@ -1503,33 +1532,68 @@ export const AzimuthalCosmologyMap: React.FC<AzimuthalCosmologyMapProps> = ({
 
           {/* 2. Interactive Portal Selector & Pac-Man Traversal Controls */}
           <div className="p-4 sm:p-5 space-y-3.5">
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-xs uppercase tracking-wider font-semibold text-slate-300">
-                {isPt ? 'Modo de Arraste por Toque' : 'Touch Drag Mode'}
-              </span>
-              <div className="inline-flex border border-slate-700 bg-slate-950 divide-x divide-slate-700 text-xs">
-                <button
-                  type="button"
-                  onClick={() => setDragMode('DIURNAL')}
-                  className={`px-2.5 py-1 transition-colors cursor-pointer ${
-                    dragMode === 'DIURNAL'
-                      ? 'bg-amber-500 text-slate-950 font-bold'
-                      : 'text-slate-300 hover:bg-slate-900'
-                  }`}
-                >
-                  {isPt ? 'Travessia 24h (Portas)' : '24h Portal Sweep'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setDragMode('SEASONAL')}
-                  className={`px-2.5 py-1 transition-colors cursor-pointer ${
-                    dragMode === 'SEASONAL'
-                      ? 'bg-amber-500 text-slate-950 font-bold'
-                      : 'text-slate-300 hover:bg-slate-900'
-                  }`}
-                >
-                  {isPt ? 'Mudar Portas (1–6)' : 'Shift Portals (1–6)'}
-                </button>
+            <div className="space-y-2">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="text-xs uppercase tracking-wider font-semibold text-slate-300">
+                  {isPt ? 'Modo de Travessia & Arraste' : 'Traversal & Drag Mode'}
+                </span>
+                <div className="inline-flex border border-slate-700 bg-slate-950 divide-x divide-slate-700 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDragMode('DIURNAL');
+                      setSpeedMultiplier('PORTAL');
+                      // Advance 3 hours westward along the current Portal (or start smooth 24h sweep) so the user sees immediate movement
+                      setTimeOffsetMs((prev) => prev + 3 * 3600 * 1000);
+                    }}
+                    title={
+                      isPt
+                        ? 'Modo Diurno (24h): Move o Sol e a Lua de Leste para Oeste na Porta atual e configura o arraste do mapa para 24 horas'
+                        : 'Diurnal Mode (24h): Moves Sun & Moon East-to-West in the current Portal and sets map drag to 24-hour sweep'
+                    }
+                    className={`px-2.5 py-1 transition-colors cursor-pointer ${
+                      dragMode === 'DIURNAL'
+                        ? 'bg-amber-500 text-slate-950 font-bold'
+                        : 'text-slate-300 hover:bg-slate-900'
+                    }`}
+                  >
+                    {isPt ? 'Travessia 24h (Portas)' : '24h Portal Sweep'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDragMode('SEASONAL');
+                      setSpeedMultiplier('SEASON');
+                      // Immediately step to the next Enochian Portal (1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 1) so the user sees the Portal change on the map
+                      const currentP = celestial.sunPortal.portalNumber;
+                      const nextP = ((currentP % 6) + 1) as 1 | 2 | 3 | 4 | 5 | 6;
+                      jumpToEnochPortal(nextP);
+                    }}
+                    title={
+                      isPt
+                        ? 'Modo Sazonal (Portas 1–6): Alterna o Sol para a próxima Porta de Enoque (entre Capricórnio e Câncer) e configura o arraste do mapa para mudar entre as 6 Portas'
+                        : 'Seasonal Mode (Portals 1–6): Steps the Sun to the next Enochian Portal (between Capricorn and Cancer) and sets map drag to shift across the 6 Portals'
+                    }
+                    className={`px-2.5 py-1 transition-colors cursor-pointer ${
+                      dragMode === 'SEASONAL'
+                        ? 'bg-amber-500 text-slate-950 font-bold'
+                        : 'text-slate-300 hover:bg-slate-900'
+                    }`}
+                  >
+                    {isPt ? 'Mudar Portas (1–6)' : 'Shift Portals (1–6)'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Active Mode Explanation Strip */}
+              <div className="px-2.5 py-1.5 bg-slate-900/60 border border-slate-800 text-[11px] text-slate-300 italic leading-snug">
+                {dragMode === 'DIURNAL'
+                  ? isPt
+                    ? `Modo Travessia 24h ativo: arrastar o mapa move o Sol e a Lua de Leste → Oeste (24h) dentro da ${celestial.sunPortal.portalNumber}ª Porta. Toque novamente no botão para avançar +3h.`
+                    : `24h Portal Sweep active: dragging the map moves Sun & Moon East → West (24h) within Portal ${celestial.sunPortal.portalNumber}. Tap the button again to advance +3h.`
+                  : isPt
+                    ? `Modo Mudar Portas (1–6) ativo (${celestial.sunPortal.portalNumber}ª Porta — Meses ${celestial.sunPortal.sacredMonths}): arrastar o mapa desloca o Sol norte/sul entre as 6 Portas de Enoque. Toque novamente para saltar à próxima Porta.`
+                    : `Shift Portals (1–6) active (Portal ${celestial.sunPortal.portalNumber} — Months ${celestial.sunPortal.sacredMonths}): dragging the map shifts the Sun north/south across the 6 Portals. Tap again to step to the next Portal.`}
               </div>
             </div>
 

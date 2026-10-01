@@ -4,12 +4,14 @@
  * with Sacred Time Hierarchy (Year -> Month -> Week -> Sabbath -> Feast -> Millennium).
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { CalendarConfiguration } from '../types/calendar';
 import { Language, TRANSLATIONS } from '../i18n/translations';
 import { calculateMillennialPosition } from '../chronology/chronologyEngine';
+import { getChronologyModelById } from '../chronology/models';
 import { calculateFeastOccurrences } from '../calendar/feastEngine';
 import { DataSourceBadge } from '../components/DataSourceBadge';
+import { EditableYearControl } from '../components/EditableYearControl';
 
 interface GreatWeekScreenProps {
   systemDate: Date;
@@ -20,16 +22,20 @@ interface GreatWeekScreenProps {
 export const GreatWeekScreen: React.FC<GreatWeekScreenProps> = ({ systemDate, config, language }) => {
   const t = TRANSLATIONS[language];
   const isPt = language === 'pt';
+  const defaultSacredYear = systemDate.getFullYear() + 4024;
+  const [selectedSacredYear, setSelectedSacredYear] = useState<number>(defaultSacredYear);
+
+  const activeModel = getChronologyModelById(config.chronologyModelId, language);
+  const activeGregorianYear = selectedSacredYear - activeModel.creationEpochBCE + 1;
   const millennialPos = calculateMillennialPosition(
-    systemDate.getFullYear(),
+    activeGregorianYear,
     config.chronologyModelId,
     config.joshuaAdjustmentStatus === 'ACCEPTED' ? 1 : 0,
     language
   );
 
-  const sacredYear = systemDate.getFullYear() + 4024;
   const feastOccurrences = calculateFeastOccurrences(
-    sacredYear,
+    selectedSacredYear,
     config.lunarAnchorMode,
     config.feastCalendarModel,
     systemDate,
@@ -49,7 +55,17 @@ export const GreatWeekScreen: React.FC<GreatWeekScreenProps> = ({ systemDate, co
               {t.greatWeek.heroTitle}
             </h2>
           </div>
-          <DataSourceBadge source="INTERPRETIVE_MODEL" size="sm" language={language} />
+          <div className="flex flex-wrap items-center gap-2.5">
+            <EditableYearControl
+              year={selectedSacredYear}
+              onChange={setSelectedSacredYear}
+              defaultYear={defaultSacredYear}
+              label={isPt ? 'Ano Sagrado' : 'Sacred Year'}
+              size="sm"
+              isPt={isPt}
+            />
+            <DataSourceBadge source="INTERPRETIVE_MODEL" size="sm" language={language} />
+          </div>
         </div>
 
         <div className="p-4 sm:p-5 bg-amber-950/15 space-y-1">
@@ -66,7 +82,16 @@ export const GreatWeekScreen: React.FC<GreatWeekScreenProps> = ({ systemDate, co
           <div className="p-3.5 sm:p-5 space-y-1">
             <span className="text-[11px] sm:text-xs italic text-slate-400 block whitespace-nowrap">{t.greatWeek.elapsedYears}</span>
             <strong className="text-lg sm:text-2xl font-serif font-bold text-amber-400 block whitespace-nowrap">
-              {millennialPos.elapsedSolarYears} {isPt ? 'Anos' : 'Yrs'}
+              <EditableYearControl
+                variant="inline"
+                year={millennialPos.elapsedSolarYears}
+                onChange={(nextElapsed) => {
+                  const delta = nextElapsed - millennialPos.elapsedSolarYears;
+                  setSelectedSacredYear((prev) => prev + delta);
+                }}
+                suffix={isPt ? 'Anos' : 'Yrs'}
+                isPt={isPt}
+              />
             </strong>
             <span className="text-[11px] sm:text-xs text-slate-300 block whitespace-nowrap">
               {t.greatWeek.sinceCreation} ({millennialPos.creationEpochBCE} {isPt ? 'a.C.' : 'BCE'})
@@ -143,8 +168,18 @@ export const GreatWeekScreen: React.FC<GreatWeekScreenProps> = ({ systemDate, co
 
       {/* Annual Feast Cycle Embedded Matrix */}
       <div className="border border-slate-800 bg-slate-950">
-        <div className="px-4 sm:px-5 py-3 bg-slate-900/50 border-b border-slate-800 text-xs font-serif font-bold uppercase tracking-wider text-amber-400 whitespace-nowrap">
-          {isPt ? 'Ciclo Anual de Festas' : 'Annual Feast Cycle'} · {sacredYear}
+        <div className="px-4 sm:px-5 py-3 bg-slate-900/50 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2 text-xs font-serif">
+          <span className="font-bold uppercase tracking-wider text-amber-400 whitespace-nowrap">
+            {isPt ? 'Ciclo Anual de Festas' : 'Annual Feast Cycle'} · {selectedSacredYear}
+          </span>
+          <EditableYearControl
+            year={selectedSacredYear}
+            onChange={setSelectedSacredYear}
+            defaultYear={defaultSacredYear}
+            label={isPt ? 'Ano' : 'Year'}
+            size="sm"
+            isPt={isPt}
+          />
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 divide-y sm:divide-y-0 sm:divide-x divide-slate-800 font-serif text-xs tabular-nums">
           {feastOccurrences.map((occ) => (
