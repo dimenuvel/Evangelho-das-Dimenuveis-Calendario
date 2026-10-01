@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Calendário das Dimenúveis</string>
+    <string name="widget_name">Horológio Dimenúveis (13 Meses &amp; Sábado)</string>
+    <string name="widget_description">Calendário Sagrado de 13 Meses, Hora Solar, Fase da Lua, GPS, Contagem Regressiva do Sábado e Transparência Alpha.</string>
 </resources>

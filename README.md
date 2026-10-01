@@ -1,15 +1,16 @@
-# Evangelho das Dimenúveis — Calendário Bíblico Lunar & Milenar (v2.5)
+# Evangelho das Dimenúveis — Calendário Bíblico Lunar & Milenar (v2.6)
 
+[![Version](https://img.shields.io/badge/Vers%C3%A3o-2.6-f59e0b.svg)](https://dimenuvel.github.io/Evangelho-das-Dimenuveis-site/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-19.x-61dafb.svg)](https://react.dev/)
 [![Tailwind CSS](https://img.shields.io/badge/TailwindCSS-4.x-38bdf8.svg)](https://tailwindcss.com/)
 [![Licença: MIT](https://img.shields.io/badge/Licen%C3%A7a-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Um motor avançado de engenharia de calendários e aplicação web/mobile interativa (**v2.5**) que integra o **Tempo Sagrado Bíblico** (13 meses × 28 dias = 364 dias + Dia Zero = 365 dias), os **13 Signos Eclípticos do Zodíaco** (com o **13º Signo restaurado do Dragão** no Mês IX), o **Mapa Astral Natal Interativo de 13 Signos**, o **Zodíaco Chinês, Ciclo Sexagenário (60 Anos) & Os 4 Pilares do Nascimento (*BaZi*)**, **Festas Bíblicas Dependentes de GPS & Hemisfério**, **Indicador Ao Vivo do Sábado com Contagem Regressiva ao Pôr do Sol**, **Oração Diária Bíblica**, **Cálculos Lunares Astronômicos**, **Cronologia Histórica a.C./d.C.** (sem Ano Zero), a **Grande Semana Milenar de 7.000 Anos** e a árvore arquitetônica temporal do **Evangelho das Dimenúveis**.
+Um motor avançado de engenharia de calendários e aplicação web/mobile interativa (**v2.6**) que integra o **Tempo Sagrado Bíblico** (13 meses × 28 dias = 364 dias + Dia Zero = 365 dias), os **13 Signos Eclípticos do Zodíaco** (com o **13º Signo restaurado do Dragão** no Mês IX), o **Mapa Astral Natal Interativo de 13 Signos**, o **Zodíaco Chinês, Ciclo Sexagenário (60 Anos) & Os 4 Pilares do Nascimento (*BaZi*)**, **Festas Bíblicas Dependentes de GPS & Hemisfério**, **Indicador Ao Vivo do Sábado com Contagem Regressiva ao Pôr do Sol**, **Widget Nativo da Tela Inicial Android com Transparência Alpha**, **Oração Diária Bíblica**, **Cálculos Lunares Astronômicos**, **Cronologia Histórica a.C./d.C.** (sem Ano Zero), a **Grande Semana Milenar de 7.000 Anos** e a árvore arquitetônica temporal do **Evangelho das Dimenúveis**.
 
 ---
 
-## 🌟 Principais Funcionalidades (Novidades da Versão 2.5)
+## 🌟 Principais Funcionalidades (Novidades da Versão 2.6)
 
 - **Estrutura do Calendário Sagrado (13 × 28 + Dia 0) & Navegação em Três Abas (Cap. II)**:
   - **Aba I — `I. Calendário Sagrado (13 Meses × 28 Dias)`**:
@@ -178,9 +179,9 @@ O projeto inclui uma estrutura nativa Android para o aplicativo **Calendário da
 Ao enviar código para a branch `main`/`master` (ou acionar manualmente em **Actions → Build Android APK → Run workflow** no GitHub):
 1. O GitHub Actions instala o Node.js 22, compila o aplicativo Vite (`npm run build`) e sincroniza o bundle em `android/app/src/main/assets/public/`.
 2. Configura automaticamente o **Java JDK 17 (Temurin)**, **Android SDK 34** e **Gradle 8.7**, baixando todas as dependências Maven/Gradle na nuvem.
-3. Gera e assina os arquivos sincronizados automaticamente com a versão do rodapé (`v2.5`):
-   - `Calendario-das-Dimenuveis-v2.5-release.apk` (Artifact: `Calendario-das-Dimenuveis-v2.5-release-apk` — APK Release assinado pronto para instalação)
-   - `Calendario-das-Dimenuveis-v2.5-debug.apk` (Artifact: `Calendario-das-Dimenuveis-v2.5-debug-apk` — APK Debug)
+3. Gera e assina os arquivos sincronizados automaticamente com a versão do rodapé (`v2.6`):
+   - `Calendario-das-Dimenuveis-v2.6-release.apk` (Artifact: `Calendario-das-Dimenuveis-v2.6-release-apk` — APK Release assinado pronto para instalação)
+   - `Calendario-das-Dimenuveis-v2.6-debug.apk` (Artifact: `Calendario-das-Dimenuveis-v2.6-debug-apk` — APK Debug)
 4. Disponibiliza ambos os APKs para download direto na seção **Artifacts** da execução do workflow no GitHub.
 
 ---

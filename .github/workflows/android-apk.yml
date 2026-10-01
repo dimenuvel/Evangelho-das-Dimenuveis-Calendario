@@ -87,7 +87,7 @@ jobs:
           KEY_PASSWORD: dimenueveis123
         run: |
           FOOTER_VER=$(grep -oE "Version [0-9]+(\.[0-9]+)*" ../src/App.tsx | head -n 1 | awk '{print $2}')
-          APP_VERSION="${FOOTER_VER:-2.5}"
+          APP_VERSION="${FOOTER_VER:-2.6}"
           echo "APP_VERSION=$APP_VERSION" >> $GITHUB_ENV
           gradle assembleDebug assembleRelease --no-daemon --stacktrace
           mkdir -p ../apk-output

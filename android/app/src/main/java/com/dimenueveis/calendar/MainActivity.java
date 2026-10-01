@@ -6,6 +6,8 @@ import android.app.AlarmManager;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.appwidget.AppWidgetManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -547,6 +549,44 @@ public class MainActivity extends AppCompatActivity {
             } catch (Exception ignored) {
             }
             return "";
+        }
+
+        @JavascriptInterface
+        public boolean syncHomeWidget(String widgetJson) {
+            try {
+                DimenueveisAppWidgetProvider.savePayloadAndRefreshAll(MainActivity.this, widgetJson);
+                return true;
+            } catch (Exception ignored) {
+                return false;
+            }
+        }
+
+        @JavascriptInterface
+        public boolean requestPinHomeWidget(String widgetJson) {
+            try {
+                DimenueveisAppWidgetProvider.savePayloadAndRefreshAll(MainActivity.this, widgetJson);
+                runOnUiThread(() -> {
+                    try {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(MainActivity.this);
+                            ComponentName myProvider = new ComponentName(MainActivity.this, DimenueveisAppWidgetProvider.class);
+                            if (appWidgetManager != null && appWidgetManager.isRequestPinAppWidgetSupported()) {
+                                appWidgetManager.requestPinAppWidget(myProvider, null, null);
+                                return;
+                            }
+                        }
+                        Toast.makeText(
+                                MainActivity.this,
+                                "Widget sincronizado! Toque longo na Tela Inicial -> Widgets -> Calendário das Dimenúveis",
+                                Toast.LENGTH_LONG
+                        ).show();
+                    } catch (Exception ignored) {
+                    }
+                });
+                return true;
+            } catch (Exception ignored) {
+                return false;
+            }
         }
     }
 

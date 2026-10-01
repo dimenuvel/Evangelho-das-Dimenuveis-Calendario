@@ -21,6 +21,7 @@ import {
 } from '../notifications/notificationService';
 import { calculateFeastOccurrences } from '../calendar/feastEngine';
 import { GoogleCalendarSyncModal } from '../components/GoogleCalendarSyncModal';
+import { AndroidHomeWidgetStudio } from '../components/AndroidHomeWidgetStudio';
 import { exportFeastsToIcs } from '../services/googleCalendarService';
 import { RotateCcw, Save, CheckCircle2, MapPin, Bell, Sun, Moon, Calendar, Download } from 'lucide-react';
 
@@ -541,6 +542,14 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           </div>
         </div>
       </div>
+
+      {/* IV. Android Home Screen Widget Studio & Alpha Transparency Slider */}
+      <AndroidHomeWidgetStudio
+        systemDate={new Date()}
+        config={localConfig}
+        language={language}
+        onOpenGpsModal={onOpenGpsModal}
+      />
 
       {/* Google Calendar Sync & Confirmation Modal */}
       <GoogleCalendarSyncModal

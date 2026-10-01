@@ -17,6 +17,11 @@ import {
   ResolvedUserLocation,
 } from './services/geolocationService';
 import { evaluateSolarAndLunarNotifications } from './notifications/notificationService';
+import {
+  loadAndroidWidgetConfig,
+  buildLiveAndroidWidgetSnapshot,
+  syncWidgetToAndroidBridge,
+} from './services/androidWidgetService';
 
 import { TodayScreen } from './screens/TodayScreen';
 import { CalendarScreen } from './screens/CalendarScreen';
@@ -153,11 +158,12 @@ export default function App() {
     setActiveTab('CALENDAR');
   };
 
-  // Evaluate Sunrise, Moon Phase Change, and Sacred Birthday notifications on launch and every 60 seconds
+  // Evaluate Sunrise, Moon Phase Change, Sacred Birthday notifications, and Android Home Widget sync on launch and every 60 seconds
   useEffect(() => {
     const runCheck = () => {
+      const now = new Date();
       evaluateSolarAndLunarNotifications(
-        new Date(),
+        now,
         config.userLocation?.latitude ?? 31.7683,
         config.userLocation?.longitude ?? 35.2137,
         config.userLocation?.cityName ?? 'Jerusalem (Default)',
@@ -165,11 +171,14 @@ export default function App() {
         config.userBirthdayGregorian,
         config.lunarAnchorMode
       );
+      const wCfg = loadAndroidWidgetConfig();
+      const snap = buildLiveAndroidWidgetSnapshot(now, config, wCfg, language);
+      syncWidgetToAndroidBridge(snap, wCfg);
     };
     runCheck();
     const interval = setInterval(runCheck, 60000);
     return () => clearInterval(interval);
-  }, [config.userLocation, config.userBirthdayGregorian, config.lunarAnchorMode, language]);
+  }, [config, language]);
 
   return (
     <div className="min-h-screen bg-[#0c0e14] text-[#f5f2eb] flex flex-col font-sans selection:bg-amber-500/30 selection:text-amber-200 transition-colors">
@@ -362,7 +371,7 @@ export default function App() {
               </a>
               <span className="text-slate-500">·</span>
               <span className="text-amber-300 tabular-nums">
-                {language === 'pt' ? 'Versão 2.5' : 'Version 2.5'}
+                {language === 'pt' ? 'Versão 2.6' : 'Version 2.6'}
               </span>
             </div>
           </div>

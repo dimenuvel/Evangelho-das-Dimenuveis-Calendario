@@ -21,7 +21,8 @@ import { DataSourceBadge } from '../components/DataSourceBadge';
 import { AzimuthalCosmologyMap } from '../components/AzimuthalCosmologyMap';
 import { SabbathIndicatorWidget } from '../components/SabbathIndicatorWidget';
 import { EditableYearControl } from '../components/EditableYearControl';
-import { ArrowRight, MapPin, BookOpen } from 'lucide-react';
+import { AndroidHomeWidgetStudio } from '../components/AndroidHomeWidgetStudio';
+import { ArrowRight, MapPin, BookOpen, Smartphone } from 'lucide-react';
 
 interface TodayScreenProps {
   systemDate: Date;
@@ -51,6 +52,7 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
   const [selectedSacredYear, setSelectedSacredYear] = useState<number>(
     () => baseSacredDay.calendarYear
   );
+  const [isWidgetStudioOpen, setIsWidgetStudioOpen] = useState(false);
 
   const currentSacredDay = useMemo(() => {
     if (selectedSacredYear === baseSacredDay.calendarYear) {
@@ -151,7 +153,7 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
       {/* Primary Book Almanac Readout */}
       <div className="border border-slate-800 bg-slate-950">
         {/* Top Epigraph Header Bar */}
-        <div className="flex items-center justify-between gap-2 px-4 sm:px-5 py-2.5 border-b border-slate-800 bg-slate-900/60">
+        <div className="flex flex-wrap items-center justify-between gap-2 px-4 sm:px-5 py-2.5 border-b border-slate-800 bg-slate-900/60">
           <div className="flex items-center gap-1.5 text-xs font-serif text-slate-200 whitespace-nowrap min-w-0">
             <span className="text-amber-400">✦</span>
             <span className="uppercase tracking-wider font-semibold text-amber-400">
@@ -162,7 +164,22 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
               {systemDate.toISOString().split('T')[0]}
             </span>
           </div>
-          <DataSourceBadge source="ASTRONOMICAL_CALCULATION" size="sm" language={language} />
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setIsWidgetStudioOpen(true)}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 border border-amber-500/50 bg-slate-950 hover:bg-slate-900 text-amber-300 text-xs font-serif font-semibold transition-colors cursor-pointer whitespace-nowrap"
+              title={
+                isPt
+                  ? 'Criar e personalizar Widget da Tela Inicial Android (com Transparência Alpha)'
+                  : 'Create & customize Android Home Screen Widget (with Alpha Transparency)'
+              }
+            >
+              <Smartphone className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+              <span>{isPt ? 'Widget Android' : 'Android Widget'}</span>
+            </button>
+            <DataSourceBadge source="ASTRONOMICAL_CALCULATION" size="sm" language={language} />
+          </div>
         </div>
 
         {/* Main 12-Col Split Readout */}
@@ -508,6 +525,18 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Android Home Screen Widget Studio Modal */}
+      {isWidgetStudioOpen && (
+        <AndroidHomeWidgetStudio
+          systemDate={effectiveDate}
+          config={config}
+          language={language}
+          onOpenGpsModal={onOpenGpsModal}
+          isModal={true}
+          onCloseModal={() => setIsWidgetStudioOpen(false)}
+        />
+      )}
     </div>
   );
 };

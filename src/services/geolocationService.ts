@@ -33,6 +33,8 @@ declare global {
         endMillis: number,
         fallbackUrl: string
       ) => void;
+      syncHomeWidget?: (widgetJson: string) => boolean;
+      requestPinHomeWidget?: (widgetJson: string) => boolean;
     };
   }
 }
