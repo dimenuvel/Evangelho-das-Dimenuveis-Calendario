@@ -51,7 +51,7 @@ function calculateEnochGateForSacredDay(sacredDay: CalendarDay): {
 }
 
 export type AndroidWidgetTheme = 'obsidian' | 'parchment' | 'celestial' | 'mono';
-export type AndroidWidgetSize = '4x2' | '4x3' | '4x4';
+export type AndroidWidgetSize = '3x4' | '4x5' | '4x6';
 export type SimulatedWallpaperId = 'jerusalem_night' | 'judean_sunset' | 'olive_grove' | 'minimal_slate';
 
 export interface AndroidWidgetConfig {
@@ -75,7 +75,7 @@ export interface AndroidWidgetConfig {
 export const DEFAULT_ANDROID_WIDGET_CONFIG: AndroidWidgetConfig = {
   alphaPercent: 72,
   widgetTheme: 'obsidian',
-  widgetSize: '4x4',
+  widgetSize: '4x6',
   frostedBlur: true,
   goldBorder: true,
   use24HourFormat: true,
@@ -90,21 +90,34 @@ export const DEFAULT_ANDROID_WIDGET_CONFIG: AndroidWidgetConfig = {
   previewWallpaper: 'jerusalem_night',
 };
 
-const WIDGET_STORAGE_KEY = 'dimenueveis_android_widget_config_v1';
+const WIDGET_STORAGE_KEY = 'dimenueveis_android_widget_config_v2';
+const LEGACY_WIDGET_STORAGE_KEY = 'dimenueveis_android_widget_config_v1';
+
+export function normalizeVerticalWidgetSize(rawSize: unknown): AndroidWidgetSize {
+  if (rawSize === '3x4' || rawSize === '4x2') return '3x4';
+  if (rawSize === '4x5' || rawSize === '4x3') return '4x5';
+  if (rawSize === '4x6' || rawSize === '4x4') return '4x6';
+  return DEFAULT_ANDROID_WIDGET_CONFIG.widgetSize;
+}
 
 export function loadAndroidWidgetConfig(): AndroidWidgetConfig {
   try {
-    const raw = localStorage.getItem(WIDGET_STORAGE_KEY);
+    const raw =
+      localStorage.getItem(WIDGET_STORAGE_KEY) ||
+      localStorage.getItem(LEGACY_WIDGET_STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      return {
+      const normalized: AndroidWidgetConfig = {
         ...DEFAULT_ANDROID_WIDGET_CONFIG,
         ...parsed,
+        widgetSize: normalizeVerticalWidgetSize(parsed.widgetSize),
         alphaPercent:
           typeof parsed.alphaPercent === 'number'
             ? Math.max(0, Math.min(100, Math.round(parsed.alphaPercent)))
             : DEFAULT_ANDROID_WIDGET_CONFIG.alphaPercent,
       };
+      localStorage.setItem(WIDGET_STORAGE_KEY, JSON.stringify(normalized));
+      return normalized;
     }
   } catch {
     // ignore storage errors

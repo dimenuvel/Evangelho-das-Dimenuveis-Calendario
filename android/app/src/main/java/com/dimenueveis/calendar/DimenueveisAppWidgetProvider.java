@@ -27,12 +27,16 @@ import java.util.Locale;
 
 /**
  * Native Android Home Screen Widget Provider for Calendário das Dimenúveis.
- * Renders a tall, multi-row vertical horological canvas matching the Studio preview:
- * Row 1: Sacred Year + Civil Date + Solar/Night Watch + Sacred Date Headline + Subline + Live Clock
- * Row 2: Lunar Phase Disc + Illumination + 14-Part Enoch Bar | GPS City + Coordinates + Sun Ephemeris
- * Row 3: Sabbath Sunset Countdown + 2-Line Stacked 7-Day Weekly Sabbath Rhythm Strip
- * Row 4: 13-Sign Mazzaroth & 1 Enoch Celestial Gate | Next Appointed Feast (Leviticus 23)
- * Row 5: 7,000-Year Millennial Clock Progress Bar + Daily Scriptural Watchword Verse
+ * Renders a true single-column vertical portrait horological card (width = 740px, height = 980..1480px)
+ * matching the Studio example 1:1 across all 3 vertical grid sizes (3x4, 4x5, 4x6):
+ * Section 1: Sacred Year + Civil Date + Sacred Date Headline + Subline + Live Clock + Solar/Night Watch
+ * Section 2: Full-Width Lunar Phase Card (Disc + Phase + Illumination % + Lunar Age + 14-Part Enoch Bar)
+ * Section 3: Full-Width GPS Location & Solar Ephemeris Card (City + Coordinates + Sunrise / Noon / Sunset)
+ * Section 4: Full-Width Sabbath Sunset Countdown + 2-Line Stacked 7-Day Weekly Sabbath Rhythm Strip
+ * Section 5 (4x5 & 4x6): Full-Width 13-Sign Mazzaroth & 1 Enoch Celestial Gate Card
+ * Section 6 (4x5 & 4x6): Full-Width Next Appointed Feast (Leviticus 23) Card
+ * Section 7 (4x6): Full-Width 7,000-Year Millennial Clock Progress Bar Card
+ * Section 8 (4x6): Full-Width Daily Scriptural Watchword Verse Card
  */
 public class DimenueveisAppWidgetProvider extends AppWidgetProvider {
 
@@ -44,7 +48,7 @@ public class DimenueveisAppWidgetProvider extends AppWidgetProvider {
     };
 
     private static final String[] DEFAULT_MONTH_NAMES_PT = new String[]{
-            "Primaveral", " Segundo", "Terceiro", "Quarto", "Quinto", "Sextil",
+            "Primaveral", "Segundo", "Terceiro", "Quarto", "Quinto", "Sextil",
             "Setimial", "Oitavial", "Novenal", "Decimial", "Undecimial", "Duodecimial", "Décimo Terceiro"
     };
 
@@ -100,6 +104,14 @@ public class DimenueveisAppWidgetProvider extends AppWidgetProvider {
         }
     }
 
+    private static String normalizeVerticalSize(String raw) {
+        if (raw == null) return "4x6";
+        String s = raw.trim().toLowerCase(Locale.ROOT);
+        if ("3x4".equals(s) || "4x2".equals(s)) return "3x4";
+        if ("4x5".equals(s) || "4x3".equals(s)) return "4x5";
+        return "4x6";
+    }
+
     private static Bitmap renderWidgetBitmap(Context context) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         String rawJson = prefs.getString(KEY_WIDGET_PAYLOAD_JSON, "");
@@ -120,7 +132,7 @@ public class DimenueveisAppWidgetProvider extends AppWidgetProvider {
 
         int alphaPercent = 72;
         String widgetTheme = "obsidian";
-        String widgetSize = "4x4";
+        String widgetSize = "4x6";
         boolean goldBorder = true;
 
         boolean showGpsAndSunTimes = true;
@@ -134,7 +146,7 @@ public class DimenueveisAppWidgetProvider extends AppWidgetProvider {
         String sacredYearLabel = "Ano Sagrado " + sacredYear;
         String sacredDateHeadline = isDayZero
                 ? "Dia Zero · Ano Novo Sagrado"
-                : "Mês " + ROMAN_MONTHS[sacredMonth - 1] + " · " + DEFAULT_MONTH_NAMES_PT[sacredMonth - 1].trim() + ", Dia " + sacredDayOfMonth;
+                : "Mês " + ROMAN_MONTHS[sacredMonth - 1] + " · " + DEFAULT_MONTH_NAMES_PT[sacredMonth - 1] + ", Dia " + sacredDayOfMonth;
         String sacredSubline = isDayZero
                 ? "Sábado Anual · Fora dos 364 Dias Numerados"
                 : "Semana " + weekOfYear + " de 52 · " + (dayOfWeek == 7 ? "7º Dia (Sábado Semanal)" : dayOfWeek + "º Dia da Semana") + " · Dia " + daysSinceVernal + "/364";
@@ -188,7 +200,7 @@ public class DimenueveisAppWidgetProvider extends AppWidgetProvider {
                 JSONObject obj = new JSONObject(rawJson);
                 alphaPercent = Math.max(0, Math.min(100, obj.optInt("alphaPercent", alphaPercent)));
                 widgetTheme = obj.optString("widgetTheme", widgetTheme);
-                widgetSize = obj.optString("widgetSize", widgetSize);
+                widgetSize = normalizeVerticalSize(obj.optString("widgetSize", widgetSize));
                 goldBorder = obj.optBoolean("goldBorder", goldBorder);
 
                 JSONObject cfg = obj.optJSONObject("config");
@@ -254,33 +266,39 @@ public class DimenueveisAppWidgetProvider extends AppWidgetProvider {
             }
         }
 
-        // Determine active vertical rows so the widget has a tall, multi-row vertical layout matching the Studio
-        boolean renderRow3 = showSabbathCountdown;
-        boolean renderRow4 = !"4x2".equalsIgnoreCase(widgetSize) && (showZodiacAndEnochGate || showNextFeast);
-        boolean renderMillennial = "4x4".equalsIgnoreCase(widgetSize) && showMillennialClock;
-        boolean renderVerse = "4x4".equalsIgnoreCase(widgetSize) && showDailyVerse;
+        // Single-Column Vertical Stack matching the Studio Example 1:1
+        boolean renderGps = showGpsAndSunTimes;
+        boolean renderSabbath = showSabbathCountdown;
+        boolean renderZodiac = !"3x4".equalsIgnoreCase(widgetSize) && showZodiacAndEnochGate;
+        boolean renderFeast = !"3x4".equalsIgnoreCase(widgetSize) && showNextFeast;
+        boolean renderMillennial = "4x6".equalsIgnoreCase(widgetSize) && showMillennialClock;
+        boolean renderVerse = "4x6".equalsIgnoreCase(widgetSize) && showDailyVerse;
 
-        int width = 960;
-        float curY = 44f;
-        // Calculate total dynamic canvas height
-        float estimatedHeight = 44f; // top padding
-        estimatedHeight += 146f; // Row 1 (Header + Date + Clock)
-        estimatedHeight += 172f; // Row 2 (Lunar Phase & 14-Part Bar | GPS & Solar Ephemeris)
-        if (renderRow3) {
-            estimatedHeight += (showWeeklySabbathBar ? 202f : 114f);
+        int width = 740;
+        float estimatedHeight = 42f; // top padding
+        estimatedHeight += 200f; // Section 1: Sacred Date + Subline + Live Clock + Watch
+        estimatedHeight += 164f; // Section 2: Lunar Phase & 14-Part Enoch Bar
+        if (renderGps) {
+            estimatedHeight += 150f; // Section 3: GPS Location & Sun Ephemeris
         }
-        if (renderRow4) {
-            estimatedHeight += 130f;
+        if (renderSabbath) {
+            estimatedHeight += (showWeeklySabbathBar ? 210f : 122f); // Section 4: Sabbath Countdown + 7-Day Strip
+        }
+        if (renderZodiac) {
+            estimatedHeight += 120f; // Section 5: 13-Sign Mazzaroth & Enoch Gate
+        }
+        if (renderFeast) {
+            estimatedHeight += 116f; // Section 6: Next Appointed Feast
         }
         if (renderMillennial) {
-            estimatedHeight += 106f;
+            estimatedHeight += 108f; // Section 7: 7,000-Year Millennial Clock
         }
         if (renderVerse) {
-            estimatedHeight += 116f;
+            estimatedHeight += 118f; // Section 8: Daily Scriptural Watchword
         }
-        estimatedHeight += 36f; // bottom padding
+        estimatedHeight += 32f; // bottom padding
 
-        int height = Math.max(540, Math.round(estimatedHeight));
+        int height = Math.max(820, Math.round(estimatedHeight));
         Bitmap bmp = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bmp);
 
@@ -344,7 +362,7 @@ public class DimenueveisAppWidgetProvider extends AppWidgetProvider {
         Typeface serifRegular = Typeface.create(Typeface.SERIF, Typeface.NORMAL);
         Typeface serifItalic = Typeface.create(Typeface.SERIF, Typeface.ITALIC);
 
-        // Main Translucent Surface Card
+        // Main Translucent Portrait Card
         Paint bgPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         bgPaint.setColor(Color.argb(alpha255, bgR, bgG, bgB));
         RectF cardRect = new RectF(10f, 10f, width - 10f, height - 10f);
@@ -367,7 +385,6 @@ public class DimenueveisAppWidgetProvider extends AppWidgetProvider {
             canvas.drawRoundRect(innerRect, 32f, 32f, subtleBorderPaint);
         }
 
-        // Typography Paints
         Paint titlePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         titlePaint.setTypeface(serifBold);
         titlePaint.setColor(textPrimary);
@@ -396,136 +413,145 @@ public class DimenueveisAppWidgetProvider extends AppWidgetProvider {
         Paint panelPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         panelPaint.setColor(subPanelColor);
 
+        Paint divPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        divPaint.setColor(subtleBorderColor);
+        divPaint.setStrokeWidth(1.5f);
+
+        float leftX = 42f;
+        float rightX = width - 42f;
+        float contentW = rightX - leftX;
+        float curY = 42f;
+
         // =====================================================================
-        // ROW 1: Top Kicker + Sacred Date Headline & Subline + Live Clock
+        // SECTION 1: Sacred Year + Gregorian + Sacred Date + Subline + Clock
         // =====================================================================
-        goldPaint.setTextSize(21f);
+        goldPaint.setTextSize(20f);
         drawFittedText(
                 canvas,
                 "✦ " + sacredYearLabel.toUpperCase(Locale.ROOT) + "  ·  " + gregorianDateStr,
-                44f,
-                curY + 20f,
-                530f,
+                leftX,
+                curY + 22f,
+                contentW,
                 goldPaint,
                 13f
         );
 
-        subPaint.setTypeface(serifItalic);
-        subPaint.setTextAlign(Paint.Align.RIGHT);
-        subPaint.setTextSize(19f);
-        drawFittedText(canvas, biblicalWatchLabel, width - 44f, curY + 20f, 320f, subPaint, 13f);
-        subPaint.setTextAlign(Paint.Align.LEFT);
-
-        titlePaint.setTextSize(42f);
-        drawFittedText(canvas, sacredDateHeadline, 44f, curY + 74f, 590f, titlePaint, 22f);
+        titlePaint.setTextSize(38f);
+        drawFittedText(canvas, sacredDateHeadline, leftX, curY + 70f, contentW, titlePaint, 22f);
 
         subPaint.setTypeface(serifItalic);
-        subPaint.setTextSize(21f);
-        drawFittedText(canvas, sacredSubline, 44f, curY + 112f, 590f, subPaint, 14f);
+        subPaint.setTextSize(20f);
+        drawFittedText(canvas, sacredSubline, leftX, curY + 104f, contentW, subPaint, 14f);
+
+        canvas.drawLine(leftX, curY + 124f, rightX, curY + 124f, divPaint);
 
         String fullClockText = ampmSuffix.isEmpty() ? timeFormatted : (timeFormatted + " " + ampmSuffix);
-        goldPaint.setTextAlign(Paint.Align.RIGHT);
-        goldPaint.setTextSize(52f);
-        drawFittedText(canvas, fullClockText, width - 44f, curY + 94f, 260f, goldPaint, 28f);
-        goldPaint.setTextAlign(Paint.Align.LEFT);
+        goldPaint.setTextSize(46f);
+        drawFittedText(canvas, fullClockText, leftX, curY + 174f, 320f, goldPaint, 28f);
 
-        curY += 134f;
+        subPaint.setTypeface(serifItalic);
+        subPaint.setTextAlign(Paint.Align.RIGHT);
+        subPaint.setTextSize(20f);
+        drawFittedText(canvas, biblicalWatchLabel, rightX, curY + 168f, 320f, subPaint, 13f);
+        subPaint.setTextAlign(Paint.Align.LEFT);
 
-        Paint divPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        divPaint.setColor(subtleBorderColor);
-        divPaint.setStrokeWidth(1.5f);
-        canvas.drawLine(44f, curY, width - 44f, curY, divPaint);
-        curY += 16f;
+        curY += 198f;
 
         // =====================================================================
-        // ROW 2: Lunar Phase & 14-Part Enoch Bar | GPS Location & Sun Ephemeris
+        // SECTION 2: Full-Width Lunar Phase & 14-Part Enoch Light Card
         // =====================================================================
-        float row2H = 154f;
-        RectF moonBox = new RectF(44f, curY, showGpsAndSunTimes ? 468f : (width - 44f), curY + row2H);
+        float moonH = 148f;
+        RectF moonBox = new RectF(leftX, curY, rightX, curY + moonH);
         canvas.drawRoundRect(moonBox, 22f, 22f, panelPaint);
         canvas.drawRoundRect(moonBox, 22f, 22f, subtleBorderPaint);
 
-        drawMoonPhaseDisc(canvas, 88f, curY + 48f, 27f, lunarIllumPercent / 100f, accentGold);
+        drawMoonPhaseDisc(canvas, leftX + 46f, curY + 46f, 27f, lunarIllumPercent / 100f, accentGold);
 
-        float moonTextMaxW = moonBox.width() - 104f;
-        titlePaint.setTextSize(23f);
-        drawFittedText(canvas, lunarPhaseLocalized, 128f, curY + 42f, moonTextMaxW, titlePaint, 15f);
+        float moonTextMaxW = moonBox.width() - 108f;
+        titlePaint.setTextSize(24f);
+        drawFittedText(canvas, lunarPhaseLocalized, leftX + 90f, curY + 40f, moonTextMaxW, titlePaint, 15f);
 
-        goldPaint.setTextSize(18f);
+        goldPaint.setTextSize(19f);
         drawFittedText(
                 canvas,
                 "Iluminação: " + lunarIllumPercent + "% · " + lunarAgeDays,
-                128f,
-                curY + 70f,
+                leftX + 90f,
+                curY + 68f,
                 moonTextMaxW,
                 goldPaint,
                 13f
         );
 
-        canvas.drawLine(moonBox.left + 20f, curY + 90f, moonBox.right - 20f, curY + 90f, divPaint);
+        canvas.drawLine(moonBox.left + 20f, curY + 86f, moonBox.right - 20f, curY + 86f, divPaint);
 
         subPaint.setTypeface(serifRegular);
-        subPaint.setTextSize(17f);
-        drawFittedText(canvas, enochLunarPartsLabel, moonBox.left + 20f, curY + 116f, moonBox.width() - 95f, subPaint, 12f);
+        subPaint.setTextSize(18f);
+        drawFittedText(canvas, enochLunarPartsLabel, moonBox.left + 20f, curY + 112f, moonBox.width() - 110f, subPaint, 13f);
 
         goldPaint.setTextAlign(Paint.Align.RIGHT);
-        goldPaint.setTextSize(17f);
-        drawFittedText(canvas, enochLunarParts + "/14", moonBox.right - 20f, curY + 116f, 65f, goldPaint, 12f);
+        goldPaint.setTextSize(18f);
+        drawFittedText(canvas, enochLunarParts + "/14", moonBox.right - 20f, curY + 112f, 75f, goldPaint, 13f);
         goldPaint.setTextAlign(Paint.Align.LEFT);
 
-        // Full-width 14-Part Enoch Lunar Bar inside moonBox
         Paint partPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         float barLeft = moonBox.left + 20f;
         float barRight = moonBox.right - 20f;
         float totalBarW = barRight - barLeft;
-        float partGap = 4f;
+        float partGap = 5f;
         float partW = (totalBarW - (13f * partGap)) / 14f;
-        float barTop = curY + 126f;
+        float barTop = curY + 122f;
         for (int i = 0; i < 14; i++) {
             partPaint.setColor(i < enochLunarParts ? accentGold : Color.argb(75, 148, 163, 184));
             float px = barLeft + i * (partW + partGap);
-            canvas.drawRoundRect(new RectF(px, barTop, px + partW, barTop + 11f), 3f, 3f, partPaint);
+            canvas.drawRoundRect(new RectF(px, barTop, px + partW, barTop + 12f), 3f, 3f, partPaint);
         }
 
-        if (showGpsAndSunTimes) {
-            RectF gpsBox = new RectF(492f, curY, width - 44f, curY + row2H);
+        curY += moonH + 16f;
+
+        // =====================================================================
+        // SECTION 3: Full-Width GPS Location & Sun Ephemeris Card
+        // =====================================================================
+        if (renderGps) {
+            float gpsH = 134f;
+            RectF gpsBox = new RectF(leftX, curY, rightX, curY + gpsH);
             canvas.drawRoundRect(gpsBox, 22f, 22f, panelPaint);
             canvas.drawRoundRect(gpsBox, 22f, 22f, subtleBorderPaint);
 
-            float gpsMaxW = gpsBox.width() - 40f;
-            titlePaint.setTextSize(22f);
-            drawFittedText(canvas, "📍 " + locationCity, gpsBox.left + 20f, curY + 42f, gpsMaxW, titlePaint, 14f);
+            titlePaint.setTextSize(23f);
+            drawFittedText(canvas, "📍 " + locationCity, gpsBox.left + 20f, curY + 42f, gpsBox.width() - 230f, titlePaint, 14f);
 
+            mutedPaint.setTextAlign(Paint.Align.RIGHT);
             mutedPaint.setTextSize(18f);
-            drawFittedText(canvas, coordinatesFormatted, gpsBox.left + 26f, curY + 70f, gpsMaxW, mutedPaint, 13f);
+            drawFittedText(canvas, coordinatesFormatted, gpsBox.right - 20f, curY + 42f, 195f, mutedPaint, 13f);
+            mutedPaint.setTextAlign(Paint.Align.LEFT);
 
-            canvas.drawLine(gpsBox.left + 20f, curY + 90f, gpsBox.right - 20f, curY + 90f, divPaint);
+            canvas.drawLine(gpsBox.left + 20f, curY + 66f, gpsBox.right - 20f, curY + 66f, divPaint);
 
             subPaint.setTypeface(serifRegular);
-            subPaint.setTextSize(19f);
-            drawFittedText(canvas, "☀ " + sunriseStr, gpsBox.left + 20f, curY + 128f, 120f, subPaint, 13f);
+            subPaint.setTextSize(21f);
+            drawFittedText(canvas, "☀ " + sunriseStr, gpsBox.left + 20f, curY + 108f, 180f, subPaint, 14f);
 
             subPaint.setTextAlign(Paint.Align.CENTER);
-            drawFittedText(canvas, "☼ " + solarNoonStr, gpsBox.centerX(), curY + 128f, 120f, subPaint, 13f);
+            drawFittedText(canvas, "☼ " + solarNoonStr, gpsBox.centerX(), curY + 108f, 180f, subPaint, 14f);
             subPaint.setTextAlign(Paint.Align.LEFT);
 
             goldPaint.setTextAlign(Paint.Align.RIGHT);
-            goldPaint.setTextSize(19f);
-            drawFittedText(canvas, "☾ " + sunsetStr, gpsBox.right - 20f, curY + 128f, 120f, goldPaint, 13f);
+            goldPaint.setTextSize(21f);
+            drawFittedText(canvas, "☾ " + sunsetStr, gpsBox.right - 20f, curY + 108f, 180f, goldPaint, 14f);
             goldPaint.setTextAlign(Paint.Align.LEFT);
+
+            curY += gpsH + 16f;
         }
 
-        curY += row2H + 18f;
-
         // =====================================================================
-        // ROW 3: Sabbath Sunset Countdown + 2-Line Stacked 7-Day Rhythm Strip
+        // SECTION 4: Full-Width Sabbath Sunset Countdown + 7-Day Rhythm Strip
         // =====================================================================
-        if (renderRow3) {
-            float row3H = showWeeklySabbathBar ? 184f : 96f;
+        if (renderSabbath) {
+            float sabbathH = showWeeklySabbathBar ? 194f : 106f;
             Paint sabbathBgPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
             sabbathBgPaint.setColor(sabbathPanelColor);
 
-            RectF sabbathBox = new RectF(44f, curY, width - 44f, curY + row3H);
+            RectF sabbathBox = new RectF(leftX, curY, rightX, curY + sabbathH);
             canvas.drawRoundRect(sabbathBox, 22f, 22f, sabbathBgPaint);
             canvas.drawRoundRect(sabbathBox, 22f, 22f, borderPaint);
 
@@ -533,39 +559,37 @@ public class DimenueveisAppWidgetProvider extends AppWidgetProvider {
             drawFittedText(
                     canvas,
                     "✦ " + sabbathStatusTitle.toUpperCase(Locale.ROOT) + "  ·  " + sabbathTargetDateLabel,
-                    68f,
-                    curY + 38f,
-                    510f,
+                    sabbathBox.left + 22f,
+                    curY + 40f,
+                    390f,
                     goldPaint,
                     13f
             );
 
             subPaint.setTypeface(serifItalic);
             subPaint.setTextSize(19f);
-            drawFittedText(canvas, sabbathSunsetLabel, 68f, curY + 68f, 510f, subPaint, 13f);
+            drawFittedText(canvas, sabbathSunsetLabel, sabbathBox.left + 22f, curY + 72f, 390f, subPaint, 13f);
 
-            // Gold Countdown Badge on Right
             Paint pillPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
             pillPaint.setColor(accentGold);
-            RectF cdRect = new RectF(width - 356f, curY + 18f, width - 66f, curY + 74f);
+            RectF cdRect = new RectF(sabbathBox.right - 256f, curY + 22f, sabbathBox.right - 20f, curY + 78f);
             canvas.drawRoundRect(cdRect, 14f, 14f, pillPaint);
 
             Paint badgePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
             badgePaint.setTypeface(serifBold);
-            badgePaint.setTextSize(22f);
+            badgePaint.setTextSize(21f);
             badgePaint.setColor(badgeTextColor);
             badgePaint.setTextAlign(Paint.Align.CENTER);
-            drawFittedText(canvas, sabbathCountdownStr, cdRect.centerX(), cdRect.centerY() + 8f, cdRect.width() - 20f, badgePaint, 13f);
+            drawFittedText(canvas, sabbathCountdownStr, cdRect.centerX(), cdRect.centerY() + 8f, cdRect.width() - 18f, badgePaint, 13f);
 
-            // 7-Day Weekly Sabbath Rhythm Strip (2-Line Stacked Cells: DIA / 1 .. SÁB / 7º)
             if (showWeeklySabbathBar) {
-                float stripLeft = 68f;
-                float stripRight = width - 68f;
+                float stripLeft = sabbathBox.left + 22f;
+                float stripRight = sabbathBox.right - 22f;
                 float totalStripW = stripRight - stripLeft;
-                float dayGap = 10f;
+                float dayGap = 9f;
                 float dayBoxW = (totalStripW - (6f * dayGap)) / 7f;
-                float dayTop = curY + 92f;
-                float dayBot = curY + 164f;
+                float dayTop = curY + 98f;
+                float dayBot = curY + 172f;
 
                 for (int d = 1; d <= 7; d++) {
                     float dx = stripLeft + (d - 1) * (dayBoxW + dayGap);
@@ -595,149 +619,105 @@ public class DimenueveisAppWidgetProvider extends AppWidgetProvider {
                     dNumTxt.setTextSize(21f);
                     dNumTxt.setTextAlign(Paint.Align.CENTER);
                     dNumTxt.setColor(isCurrent ? badgeTextColor : (isSab ? accentGold : textPrimary));
-                    canvas.drawText(isSab ? "7º" : String.valueOf(d), dRect.centerX(), dayTop + 54f, dNumTxt);
+                    canvas.drawText(isSab ? "7º" : String.valueOf(d), dRect.centerX(), dayTop + 56f, dNumTxt);
                 }
             }
 
-            curY += row3H + 18f;
+            curY += sabbathH + 16f;
         }
 
         // =====================================================================
-        // ROW 4: 13-Sign Mazzaroth & 1 Enoch Gate | Next Appointed Feast
+        // SECTION 5: Full-Width 13-Sign Mazzaroth & 1 Enoch Celestial Gate Card
         // =====================================================================
-        if (renderRow4) {
-            float row4H = 112f;
-            if (showZodiacAndEnochGate && showNextFeast) {
-                RectF zBox = new RectF(44f, curY, 468f, curY + row4H);
-                canvas.drawRoundRect(zBox, 20f, 20f, panelPaint);
-                canvas.drawRoundRect(zBox, 20f, 20f, subtleBorderPaint);
+        if (renderZodiac) {
+            float zH = 104f;
+            RectF zBox = new RectF(leftX, curY, rightX, curY + zH);
+            canvas.drawRoundRect(zBox, 20f, 20f, panelPaint);
+            canvas.drawRoundRect(zBox, 20f, 20f, subtleBorderPaint);
 
-                titlePaint.setTextSize(21f);
-                drawFittedText(
-                        canvas,
-                        zodiacSymbol + " " + zodiacName + " · " + zodiacArchetype,
-                        zBox.left + 20f,
-                        curY + 44f,
-                        zBox.width() - 40f,
-                        titlePaint,
-                        13f
-                );
+            titlePaint.setTextSize(22f);
+            drawFittedText(
+                    canvas,
+                    zodiacSymbol + " " + zodiacName + " · " + zodiacArchetype,
+                    zBox.left + 22f,
+                    curY + 42f,
+                    zBox.width() - 44f,
+                    titlePaint,
+                    14f
+            );
 
-                subPaint.setTypeface(serifRegular);
-                subPaint.setTextSize(18f);
-                drawFittedText(
-                        canvas,
-                        enochGateLabel + " · " + enochDayNightRatioLabel,
-                        zBox.left + 20f,
-                        curY + 82f,
-                        zBox.width() - 40f,
-                        subPaint,
-                        12f
-                );
+            subPaint.setTypeface(serifRegular);
+            subPaint.setTextSize(19f);
+            drawFittedText(
+                    canvas,
+                    enochGateLabel + " · " + enochDayNightRatioLabel,
+                    zBox.left + 22f,
+                    curY + 80f,
+                    zBox.width() - 44f,
+                    subPaint,
+                    13f
+            );
 
-                RectF fBox = new RectF(492f, curY, width - 44f, curY + row4H);
-                canvas.drawRoundRect(fBox, 20f, 20f, panelPaint);
-                canvas.drawRoundRect(fBox, 20f, 20f, subtleBorderPaint);
-
-                goldPaint.setTextSize(16f);
-                drawFittedText(
-                        canvas,
-                        "PRÓXIMA SOLENIDADE (LV 23)",
-                        fBox.left + 20f,
-                        curY + 40f,
-                        fBox.width() - 40f,
-                        goldPaint,
-                        12f
-                );
-
-                titlePaint.setTextSize(21f);
-                drawFittedText(
-                        canvas,
-                        nextFeastLabel,
-                        fBox.left + 20f,
-                        curY + 80f,
-                        fBox.width() - 40f,
-                        titlePaint,
-                        13f
-                );
-            } else {
-                RectF singleBox = new RectF(44f, curY, width - 44f, curY + row4H);
-                canvas.drawRoundRect(singleBox, 20f, 20f, panelPaint);
-                canvas.drawRoundRect(singleBox, 20f, 20f, subtleBorderPaint);
-
-                if (showZodiacAndEnochGate) {
-                    titlePaint.setTextSize(22f);
-                    drawFittedText(
-                            canvas,
-                            zodiacSymbol + " " + zodiacName + " · " + zodiacArchetype,
-                            singleBox.left + 22f,
-                            curY + 44f,
-                            singleBox.width() - 44f,
-                            titlePaint,
-                            14f
-                    );
-                    subPaint.setTypeface(serifRegular);
-                    subPaint.setTextSize(19f);
-                    drawFittedText(
-                            canvas,
-                            enochGateLabel + " · " + enochDayNightRatioLabel,
-                            singleBox.left + 22f,
-                            curY + 82f,
-                            singleBox.width() - 44f,
-                            subPaint,
-                            13f
-                    );
-                } else {
-                    goldPaint.setTextSize(17f);
-                    drawFittedText(
-                            canvas,
-                            "PRÓXIMA SOLENIDADE (LV 23)",
-                            singleBox.left + 22f,
-                            curY + 40f,
-                            singleBox.width() - 44f,
-                            goldPaint,
-                            13f
-                    );
-                    titlePaint.setTextSize(22f);
-                    drawFittedText(
-                            canvas,
-                            nextFeastLabel,
-                            singleBox.left + 22f,
-                            curY + 80f,
-                            singleBox.width() - 44f,
-                            titlePaint,
-                            14f
-                    );
-                }
-            }
-
-            curY += row4H + 18f;
+            curY += zH + 16f;
         }
 
         // =====================================================================
-        // ROW 5A: 7,000-Year Millennial Clock Progress Bar
+        // SECTION 6: Full-Width Next Appointed Feast (Leviticus 23) Card
+        // =====================================================================
+        if (renderFeast) {
+            float fH = 100f;
+            RectF fBox = new RectF(leftX, curY, rightX, curY + fH);
+            canvas.drawRoundRect(fBox, 20f, 20f, panelPaint);
+            canvas.drawRoundRect(fBox, 20f, 20f, subtleBorderPaint);
+
+            goldPaint.setTextSize(17f);
+            drawFittedText(
+                    canvas,
+                    "PRÓXIMA SOLENIDADE (LV 23)",
+                    fBox.left + 22f,
+                    curY + 38f,
+                    fBox.width() - 44f,
+                    goldPaint,
+                    13f
+            );
+
+            titlePaint.setTextSize(22f);
+            drawFittedText(
+                    canvas,
+                    nextFeastLabel,
+                    fBox.left + 22f,
+                    curY + 76f,
+                    fBox.width() - 44f,
+                    titlePaint,
+                    14f
+            );
+
+            curY += fH + 16f;
+        }
+
+        // =====================================================================
+        // SECTION 7: Full-Width 7,000-Year Millennial Clock Progress Bar Card
         // =====================================================================
         if (renderMillennial) {
-            float millH = 88f;
-            RectF mBox = new RectF(44f, curY, width - 44f, curY + millH);
+            float millH = 92f;
+            RectF mBox = new RectF(leftX, curY, rightX, curY + millH);
             canvas.drawRoundRect(mBox, 20f, 20f, panelPaint);
             canvas.drawRoundRect(mBox, 20f, 20f, subtleBorderPaint);
 
             goldPaint.setTextSize(19f);
-            drawFittedText(canvas, millennialSummaryLabel, mBox.left + 22f, curY + 38f, mBox.width() - 130f, goldPaint, 13f);
+            drawFittedText(canvas, millennialSummaryLabel, mBox.left + 22f, curY + 38f, mBox.width() - 125f, goldPaint, 13f);
 
             subPaint.setTypeface(serifBold);
             subPaint.setTextAlign(Paint.Align.RIGHT);
             subPaint.setTextSize(19f);
             String pctStr = String.format(Locale.US, "%.1f%%", millennialProgressPercent);
-            drawFittedText(canvas, pctStr, mBox.right - 22f, curY + 38f, 90f, subPaint, 13f);
+            drawFittedText(canvas, pctStr, mBox.right - 22f, curY + 38f, 85f, subPaint, 13f);
             subPaint.setTextAlign(Paint.Align.LEFT);
 
-            // Progress Bar Track & Fill
             float trackLeft = mBox.left + 22f;
             float trackRight = mBox.right - 22f;
-            float trackTop = curY + 54f;
-            float trackBot = curY + 68f;
+            float trackTop = curY + 56f;
+            float trackBot = curY + 70f;
             Paint trackPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
             trackPaint.setColor(Color.argb(65, 148, 163, 184));
             canvas.drawRoundRect(new RectF(trackLeft, trackTop, trackRight, trackBot), 7f, 7f, trackPaint);
@@ -747,20 +727,20 @@ public class DimenueveisAppWidgetProvider extends AppWidgetProvider {
             fillPaint.setColor(accentGold);
             canvas.drawRoundRect(new RectF(trackLeft, trackTop, Math.max(trackLeft + 14f, trackLeft + fillW), trackBot), 7f, 7f, fillPaint);
 
-            curY += millH + 18f;
+            curY += millH + 16f;
         }
 
         // =====================================================================
-        // ROW 5B: Daily Scriptural Watchword Verse
+        // SECTION 8: Full-Width Daily Scriptural Watchword Verse Card
         // =====================================================================
         if (renderVerse) {
-            float verseH = 98f;
-            RectF vBox = new RectF(44f, curY, width - 44f, curY + verseH);
+            float verseH = 102f;
+            RectF vBox = new RectF(leftX, curY, rightX, curY + verseH);
             canvas.drawRoundRect(vBox, 20f, 20f, panelPaint);
             canvas.drawRoundRect(vBox, 20f, 20f, subtleBorderPaint);
 
             goldPaint.setTextSize(18f);
-            drawFittedText(canvas, dailyVerseRef + ":", vBox.left + 22f, curY + 36f, vBox.width() - 44f, goldPaint, 13f);
+            drawFittedText(canvas, dailyVerseRef + ":", vBox.left + 22f, curY + 38f, vBox.width() - 44f, goldPaint, 13f);
 
             subPaint.setTypeface(serifItalic);
             subPaint.setTextSize(19f);
@@ -768,7 +748,7 @@ public class DimenueveisAppWidgetProvider extends AppWidgetProvider {
                     canvas,
                     "“" + dailyVerseQuote + "”",
                     vBox.left + 22f,
-                    curY + 72f,
+                    curY + 76f,
                     vBox.width() - 44f,
                     subPaint,
                     12f

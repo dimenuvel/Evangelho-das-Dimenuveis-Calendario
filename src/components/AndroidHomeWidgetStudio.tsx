@@ -444,7 +444,9 @@ export const AndroidHomeWidgetStudio: React.FC<AndroidHomeWidgetStudioProps> = (
                 </span>
                 <span className="opacity-75">·</span>
                 <span className="text-[10px] opacity-90">
-                  {isPt ? `Grade ${widgetConfig.widgetSize}` : `Grid ${widgetConfig.widgetSize}`}
+                  {isPt
+                    ? `Grade Vertical ${widgetConfig.widgetSize.replace('x', '×')}`
+                    : `Vertical Grid ${widgetConfig.widgetSize.replace('x', '×')}`}
                 </span>
               </div>
               <div className="flex items-center gap-2.5 opacity-90">
@@ -456,11 +458,11 @@ export const AndroidHomeWidgetStudio: React.FC<AndroidHomeWidgetStudioProps> = (
               </div>
             </div>
 
-            {/* THE ELEGANT ANDROID HOME WIDGET CARD */}
-            <div className="relative z-10 my-auto flex items-center justify-center">
+            {/* THE ELEGANT ANDROID HOME WIDGET CARD — True Vertical Portrait Layout */}
+            <div className="relative z-10 my-auto flex items-center justify-center py-1">
               <div
                 ref={widgetCardRef}
-                className={`android-widget-preview-lock w-full max-w-2xl rounded-2xl transition-all duration-200 relative ${
+                className={`android-widget-preview-lock w-full max-w-[440px] mx-auto rounded-2xl transition-all duration-200 relative ${
                   widgetConfig.frostedBlur && widgetConfig.alphaPercent > 5
                     ? 'backdrop-blur-md'
                     : ''
@@ -476,7 +478,7 @@ export const AndroidHomeWidgetStudio: React.FC<AndroidHomeWidgetStudioProps> = (
                       ? '0 18px 42px -10px rgba(0, 0, 0, 0.55)'
                       : 'none',
                   textShadow: adaptiveTextShadow,
-                  padding: widgetConfig.widgetSize === '4x2' ? '18px 20px' : '22px 24px',
+                  padding: widgetConfig.widgetSize === '3x4' ? '16px 18px' : '20px 22px',
                 }}
               >
                 {/* Inner Ornamental Corner Hairlines when Gold Border is enabled */}
@@ -489,12 +491,12 @@ export const AndroidHomeWidgetStudio: React.FC<AndroidHomeWidgetStudioProps> = (
                   />
                 )}
 
-                <div className="relative z-10 space-y-3.5">
-                  {/* ROW 1: Sacred Calendar Date & Live Horological Clock */}
+                <div className="relative z-10 space-y-3">
+                  {/* SECTION 1: Sacred Calendar Date & Live Horological Clock (Stacked Vertically) */}
                   <div className="space-y-2">
-                    {/* Top Kicker Strip: Sacred Year + Civil Date (Left) & Solar/Night Watch (Right) */}
-                    <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-[11px] leading-snug">
-                      <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 uppercase tracking-wider font-bold tabular-nums">
+                    {/* Top Kicker: Sacred Year + Civil Date */}
+                    <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-0.5 text-[11px] leading-snug uppercase tracking-wider font-bold tabular-nums">
+                      <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
                         <Sparkles
                           className="w-3 h-3 shrink-0"
                           style={{ color: palette.accentGold }}
@@ -507,185 +509,178 @@ export const AndroidHomeWidgetStudio: React.FC<AndroidHomeWidgetStudioProps> = (
                           {snapshot.gregorianDateStr}
                         </span>
                       </div>
+                    </div>
 
+                    {/* Sacred Date Headline & Subline */}
+                    <div className="space-y-0.5">
                       <div
-                        className="italic tabular-nums"
+                        className="text-lg sm:text-xl font-bold leading-snug tracking-tight tabular-nums"
+                        style={{ color: palette.textPrimary }}
+                      >
+                        {snapshot.sacredDateHeadline}
+                      </div>
+                      <div
+                        className="text-xs italic leading-snug tabular-nums"
+                        style={{ color: palette.textSecondary }}
+                      >
+                        {snapshot.sacredSubline}
+                      </div>
+                    </div>
+
+                    {/* Live Digital Hour & Solar/Night Watch Row */}
+                    <div
+                      className="flex flex-wrap items-baseline justify-between gap-2 pt-2"
+                      style={{ borderTop: `1px solid ${palette.borderSubtle}` }}
+                    >
+                      <div
+                        className="text-2xl sm:text-3xl font-bold tabular-nums tracking-tight leading-snug whitespace-nowrap"
+                        style={{ color: palette.accentGold }}
+                      >
+                        {snapshot.timeFormatted}
+                        {snapshot.ampmSuffix && (
+                          <span className="text-xs ml-1.5 font-bold">
+                            {snapshot.ampmSuffix}
+                          </span>
+                        )}
+                      </div>
+                      <div
+                        className="text-xs italic leading-snug tabular-nums"
                         style={{ color: palette.textSecondary }}
                       >
                         {snapshot.biblicalWatchLabel}
                       </div>
                     </div>
+                  </div>
 
-                    {/* Main Headline + Live Digital Clock */}
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
-                      <div className="space-y-1 min-w-0 flex-1">
+                  {/* SECTION 2: Lunar Phase & 1 Enoch 14 Parts (Full-Width Vertical Card) */}
+                  <div
+                    className="p-3 rounded-xl flex flex-col justify-between gap-2"
+                    style={{
+                      backgroundColor: palette.panelBg,
+                      border: `1px solid ${palette.borderSubtle}`,
+                    }}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <div className="shrink-0">
+                        <LunarPhaseIcon
+                          phaseName={snapshot.lunarPhaseKey as any}
+                          size={34}
+                        />
+                      </div>
+                      <div className="min-w-0 flex-1 space-y-0.5">
                         <div
-                          className="text-lg sm:text-xl xl:text-2xl font-bold leading-snug tracking-tight tabular-nums"
+                          className="text-xs sm:text-sm font-bold leading-snug"
                           style={{ color: palette.textPrimary }}
                         >
-                          {snapshot.sacredDateHeadline}
+                          {snapshot.lunarPhaseLocalized}
                         </div>
-
                         <div
-                          className="text-xs italic leading-snug tabular-nums"
-                          style={{ color: palette.textSecondary }}
-                        >
-                          {snapshot.sacredSubline}
-                        </div>
-                      </div>
-
-                      {/* Live Digital Hour */}
-                      <div className="sm:text-right shrink-0 pt-1.5 sm:pt-0 border-t sm:border-t-0 border-white/10">
-                        <div
-                          className="text-2xl sm:text-3xl font-bold tabular-nums tracking-tight leading-snug py-0.5 whitespace-nowrap"
+                          className="text-[11px] font-bold tabular-nums leading-snug"
                           style={{ color: palette.accentGold }}
                         >
-                          {snapshot.timeFormatted}
-                          {snapshot.ampmSuffix && (
-                            <span className="text-xs ml-1.5 font-bold">
-                              {snapshot.ampmSuffix}
-                            </span>
-                          )}
+                          {isPt ? 'Iluminação' : 'Illumination'}: {snapshot.lunarIlluminationPercent}% · {snapshot.lunarAgeDays}
                         </div>
+                      </div>
+                    </div>
+
+                    {/* 1 Enoch 14-Part Lunar Light Progress */}
+                    <div className="space-y-1 pt-1 border-t border-white/10">
+                      <div className="flex items-center justify-between gap-2 text-[11px] leading-snug tabular-nums">
+                        <span style={{ color: palette.textSecondary }}>
+                          {snapshot.enochLunarPartsLabel}
+                        </span>
+                        <span
+                          className="font-bold shrink-0"
+                          style={{ color: palette.accentGold }}
+                        >
+                          {snapshot.enochLunarParts}/14
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1 w-full">
+                        {Array.from({ length: 14 }).map((_, i) => {
+                          const lit = i < snapshot.enochLunarParts;
+                          return (
+                            <span
+                              key={i}
+                              className="flex-1 h-1.5 rounded-xs"
+                              style={{
+                                backgroundColor: lit
+                                  ? palette.accentGold
+                                  : 'rgba(148, 163, 184, 0.25)',
+                              }}
+                            />
+                          );
+                        })}
                       </div>
                     </div>
                   </div>
 
-                  {/* ROW 2: Lunar Phase & 1 Enoch 14 Parts + GPS Location & Sun Ephemeris */}
-                  <div
-                    className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2.5"
-                    style={{ borderTop: `1px solid ${palette.borderSubtle}` }}
-                  >
-                    {/* Lunar Phase Box — Full-width 14-part bar below icon + header */}
+                  {/* SECTION 3: GPS Location & Sun Ephemeris (Full-Width Vertical Card) */}
+                  {widgetConfig.showGpsAndSunTimes && (
                     <div
-                      className="p-3 rounded-xl flex flex-col justify-between gap-2.5"
+                      className="p-3 rounded-xl flex flex-col justify-between gap-2"
                       style={{
                         backgroundColor: palette.panelBg,
                         border: `1px solid ${palette.borderSubtle}`,
                       }}
                     >
-                      <div className="flex items-center gap-2.5">
-                        <div className="shrink-0">
-                          <LunarPhaseIcon
-                            phaseName={snapshot.lunarPhaseKey as any}
-                            size={34}
+                      <div className="flex flex-wrap items-baseline justify-between gap-2">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <MapPin
+                            className="w-3.5 h-3.5 shrink-0"
+                            style={{ color: palette.accentGold }}
                           />
-                        </div>
-                        <div className="min-w-0 flex-1 space-y-0.5">
-                          <div
+                          <span
                             className="text-xs sm:text-sm font-bold leading-snug"
                             style={{ color: palette.textPrimary }}
                           >
-                            {snapshot.lunarPhaseLocalized}
-                          </div>
-                          <div
-                            className="text-[11px] font-bold tabular-nums leading-snug"
-                            style={{ color: palette.accentGold }}
-                          >
-                            {isPt ? 'Iluminação' : 'Illumination'}: {snapshot.lunarIlluminationPercent}% · {snapshot.lunarAgeDays}
-                          </div>
+                            {snapshot.locationCity}
+                          </span>
                         </div>
+                        <span
+                          className="text-[11px] tabular-nums leading-snug"
+                          style={{ color: palette.textMuted }}
+                        >
+                          {snapshot.coordinatesFormatted}
+                        </span>
                       </div>
 
-                      {/* 1 Enoch 14-Part Lunar Light Progress (spans full box width) */}
-                      <div className="space-y-1 pt-1 border-t border-white/10">
-                        <div className="flex items-center justify-between gap-2 text-[11px] leading-snug tabular-nums">
-                          <span style={{ color: palette.textSecondary }}>
-                            {snapshot.enochLunarPartsLabel}
-                          </span>
-                          <span
-                            className="font-bold shrink-0"
+                      <div className="grid grid-cols-3 gap-1.5 pt-1.5 border-t border-white/10 text-[11px] tabular-nums">
+                        <div className="flex items-center gap-1">
+                          <Sunrise
+                            className="w-3.5 h-3.5 shrink-0"
                             style={{ color: palette.accentGold }}
-                          >
-                            {snapshot.enochLunarParts}/14
+                          />
+                          <span style={{ color: palette.textSecondary }}>
+                            {snapshot.sunriseStr}
                           </span>
                         </div>
-                        <div className="flex items-center gap-1 w-full">
-                          {Array.from({ length: 14 }).map((_, i) => {
-                            const lit = i < snapshot.enochLunarParts;
-                            return (
-                              <span
-                                key={i}
-                                className="flex-1 h-1.5 rounded-xs"
-                                style={{
-                                  backgroundColor: lit
-                                    ? palette.accentGold
-                                    : 'rgba(148, 163, 184, 0.25)',
-                                }}
-                              />
-                            );
-                          })}
+                        <div className="flex items-center justify-center gap-1">
+                          <Sun
+                            className="w-3.5 h-3.5 shrink-0"
+                            style={{ color: palette.accentGold }}
+                          />
+                          <span style={{ color: palette.textSecondary }}>
+                            {snapshot.solarNoonStr}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-end gap-1">
+                          <Sunset
+                            className="w-3.5 h-3.5 shrink-0"
+                            style={{ color: palette.accentGold }}
+                          />
+                          <span
+                            className="font-bold"
+                            style={{ color: palette.accentGoldSoft }}
+                          >
+                            {snapshot.sunsetStr}
+                          </span>
                         </div>
                       </div>
                     </div>
+                  )}
 
-                    {/* GPS Location & Sun Ephemeris Box */}
-                    {widgetConfig.showGpsAndSunTimes && (
-                      <div
-                        className="p-3 rounded-xl flex flex-col justify-between gap-2.5"
-                        style={{
-                          backgroundColor: palette.panelBg,
-                          border: `1px solid ${palette.borderSubtle}`,
-                        }}
-                      >
-                        <div className="space-y-0.5">
-                          <div className="flex items-start gap-1.5">
-                            <MapPin
-                              className="w-3.5 h-3.5 shrink-0 mt-0.5"
-                              style={{ color: palette.accentGold }}
-                            />
-                            <span
-                              className="text-xs sm:text-sm font-bold leading-snug"
-                              style={{ color: palette.textPrimary }}
-                            >
-                              {snapshot.locationCity}
-                            </span>
-                          </div>
-                          <div
-                            className="text-[11px] tabular-nums pl-5 leading-snug"
-                            style={{ color: palette.textMuted }}
-                          >
-                            {snapshot.coordinatesFormatted}
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-3 gap-1.5 pt-1.5 border-t border-white/10 text-[11px] tabular-nums">
-                          <div className="flex items-center gap-1">
-                            <Sunrise
-                              className="w-3.5 h-3.5 shrink-0"
-                              style={{ color: palette.accentGold }}
-                            />
-                            <span style={{ color: palette.textSecondary }}>
-                              {snapshot.sunriseStr}
-                            </span>
-                          </div>
-                          <div className="flex items-center justify-center gap-1">
-                            <Sun
-                              className="w-3.5 h-3.5 shrink-0"
-                              style={{ color: palette.accentGold }}
-                            />
-                            <span style={{ color: palette.textSecondary }}>
-                              {snapshot.solarNoonStr}
-                            </span>
-                          </div>
-                          <div className="flex items-center justify-end gap-1">
-                            <Sunset
-                              className="w-3.5 h-3.5 shrink-0"
-                              style={{ color: palette.accentGold }}
-                            />
-                            <span
-                              className="font-bold"
-                              style={{ color: palette.accentGoldSoft }}
-                            >
-                              {snapshot.sunsetStr}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* ROW 3: Live Sabbath Sunset Countdown Clock + 7-Day Sabbath Rhythm Bar */}
+                  {/* SECTION 4: Live Sabbath Sunset Countdown Clock + 7-Day Sabbath Rhythm Bar */}
                   {widgetConfig.showSabbathCountdown && (
                     <div
                       className="p-3 rounded-xl space-y-2.5"
@@ -738,7 +733,7 @@ export const AndroidHomeWidgetStudio: React.FC<AndroidHomeWidgetStudioProps> = (
                         </div>
                       </div>
 
-                      {/* 7-Day Weekly Sabbath Rhythm Strip — 2-line stacked cells so numbers/text never truncate */}
+                      {/* 7-Day Weekly Sabbath Rhythm Strip — 2-line stacked cells */}
                       {widgetConfig.showWeeklySabbathBar && (
                         <div className="grid grid-cols-7 gap-1 sm:gap-1.5 pt-0.5">
                           {[1, 2, 3, 4, 5, 6, 7].map((dNum) => {
@@ -787,10 +782,10 @@ export const AndroidHomeWidgetStudio: React.FC<AndroidHomeWidgetStudioProps> = (
                     </div>
                   )}
 
-                  {/* ROW 4 (4x3 and 4x4 sizes): 13-Sign Mazzaroth, 1 Enoch Gate & Next Biblical Feast */}
-                  {widgetConfig.widgetSize !== '4x2' &&
+                  {/* SECTION 5 (4x5 and 4x6 Vertical Sizes): 13-Sign Mazzaroth, 1 Enoch Gate & Next Biblical Feast (Stacked Vertically) */}
+                  {widgetConfig.widgetSize !== '3x4' &&
                     (widgetConfig.showZodiacAndEnochGate || widgetConfig.showNextFeast) && (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+                      <div className="space-y-2.5 text-xs">
                         {widgetConfig.showZodiacAndEnochGate && (
                           <div
                             className="p-2.5 rounded-xl flex items-start gap-2.5"
@@ -850,9 +845,9 @@ export const AndroidHomeWidgetStudio: React.FC<AndroidHomeWidgetStudioProps> = (
                       </div>
                     )}
 
-                  {/* ROW 5 (4x4 size): 7,000-Year Millennial Clock & Daily Scriptural Watchword */}
-                  {widgetConfig.widgetSize === '4x4' && (
-                    <div className="space-y-2 pt-1">
+                  {/* SECTION 6 (4x6 Full Vertical Size): 7,000-Year Millennial Clock & Daily Scriptural Watchword */}
+                  {widgetConfig.widgetSize === '4x6' && (
+                    <div className="space-y-2.5">
                       {widgetConfig.showMillennialClock && (
                         <div
                           className="p-3 rounded-xl space-y-1.5"
@@ -1100,30 +1095,35 @@ export const AndroidHomeWidgetStudio: React.FC<AndroidHomeWidgetStudioProps> = (
             </div>
 
             <div className="space-y-2">
-              <div className="text-xs font-bold uppercase tracking-wider text-amber-400">
-                {isPt
-                  ? '3. Dimensão na Grade da Tela Inicial'
-                  : '3. Home Screen Grid Size'}
+              <div className="flex items-center justify-between gap-2">
+                <div className="text-xs font-bold uppercase tracking-wider text-amber-400">
+                  {isPt
+                    ? '3. Dimensão na Grade da Tela Inicial (Vertical)'
+                    : '3. Home Screen Grid Size (Vertical)'}
+                </div>
+                <span className="text-[11px] font-bold text-amber-300 tabular-nums">
+                  {widgetConfig.widgetSize.replace('x', '×')}
+                </span>
               </div>
               <div className="grid grid-cols-3 gap-2 text-xs tabular-nums">
                 {[
                   {
-                    id: '4x2' as AndroidWidgetSize,
-                    dim: '4×2',
-                    subPt: 'Compacto',
-                    subEn: 'Compact',
+                    id: '3x4' as AndroidWidgetSize,
+                    dim: '3×4',
+                    subPt: 'Vertical Compacto',
+                    subEn: 'Compact Vertical',
                   },
                   {
-                    id: '4x3' as AndroidWidgetSize,
-                    dim: '4×3',
-                    subPt: 'Editorial',
-                    subEn: 'Editorial',
+                    id: '4x5' as AndroidWidgetSize,
+                    dim: '4×5',
+                    subPt: 'Vertical Editorial',
+                    subEn: 'Editorial Vertical',
                   },
                   {
-                    id: '4x4' as AndroidWidgetSize,
-                    dim: '4×4',
-                    subPt: 'Completo',
-                    subEn: 'Full Clock',
+                    id: '4x6' as AndroidWidgetSize,
+                    dim: '4×6',
+                    subPt: 'Vertical Completo',
+                    subEn: 'Full Vertical',
                   },
                 ].map((sz) => {
                   const active = widgetConfig.widgetSize === sz.id;
@@ -1204,13 +1204,13 @@ export const AndroidHomeWidgetStudio: React.FC<AndroidHomeWidgetStudioProps> = (
                 },
                 {
                   key: 'showMillennialClock' as const,
-                  labelPt: 'Relógio Milenar (4×4)',
-                  labelEn: 'Millennial Clock (4×4)',
+                  labelPt: 'Relógio Milenar (4×6)',
+                  labelEn: 'Millennial Clock (4×6)',
                 },
                 {
                   key: 'showDailyVerse' as const,
-                  labelPt: 'Versículo Bíblico Diário (4×4)',
-                  labelEn: 'Daily Scriptural Verse (4×4)',
+                  labelPt: 'Versículo Bíblico Diário (4×6)',
+                  labelEn: 'Daily Scriptural Verse (4×6)',
                 },
               ].map((mod) => (
                 <label
