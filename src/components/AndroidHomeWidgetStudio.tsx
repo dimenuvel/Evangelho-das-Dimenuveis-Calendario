@@ -683,7 +683,7 @@ export const AndroidHomeWidgetStudio: React.FC<AndroidHomeWidgetStudioProps> = (
                   {/* SECTION 4: Live Sabbath Sunset Countdown Clock + 7-Day Sabbath Rhythm Bar */}
                   {widgetConfig.showSabbathCountdown && (
                     <div
-                      className="p-3 rounded-xl space-y-2.5"
+                      className="p-3 rounded-xl space-y-2"
                       style={{
                         backgroundColor: snapshot.isSabbathActive
                           ? palette.sabbathActiveBg
@@ -691,38 +691,38 @@ export const AndroidHomeWidgetStudio: React.FC<AndroidHomeWidgetStudioProps> = (
                         border: `1px solid ${palette.borderGold}`,
                       }}
                     >
-                      <div className="flex flex-wrap items-center justify-between gap-2.5">
-                        <div className="space-y-0.5 min-w-0 flex-1">
-                          <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 leading-snug">
-                            <Sunset
-                              className="w-3.5 h-3.5 shrink-0"
-                              style={{ color: palette.accentGold }}
-                            />
-                            <span
-                              className="text-[11px] sm:text-xs font-bold uppercase tracking-wider"
-                              style={{ color: palette.accentGold }}
-                            >
-                              {snapshot.sabbathStatusTitle}
-                            </span>
-                            <span style={{ color: palette.textMuted }}>·</span>
-                            <span
-                              className="text-xs sm:text-sm font-bold tabular-nums"
-                              style={{ color: palette.textPrimary }}
-                            >
-                              {snapshot.sabbathTargetDateLabel}
-                            </span>
-                          </div>
-                          <div
-                            className="text-[11px] italic leading-snug tabular-nums"
-                            style={{ color: palette.textSecondary }}
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-1.5 leading-snug">
+                          <Sunset
+                            className="w-3.5 h-3.5 shrink-0"
+                            style={{ color: palette.accentGold }}
+                          />
+                          <span
+                            className="text-[11px] sm:text-xs font-bold uppercase tracking-wider"
+                            style={{ color: palette.accentGold }}
                           >
-                            {snapshot.sabbathSunsetLabel}
-                          </div>
+                            {snapshot.sabbathStatusTitle}
+                          </span>
+                        </div>
+                        <div
+                          className="text-xs sm:text-sm font-bold tabular-nums leading-snug"
+                          style={{ color: palette.textPrimary }}
+                        >
+                          {snapshot.sabbathTargetDateLabel}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between gap-2 pt-1 border-t border-white/10">
+                        <div
+                          className="text-[11px] italic leading-snug tabular-nums min-w-0 flex-1"
+                          style={{ color: palette.textSecondary }}
+                        >
+                          {snapshot.sabbathSunsetLabel}
                         </div>
 
                         {/* Live Ticking Countdown Readout */}
                         <div
-                          className="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold tabular-nums tracking-wider leading-snug whitespace-nowrap shrink-0"
+                          className="px-3 py-1 rounded-lg text-xs sm:text-sm font-bold tabular-nums tracking-wider leading-snug whitespace-nowrap shrink-0"
                           style={{
                             backgroundColor: palette.accentGold,
                             color: palette.badgeText,

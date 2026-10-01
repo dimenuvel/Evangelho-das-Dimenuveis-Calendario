@@ -187,7 +187,7 @@ public class DimenueveisAppWidgetProvider extends AppWidgetProvider {
         String enochGateLabel = "Porta Celeste 4 (1 Enoque 72)";
         String enochDayNightRatioLabel = "Dia 9/18 · Noite 9/18";
 
-        String nextFeastLabel = "Solenidades de Levítico 23";
+        String nextFeastLabel = computeFallbackNextFeastLabel(daysSinceVernal);
         int elapsedYears = sacredYear;
         double millennialProgressPercent = Math.min(100.0, Math.max(0.0, (elapsedYears / 7000.0) * 100.0));
         String millennialSummaryLabel = "Grande Semana: Ano " + elapsedYears + " / 7.000 (7º Milênio)";
@@ -256,7 +256,10 @@ public class DimenueveisAppWidgetProvider extends AppWidgetProvider {
                 enochGateLabel = obj.optString("enochGateLabel", enochGateLabel);
                 enochDayNightRatioLabel = obj.optString("enochDayNightRatioLabel", enochDayNightRatioLabel);
 
-                nextFeastLabel = obj.optString("nextFeastLabel", nextFeastLabel);
+                String rawFeastLabel = obj.optString("nextFeastLabel", nextFeastLabel);
+                if (rawFeastLabel != null && !rawFeastLabel.isEmpty() && !rawFeastLabel.contains("NaN") && !rawFeastLabel.contains("undefined")) {
+                    nextFeastLabel = rawFeastLabel;
+                }
                 millennialProgressPercent = obj.optDouble("millennialProgressPercent", millennialProgressPercent);
                 millennialSummaryLabel = obj.optString("millennialSummaryLabel", millennialSummaryLabel);
 
@@ -282,7 +285,7 @@ public class DimenueveisAppWidgetProvider extends AppWidgetProvider {
             estimatedHeight += 150f; // Section 3: GPS Location & Sun Ephemeris
         }
         if (renderSabbath) {
-            estimatedHeight += (showWeeklySabbathBar ? 210f : 122f); // Section 4: Sabbath Countdown + 7-Day Strip
+            estimatedHeight += (showWeeklySabbathBar ? 246f : 158f); // Section 4: Sabbath Title + Date + Sunset/Counter Row + 7-Day Strip
         }
         if (renderZodiac) {
             estimatedHeight += 120f; // Section 5: 13-Sign Mazzaroth & Enoch Gate
@@ -547,7 +550,7 @@ public class DimenueveisAppWidgetProvider extends AppWidgetProvider {
         // SECTION 4: Full-Width Sabbath Sunset Countdown + 7-Day Rhythm Strip
         // =====================================================================
         if (renderSabbath) {
-            float sabbathH = showWeeklySabbathBar ? 194f : 106f;
+            float sabbathH = showWeeklySabbathBar ? 230f : 142f;
             Paint sabbathBgPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
             sabbathBgPaint.setColor(sabbathPanelColor);
 
@@ -555,32 +558,67 @@ public class DimenueveisAppWidgetProvider extends AppWidgetProvider {
             canvas.drawRoundRect(sabbathBox, 22f, 22f, sabbathBgPaint);
             canvas.drawRoundRect(sabbathBox, 22f, 22f, borderPaint);
 
-            goldPaint.setTextSize(21f);
+            float sabbathInnerW = sabbathBox.width() - 44f;
+
+            // Row 1: Full-Width Sabbath Section Title (Never overlapped by counter box)
+            goldPaint.setTextSize(19f);
             drawFittedText(
                     canvas,
-                    "✦ " + sabbathStatusTitle.toUpperCase(Locale.ROOT) + "  ·  " + sabbathTargetDateLabel,
+                    "✦ " + sabbathStatusTitle.toUpperCase(Locale.ROOT),
                     sabbathBox.left + 22f,
-                    curY + 40f,
-                    390f,
+                    curY + 34f,
+                    sabbathInnerW,
                     goldPaint,
+                    12f
+            );
+
+            // Row 2: Full-Width Sabbath Target Sacred Date
+            titlePaint.setTextSize(22f);
+            drawFittedText(
+                    canvas,
+                    sabbathTargetDateLabel,
+                    sabbathBox.left + 22f,
+                    curY + 64f,
+                    sabbathInnerW,
+                    titlePaint,
                     13f
             );
 
-            subPaint.setTypeface(serifItalic);
-            subPaint.setTextSize(19f);
-            drawFittedText(canvas, sabbathSunsetLabel, sabbathBox.left + 22f, curY + 72f, 390f, subPaint, 13f);
+            canvas.drawLine(sabbathBox.left + 22f, curY + 78f, sabbathBox.right - 22f, curY + 78f, divPaint);
 
+            // Row 3: Sunset Label (left) + Gold Sabbath Counter Box (right)
             Paint pillPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
             pillPaint.setColor(accentGold);
-            RectF cdRect = new RectF(sabbathBox.right - 256f, curY + 22f, sabbathBox.right - 20f, curY + 78f);
-            canvas.drawRoundRect(cdRect, 14f, 14f, pillPaint);
+            RectF cdRect = new RectF(sabbathBox.right - 246f, curY + 88f, sabbathBox.right - 22f, curY + 132f);
+            canvas.drawRoundRect(cdRect, 12f, 12f, pillPaint);
+
+            float sunsetMaxW = (cdRect.left - 16f) - (sabbathBox.left + 22f);
+            subPaint.setTypeface(serifItalic);
+            subPaint.setTextSize(19f);
+            drawFittedText(
+                    canvas,
+                    sabbathSunsetLabel,
+                    sabbathBox.left + 22f,
+                    curY + 117f,
+                    sunsetMaxW,
+                    subPaint,
+                    12f
+            );
 
             Paint badgePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
             badgePaint.setTypeface(serifBold);
-            badgePaint.setTextSize(21f);
+            badgePaint.setTextSize(20f);
             badgePaint.setColor(badgeTextColor);
             badgePaint.setTextAlign(Paint.Align.CENTER);
-            drawFittedText(canvas, sabbathCountdownStr, cdRect.centerX(), cdRect.centerY() + 8f, cdRect.width() - 18f, badgePaint, 13f);
+            drawFittedText(
+                    canvas,
+                    sabbathCountdownStr,
+                    cdRect.centerX(),
+                    cdRect.centerY() + 7f,
+                    cdRect.width() - 18f,
+                    badgePaint,
+                    11f
+            );
 
             if (showWeeklySabbathBar) {
                 float stripLeft = sabbathBox.left + 22f;
@@ -588,8 +626,8 @@ public class DimenueveisAppWidgetProvider extends AppWidgetProvider {
                 float totalStripW = stripRight - stripLeft;
                 float dayGap = 9f;
                 float dayBoxW = (totalStripW - (6f * dayGap)) / 7f;
-                float dayTop = curY + 98f;
-                float dayBot = curY + 172f;
+                float dayTop = curY + 144f;
+                float dayBot = curY + 214f;
 
                 for (int d = 1; d <= 7; d++) {
                     float dx = stripLeft + (d - 1) * (dayBoxW + dayGap);
@@ -612,14 +650,14 @@ public class DimenueveisAppWidgetProvider extends AppWidgetProvider {
                     dTopTxt.setTextSize(14f);
                     dTopTxt.setTextAlign(Paint.Align.CENTER);
                     dTopTxt.setColor(isCurrent ? badgeTextColor : (isSab ? accentGold : textSecondary));
-                    canvas.drawText(isSab ? "SÁB" : "DIA", dRect.centerX(), dayTop + 26f, dTopTxt);
+                    canvas.drawText(isSab ? "SÁB" : "DIA", dRect.centerX(), dayTop + 25f, dTopTxt);
 
                     Paint dNumTxt = new Paint(Paint.ANTI_ALIAS_FLAG);
                     dNumTxt.setTypeface(serifBold);
                     dNumTxt.setTextSize(21f);
                     dNumTxt.setTextAlign(Paint.Align.CENTER);
                     dNumTxt.setColor(isCurrent ? badgeTextColor : (isSab ? accentGold : textPrimary));
-                    canvas.drawText(isSab ? "7º" : String.valueOf(d), dRect.centerX(), dayTop + 56f, dNumTxt);
+                    canvas.drawText(isSab ? "7º" : String.valueOf(d), dRect.centerX(), dayTop + 54f, dNumTxt);
                 }
             }
 
@@ -758,6 +796,36 @@ public class DimenueveisAppWidgetProvider extends AppWidgetProvider {
         return bmp;
     }
 
+    private static String computeFallbackNextFeastLabel(int daysSinceVernal) {
+        // Primary Leviticus 23 feasts mapped to day-of-year (1..364)
+        final int[] feastStartDays = new int[]{14, 15, 16, 62, 169, 178, 183, 190};
+        final int[] feastDurations = new int[]{1, 7, 1, 1, 1, 1, 7, 1};
+        final String[] feastNamesPt = new String[]{
+                "Páscoa",
+                "Festa dos Pães Ázimos",
+                "Primícias",
+                "Festa das Semanas (Pentecostes)",
+                "Festa das Trombetas",
+                "Dia da Expiação",
+                "Festa dos Tabernáculos",
+                "Assembleia do Oitavo Dia"
+        };
+
+        for (int i = 0; i < feastStartDays.length; i++) {
+            int startD = feastStartDays[i];
+            int endD = startD + feastDurations[i] - 1;
+            if (daysSinceVernal >= startD && daysSinceVernal <= endD) {
+                return feastNamesPt[i] + " · Em Celebração Hoje";
+            }
+            if (daysSinceVernal < startD) {
+                int diff = startD - daysSinceVernal;
+                return feastNamesPt[i] + " · em " + diff + (diff == 1 ? " dia" : " dias");
+            }
+        }
+        int diffToNextPassover = Math.max(1, (365 - daysSinceVernal) + 14);
+        return "Páscoa · em " + diffToNextPassover + (diffToNextPassover == 1 ? " dia" : " dias");
+    }
+
     private static void drawFittedText(
             Canvas canvas,
             String text,
@@ -770,7 +838,8 @@ public class DimenueveisAppWidgetProvider extends AppWidgetProvider {
         if (text == null || text.isEmpty()) return;
         float originalSize = basePaint.getTextSize();
         float currentSize = originalSize;
-        while (currentSize > minTextSize && basePaint.measureText(text) > maxWidth) {
+        float floorSize = Math.min(8f, minTextSize);
+        while (currentSize > floorSize && basePaint.measureText(text) > maxWidth) {
             currentSize -= 0.5f;
             basePaint.setTextSize(currentSize);
         }

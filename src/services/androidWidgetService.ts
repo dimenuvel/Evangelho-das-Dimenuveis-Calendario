@@ -463,14 +463,23 @@ export function buildLiveAndroidWidgetSnapshot(
     language,
     calendarConfig.userLocation
   );
-  const allFeasts = [...feastsThisYear, ...feastsNextYear];
+  const allFeasts = [...feastsThisYear, ...feastsNextYear].sort(
+    (a, b) => a.gregorianStartDate.getTime() - b.gregorianStartDate.getTime()
+  );
   const upcomingFeast =
-    allFeasts.find((f) => f.status === 'ACTIVE' || f.status === 'UPCOMING') || allFeasts[0];
+    allFeasts.find((f) => f.isActiveToday || f.isUpcoming) || allFeasts[0];
 
   const nextFeastName = upcomingFeast ? upcomingFeast.feast.name : isPt ? 'Páscoa' : 'Passover';
-  const nextFeastDaysAway = upcomingFeast ? Math.max(0, upcomingFeast.daysUntil) : 0;
+  const computedDaysUntil = upcomingFeast
+    ? upcomingFeast.isActiveToday
+      ? 0
+      : typeof upcomingFeast.daysUntilStart === 'number' && !Number.isNaN(upcomingFeast.daysUntilStart)
+        ? upcomingFeast.daysUntilStart
+        : Math.ceil((upcomingFeast.gregorianStartDate.getTime() - now.getTime()) / 86400000)
+    : 0;
+  const nextFeastDaysAway = Math.max(0, Number.isFinite(computedDaysUntil) ? computedDaysUntil : 0);
   const nextFeastLabel =
-    upcomingFeast?.status === 'ACTIVE'
+    upcomingFeast?.isActiveToday
       ? isPt
         ? `${nextFeastName} · Em Celebração Hoje`
         : `${nextFeastName} · Active Today`
