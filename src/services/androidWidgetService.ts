@@ -75,7 +75,7 @@ export interface AndroidWidgetConfig {
 export const DEFAULT_ANDROID_WIDGET_CONFIG: AndroidWidgetConfig = {
   alphaPercent: 72,
   widgetTheme: 'obsidian',
-  widgetSize: '4x3',
+  widgetSize: '4x4',
   frostedBlur: true,
   goldBorder: true,
   use24HourFormat: true,

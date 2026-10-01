@@ -1207,6 +1207,11 @@ export const AndroidHomeWidgetStudio: React.FC<AndroidHomeWidgetStudioProps> = (
                   labelPt: 'Relógio Milenar (4×4)',
                   labelEn: 'Millennial Clock (4×4)',
                 },
+                {
+                  key: 'showDailyVerse' as const,
+                  labelPt: 'Versículo Bíblico Diário (4×4)',
+                  labelEn: 'Daily Scriptural Verse (4×4)',
+                },
               ].map((mod) => (
                 <label
                   key={mod.key}
