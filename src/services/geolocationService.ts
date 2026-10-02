@@ -35,6 +35,8 @@ declare global {
       ) => void;
       syncHomeWidget?: (widgetJson: string) => boolean;
       requestPinHomeWidget?: (widgetJson: string) => boolean;
+      requestTourPermissions?: () => void;
+      shareText?: (title: string, text: string) => void;
     };
   }
 }

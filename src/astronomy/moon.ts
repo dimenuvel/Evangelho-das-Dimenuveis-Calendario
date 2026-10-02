@@ -8,6 +8,8 @@ import * as SunCalc from 'suncalc';
 import { LunarAnchor, LunarAnchorMode, LunarPhaseInfo } from '../types/calendar';
 import { Language, TRANSLATIONS } from '../i18n/translations';
 
+export type { LunarPhaseInfo };
+
 export function getLocalizedPhaseName(phaseName: string, language: Language = 'en'): string {
   const dict = TRANSLATIONS[language].phaseNames;
   return (dict as any)[phaseName] || phaseName;

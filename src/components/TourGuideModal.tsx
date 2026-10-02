@@ -21,6 +21,7 @@ import {
   sendBirthdayAlertPreview,
   NotificationSettings,
 } from '../notifications/notificationService';
+import { requestLocalGpsCoordinates, markGpsPromptDecided } from '../services/geolocationService';
 import {
   Sun,
   Moon,
@@ -73,10 +74,10 @@ export const TourGuideModal: React.FC<TourGuideModalProps> = ({
   const [notifSettings, setNotifSettings] = useState<NotificationSettings>(
     loadStoredNotificationSettings()
   );
-  const [hasAutoTriggeredOnStep3, setHasAutoTriggeredOnStep3] = useState(false);
   const [birthdaySavedToast, setBirthdaySavedToast] = useState(false);
   const [showHeaderThemePreview, setShowHeaderThemePreview] = useState(false);
   const headerThemeMenuRef = useRef<HTMLDivElement | null>(null);
+  const hasTriggeredTourStartPermissions = useRef(false);
   const isPt = language === 'pt';
   const t = TRANSLATIONS[language];
 
@@ -103,11 +104,9 @@ export const TourGuideModal: React.FC<TourGuideModalProps> = ({
     ? resolveSacredBirthday(config.userBirthdayGregorian, config.lunarAnchorMode, currentSacredYear)
     : null;
 
-  const handleSaveBirthdayInTour = async (dateISO: string) => {
+  const handleSaveBirthdayInTour = (dateISO: string) => {
     onUpdateConfig({ userBirthdayGregorian: dateISO || undefined });
     if (dateISO && /^\d{4}-\d{2}-\d{2}$/.test(dateISO)) {
-      markNotificationPromptDecided();
-      await requestNotificationPermission();
       const current = loadStoredNotificationSettings();
       const updated: NotificationSettings = {
         ...current,
@@ -155,13 +154,127 @@ export const TourGuideModal: React.FC<TourGuideModalProps> = ({
     }
   };
 
-  // Automatically trigger the native Android / OS notification permission dialog when entering Section III (stepIndex === 2)
+  // Automatically activate Notification and GPS permissions Android pop-ups right on Tour Modal start
   useEffect(() => {
-    if (isOpen && stepIndex === 2 && !hasAutoTriggeredOnStep3) {
-      setHasAutoTriggeredOnStep3(true);
-      handleActivateAndroidSystemNotifications();
+    if (!isOpen) {
+      hasTriggeredTourStartPermissions.current = false;
+      return;
     }
-  }, [isOpen, stepIndex, hasAutoTriggeredOnStep3]);
+    if (hasTriggeredTourStartPermissions.current) return;
+    hasTriggeredTourStartPermissions.current = true;
+
+    // Immediately mark prompts decided upfront so no unexpected popups appear at specific moments later
+    markNotificationPromptDecided();
+    markGpsPromptDecided();
+
+    let isCancelled = false;
+
+    const activateTourStartPermissions = async () => {
+      // 1. Android APK native multi-permission flow (triggers Android system notification & GPS pop-ups upfront)
+      if (typeof window !== 'undefined' && window.AndroidBridge?.requestTourPermissions) {
+        const handleTourResult = (evt: Event) => {
+          window.removeEventListener('androidTourPermissionsResult', handleTourResult);
+          if (isCancelled) return;
+          const detail = (evt as CustomEvent)?.detail;
+          if (detail?.notificationGranted) {
+            const current = loadStoredNotificationSettings();
+            const updated: NotificationSettings = {
+              ...current,
+              enabled: true,
+              sunriseAlert: true,
+              moonPhaseChangeAlert: true,
+            };
+            saveNotificationSettings(updated);
+            setNotifSettings(updated);
+            sendSunriseAlertPreview(
+              new Date(),
+              userLocation?.latitude ?? 31.7683,
+              userLocation?.longitude ?? 35.2137,
+              userLocation?.cityName ?? 'Jerusalem (Default)',
+              language,
+              true
+            );
+          }
+          if (detail?.gpsGranted) {
+            requestLocalGpsCoordinates(language)
+              .then((resolved) => {
+                if (!isCancelled && resolved?.latitude != null && resolved?.longitude != null) {
+                  onUpdateConfig({
+                    userLocation: {
+                      latitude: resolved.latitude,
+                      longitude: resolved.longitude,
+                      cityName: resolved.cityName,
+                    },
+                  });
+                }
+              })
+              .catch(() => {});
+          }
+        };
+
+        window.addEventListener('androidTourPermissionsResult', handleTourResult);
+        window.AndroidBridge.requestTourPermissions();
+        return;
+      }
+
+      // 2. Web / Browser fallback: activate notification permission dialog immediately
+      try {
+        const granted = await requestNotificationPermission();
+        if (!isCancelled) {
+          const current = loadStoredNotificationSettings();
+          const updated: NotificationSettings = {
+            ...current,
+            enabled: true,
+            sunriseAlert: true,
+            moonPhaseChangeAlert: true,
+          };
+          saveNotificationSettings(updated);
+          setNotifSettings(updated);
+          if (granted) {
+            sendSunriseAlertPreview(
+              new Date(),
+              userLocation?.latitude ?? 31.7683,
+              userLocation?.longitude ?? 35.2137,
+              userLocation?.cityName ?? 'Jerusalem (Default)',
+              language,
+              true
+            );
+          }
+        }
+      } catch (err) {
+        console.warn('Tour start notification permission prompt error:', err);
+      }
+
+      if (isCancelled) return;
+
+      // Small pause between dialogs so browser transitions smoothly
+      await new Promise((res) => setTimeout(res, 250));
+      if (isCancelled) return;
+
+      // Request GPS permission dialog
+      try {
+        const resolved = await requestLocalGpsCoordinates(language);
+        if (!isCancelled && resolved && resolved.latitude != null && resolved.longitude != null) {
+          onUpdateConfig({
+            userLocation: {
+              latitude: resolved.latitude,
+              longitude: resolved.longitude,
+              cityName: resolved.cityName,
+            },
+          });
+        }
+      } catch (err) {
+        console.warn('Tour start GPS permission prompt error:', err);
+      }
+    };
+
+    // Activate immediately upon tour modal start
+    activateTourStartPermissions();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [isOpen, language, userLocation, onUpdateConfig]);
 
   if (!isOpen) return null;
 

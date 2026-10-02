@@ -414,8 +414,8 @@ export function evaluateSolarAndLunarNotifications(
 
     const shouldNotifyPhase =
       settings.moonPhaseChangeAlert ||
-      (lunarInfo.phaseName === 'NEW_MOON' && settings.newMoonAlert) ||
-      (lunarInfo.phaseName === 'FULL_MOON' && settings.fullMoonAlert);
+      (lunarInfo.phaseName === 'New Moon' && settings.newMoonAlert) ||
+      (lunarInfo.phaseName === 'Full Moon' && settings.fullMoonAlert);
 
     if (shouldNotifyPhase) {
       sendMoonPhaseAlertPreview(now, language, false);
@@ -429,21 +429,19 @@ export function evaluateSolarAndLunarNotifications(
     window.AndroidBridge?.scheduleStatusBarNotification
   ) {
     try {
-      const nextNewMoonMs = lunarInfo.nextNewMoon.getTime();
-      const nextFullMoonMs = lunarInfo.nextFullMoon.getTime();
-      const isNewNext = nextNewMoonMs <= nextFullMoonMs;
-      const targetMs = isNewNext ? nextNewMoonMs : nextFullMoonMs;
-      const phaseLabel = isNewNext
-        ? getLocalizedPhaseName('NEW_MOON', language)
-        : getLocalizedPhaseName('FULL_MOON', language);
-      const mpTitle = isPt
-        ? `🌙 Mudança de Fase da Lua: ${phaseLabel}`
-        : `🌙 Moon Phase Change: ${phaseLabel}`;
-      const mpBody = isPt
-        ? `A Lua alcançou a fase ${phaseLabel} no ciclo sinódico.`
-        : `The Moon has reached ${phaseLabel} in the synodic cycle.`;
+      const nextDate = lunarInfo.nextPhaseDate;
+      if (nextDate && nextDate instanceof Date) {
+        const targetMs = nextDate.getTime();
+        const phaseLabel = getLocalizedPhaseName(lunarInfo.nextPhaseName, language);
+        const mpTitle = isPt
+          ? `🌙 Próxima Fase da Lua: ${phaseLabel}`
+          : `🌙 Next Moon Phase: ${phaseLabel}`;
+        const mpBody = isPt
+          ? `A Lua entrará na fase ${phaseLabel} no ciclo sinódico.`
+          : `The Moon will enter ${phaseLabel} in the synodic cycle.`;
 
-      window.AndroidBridge.scheduleStatusBarNotification(7002, targetMs, mpTitle, mpBody);
+        window.AndroidBridge.scheduleStatusBarNotification(7002, targetMs, mpTitle, mpBody);
+      }
     } catch {
       // ignore
     }

@@ -22,7 +22,19 @@ import { AzimuthalCosmologyMap } from '../components/AzimuthalCosmologyMap';
 import { SabbathIndicatorWidget } from '../components/SabbathIndicatorWidget';
 import { EditableYearControl } from '../components/EditableYearControl';
 import { AndroidHomeWidgetStudio } from '../components/AndroidHomeWidgetStudio';
-import { ArrowRight, MapPin, BookOpen, Smartphone } from 'lucide-react';
+import {
+  ArrowRight,
+  MapPin,
+  BookOpen,
+  Smartphone,
+  Share2,
+  Copy,
+  Check,
+  Mail,
+  MessageSquare,
+  MessageCircle,
+  Send,
+} from 'lucide-react';
 
 interface TodayScreenProps {
   systemDate: Date;
@@ -53,6 +65,7 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
     () => baseSacredDay.calendarYear
   );
   const [isWidgetStudioOpen, setIsWidgetStudioOpen] = useState(false);
+  const [shareCopied, setShareCopied] = useState(false);
 
   const currentSacredDay = useMemo(() => {
     if (selectedSacredYear === baseSacredDay.calendarYear) {
@@ -138,6 +151,86 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
     if (mode === 'VISIBLE_CRESCENT') return 'Crescente Visível';
     if (mode === 'OBSERVATIONAL') return 'Observacional';
     return mode;
+  };
+
+  const shareSubject = useMemo(() => {
+    return isPt
+      ? `Oração Diária & Reflexão Bíblica — ${dailyPrayer.title}`
+      : `Daily Prayer & Scriptural Reflection — ${dailyPrayer.title}`;
+  }, [isPt, dailyPrayer.title]);
+
+  const shareUrl = 'https://dimenuvel.github.io/Evangelho-das-Dimenuveis-site/';
+
+  const shareText = useMemo(() => {
+    if (isPt) {
+      return (
+        `📖 ORAÇÃO DIÁRIA & REFLEXÃO BÍBLICA\n` +
+        `Calendário das Dimenúveis · ${dailyPrayer.positionLabel}\n` +
+        `Tema do Mês: ${dailyPrayer.monthTheme}\n\n` +
+        `✦ ${dailyPrayer.title}\n` +
+        `📜 ${dailyPrayer.scriptureRef}:\n` +
+        `"${dailyPrayer.scriptureQuote}"\n\n` +
+        `🕊️ Reflexão do Ciclo de 13 Meses:\n` +
+        `${dailyPrayer.reflection}\n\n` +
+        `🙏 Oração do Dia:\n` +
+        `"${dailyPrayer.prayer}"\n\n` +
+        `✨ Compartilhado através do Evangelho das Dimenúveis\n` +
+        `${shareUrl}`
+      );
+    }
+    return (
+      `📖 DAILY PRAYER & SCRIPTURAL REFLECTION\n` +
+      `Dimenuous Calendar · ${dailyPrayer.positionLabel}\n` +
+      `Monthly Theme: ${dailyPrayer.monthTheme}\n\n` +
+      `✦ ${dailyPrayer.title}\n` +
+      `📜 ${dailyPrayer.scriptureRef}:\n` +
+      `"${dailyPrayer.scriptureQuote}"\n\n` +
+      `🕊️ 13-Month Cycle Reflection:\n` +
+      `${dailyPrayer.reflection}\n\n` +
+      `🙏 Prayer of the Day:\n` +
+      `"${dailyPrayer.prayer}"\n\n` +
+      `✨ Shared via the Gospel of Dimenuous\n` +
+      `${shareUrl}`
+    );
+  }, [isPt, dailyPrayer, shareUrl]);
+
+  const handleCopyShareText = async () => {
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard) {
+        await navigator.clipboard.writeText(shareText);
+      } else {
+        const textarea = document.createElement('textarea');
+        textarea.value = shareText;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+      }
+      setShareCopied(true);
+      setTimeout(() => setShareCopied(false), 3000);
+    } catch (e) {
+      console.error('Failed to copy prayer text', e);
+    }
+  };
+
+  const handleNativeShare = async () => {
+    if (typeof window !== 'undefined' && window.AndroidBridge?.shareText) {
+      window.AndroidBridge.shareText(shareSubject, shareText);
+      return;
+    }
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try {
+        await navigator.share({
+          title: shareSubject,
+          text: shareText,
+          url: shareUrl,
+        });
+        return;
+      } catch (err: any) {
+        if (err?.name === 'AbortError') return;
+      }
+    }
+    handleCopyShareText();
   };
 
   return (
@@ -439,6 +532,107 @@ export const TodayScreen: React.FC<TodayScreenProps> = ({
                 {isPt ? 'Oração do Dia' : 'Prayer of the Day'}
               </span>
               <p className="text-slate-200 italic">{dailyPrayer.prayer}</p>
+            </div>
+          </div>
+
+          {/* Share Action Bar at Bottom of Oração Diária */}
+          <div className="pt-3.5 border-t border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-2 text-xs text-slate-300">
+              <Share2 className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+              <span className="font-semibold text-slate-200">
+                {isPt ? 'Compartilhar Oração & Reflexão:' : 'Share Prayer & Reflection:'}
+              </span>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+              {/* Primary Mobile / System Share Button */}
+              <button
+                type="button"
+                onClick={handleNativeShare}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition-colors cursor-pointer shadow-sm whitespace-nowrap"
+                title={isPt ? 'Compartilhar em mensagens, redes e e-mail' : 'Share to messages, social and email'}
+              >
+                <Share2 className="w-3.5 h-3.5 shrink-0" />
+                <span>{isPt ? 'Compartilhar' : 'Share'}</span>
+              </button>
+
+              {/* Direct WhatsApp Share */}
+              <a
+                href={`https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-emerald-950/70 hover:bg-emerald-900/80 border border-emerald-500/50 hover:border-emerald-400 text-emerald-300 text-xs font-medium transition-colors whitespace-nowrap"
+                title="WhatsApp"
+              >
+                <MessageCircle className="w-3.5 h-3.5 shrink-0 text-emerald-400" />
+                <span>WhatsApp</span>
+              </a>
+
+              {/* Direct Messages / SMS */}
+              <a
+                href={`sms:?body=${encodeURIComponent(shareText)}`}
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-blue-950/70 hover:bg-blue-900/80 border border-blue-500/50 hover:border-blue-400 text-blue-300 text-xs font-medium transition-colors whitespace-nowrap"
+                title={isPt ? 'Mensagens (SMS)' : 'Messages (SMS)'}
+              >
+                <MessageSquare className="w-3.5 h-3.5 shrink-0 text-blue-400" />
+                <span>{isPt ? 'SMS / Mensagem' : 'SMS / Message'}</span>
+              </a>
+
+              {/* Direct E-mail */}
+              <a
+                href={`mailto:?subject=${encodeURIComponent(shareSubject)}&body=${encodeURIComponent(shareText)}`}
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-700 hover:border-slate-600 text-slate-200 text-xs font-medium transition-colors whitespace-nowrap"
+                title={isPt ? 'E-mail' : 'Email'}
+              >
+                <Mail className="w-3.5 h-3.5 shrink-0 text-amber-300" />
+                <span>{isPt ? 'E-mail' : 'Email'}</span>
+              </a>
+
+              {/* Direct Telegram */}
+              <a
+                href={`https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-sky-950/70 hover:bg-sky-900/80 border border-sky-500/50 hover:border-sky-400 text-sky-300 text-xs font-medium transition-colors whitespace-nowrap"
+                title="Telegram"
+              >
+                <Send className="w-3.5 h-3.5 shrink-0 text-sky-400" />
+                <span>Telegram</span>
+              </a>
+
+              {/* Direct X / Twitter */}
+              <a
+                href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
+                  shareText.length > 275 ? shareText.slice(0, 272) + '...' : shareText
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-700 hover:border-slate-500 text-slate-200 text-xs font-medium transition-colors whitespace-nowrap"
+                title="X / Twitter"
+              >
+                <span className="font-bold text-xs">𝕏</span>
+                <span>X</span>
+              </a>
+
+              {/* Copy to Clipboard */}
+              <button
+                type="button"
+                onClick={handleCopyShareText}
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-700 hover:border-amber-500/50 text-slate-200 text-xs font-medium transition-colors cursor-pointer whitespace-nowrap"
+                title={isPt ? 'Copiar texto para colar' : 'Copy text to paste'}
+              >
+                {shareCopied ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 shrink-0 text-emerald-400" />
+                    <span className="text-emerald-300 font-semibold">{isPt ? 'Copiado!' : 'Copied!'}</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5 shrink-0 text-slate-400" />
+                    <span>{isPt ? 'Copiar' : 'Copy'}</span>
+                  </>
+                )}
+              </button>
             </div>
           </div>
         </div>

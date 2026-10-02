@@ -170,28 +170,148 @@ function drawMoonPhaseDiscCanvas(
   cy: number,
   radius: number,
   illum: number,
+  phaseKey: string,
   goldColor: string
 ) {
+  const isNew = phaseKey === 'New Moon' || illum <= 0.03;
+  const isFull = phaseKey === 'Full Moon' || illum >= 0.97;
+  const isWaxing =
+    phaseKey.includes('Waxing') ||
+    phaseKey.includes('First Quarter') ||
+    (!isNew && !isFull && !phaseKey.includes('Waning'));
+
   ctx.save();
+
+  // 1. Outer Halo Ring Glow for New Moon
+  if (isNew) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius + 2, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(217, 119, 6, 0.6)';
+    ctx.lineWidth = 2.0;
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // 2. Base Dark Moon Sphere (Spherical 3D gradient from #1e293b to #090d16)
+  const darkGrad = ctx.createRadialGradient(
+    cx - 0.2 * radius,
+    cy - 0.2 * radius,
+    0,
+    cx,
+    cy,
+    radius * 1.35
+  );
+  darkGrad.addColorStop(0, '#1e293b');
+  darkGrad.addColorStop(1, '#090d16');
+
   ctx.beginPath();
   ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-  ctx.fillStyle = 'rgba(15, 23, 42, 0.82)';
+  ctx.fillStyle = darkGrad;
   ctx.fill();
 
-  ctx.save();
+  // Dark side surface crater accents
+  ctx.fillStyle = 'rgba(15, 23, 42, 0.4)';
   ctx.beginPath();
-  ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-  ctx.clip();
-  const litWidth = radius * 2 * Math.max(0.08, Math.min(1, illum));
-  ctx.fillStyle = goldColor;
-  ctx.fillRect(cx + radius - litWidth, cy - radius, litWidth, radius * 2);
-  ctx.restore();
+  ctx.arc(cx - 0.36 * radius, cy - 0.24 * radius, 0.15 * radius, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(cx + 0.22 * radius, cy + 0.32 * radius, 0.2 * radius, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(cx + 0.39 * radius, cy - 0.3 * radius, 0.11 * radius, 0, Math.PI * 2);
+  ctx.fill();
 
+  // 3. Illuminated Face (Full Moon or Intermediate Phase with spherical terminator curves)
+  const litGrad = ctx.createRadialGradient(
+    cx - 0.3 * radius,
+    cy - 0.3 * radius,
+    0,
+    cx,
+    cy,
+    radius * 1.35
+  );
+  litGrad.addColorStop(0, '#fef08a');
+  litGrad.addColorStop(0.6, '#fde047');
+  litGrad.addColorStop(1, '#ca8a04');
+
+  if (isFull) {
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    ctx.fillStyle = litGrad;
+    ctx.fill();
+
+    // Lunar Maria crater spots
+    ctx.fillStyle = 'rgba(202, 138, 4, 0.22)';
+    ctx.beginPath();
+    ctx.arc(cx - 0.26 * radius, cy - 0.3 * radius, 0.17 * radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(cx + 0.22 * radius, cy + 0.11 * radius, 0.22 * radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(cx - 0.04 * radius, cy + 0.39 * radius, 0.13 * radius, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (!isNew) {
+    const clampedFraction = Math.max(0.01, Math.min(0.99, illum));
+    const rx = Math.max(0.1, Math.abs(1.0 - 2.0 * clampedFraction) * radius);
+
+    ctx.save();
+    ctx.beginPath();
+    if (isWaxing) {
+      // Outer right semicircle from top (-90°) to bottom (+90°) clockwise
+      ctx.arc(cx, cy, radius, -Math.PI / 2, Math.PI / 2, false);
+      if (clampedFraction <= 0.5) {
+        // Crescent: terminator curves right
+        ctx.ellipse(cx, cy, rx, radius, 0, Math.PI / 2, -Math.PI / 2, false);
+      } else {
+        // Gibbous: terminator curves left
+        ctx.ellipse(cx, cy, rx, radius, 0, Math.PI / 2, -Math.PI / 2, true);
+      }
+    } else {
+      // Waning: outer left semicircle from top (-90°) to bottom (+90°) counter-clockwise
+      ctx.arc(cx, cy, radius, -Math.PI / 2, Math.PI / 2, true);
+      if (clampedFraction <= 0.5) {
+        // Crescent: terminator curves left
+        ctx.ellipse(cx, cy, rx, radius, 0, Math.PI / 2, -Math.PI / 2, true);
+      } else {
+        // Gibbous: terminator curves right
+        ctx.ellipse(cx, cy, rx, radius, 0, Math.PI / 2, -Math.PI / 2, false);
+      }
+    }
+    ctx.closePath();
+    ctx.fillStyle = litGrad;
+    ctx.fill();
+
+    // Maria crater spots on illuminated portion
+    ctx.save();
+    ctx.clip();
+    ctx.fillStyle = 'rgba(202, 138, 4, 0.22)';
+    ctx.beginPath();
+    ctx.arc(cx - 0.26 * radius, cy - 0.3 * radius, 0.17 * radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(cx + 0.22 * radius, cy + 0.11 * radius, 0.22 * radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(cx - 0.04 * radius, cy + 0.39 * radius, 0.13 * radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // Subtle illuminated edge stroke
+    ctx.strokeStyle = 'rgba(254, 240, 138, 0.75)';
+    ctx.lineWidth = 1.0;
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // 4. Outer Rim Ring
   ctx.beginPath();
   ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-  ctx.strokeStyle = goldColor;
-  ctx.lineWidth = 2.4;
+  ctx.strokeStyle = isNew ? 'rgba(217, 119, 6, 0.6)' : 'rgba(71, 85, 105, 0.6)';
+  ctx.lineWidth = 1.5;
   ctx.stroke();
+
   ctx.restore();
 }
 
@@ -469,6 +589,7 @@ function renderAndroidWidgetToCanvas(
     curY + 46,
     27,
     snapshot.lunarIlluminationPercent / 100,
+    snapshot.lunarPhaseKey,
     accentGold
   );
 

@@ -13,7 +13,9 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.RadialGradient;
 import android.graphics.RectF;
+import android.graphics.Shader;
 import android.graphics.Typeface;
 import android.os.Build;
 import android.os.Bundle;
@@ -283,6 +285,7 @@ public class DimenueveisAppWidgetProvider extends AppWidgetProvider {
         int enochLunarParts = (int) Math.round(illumFraction * 14.0);
         String lunarAgeDays = String.format(Locale.US, "%.1fd", synodicAge);
         String lunarPhaseLocalized = lunarIllumPercent > 92 ? "Lua Cheia" : (synodicAge < 14.76 ? "Lua Crescente" : "Lua Minguante");
+        String lunarPhaseKey = lunarIllumPercent > 92 ? "Full Moon" : (synodicAge < 14.76 ? "Waxing Crescent" : "Waning Crescent");
         String enochLunarPartsLabel = "Luz de Enoque: " + enochLunarParts + "/14 Partes";
 
         String locationCity = "Jerusalém (Padrão)";
@@ -350,6 +353,7 @@ public class DimenueveisAppWidgetProvider extends AppWidgetProvider {
                 gregorianDateStr = obj.optString("gregorianDateStr", gregorianDateStr);
 
                 lunarPhaseLocalized = obj.optString("lunarPhaseLocalized", lunarPhaseLocalized);
+                lunarPhaseKey = obj.optString("lunarPhaseKey", lunarPhaseKey);
                 lunarIllumPercent = obj.optInt("lunarIlluminationPercent", lunarIllumPercent);
                 lunarAgeDays = obj.optString("lunarAgeDays", lunarAgeDays);
                 enochLunarParts = Math.max(0, Math.min(14, obj.optInt("enochLunarParts", enochLunarParts)));
@@ -608,7 +612,7 @@ public class DimenueveisAppWidgetProvider extends AppWidgetProvider {
         canvas.drawRoundRect(moonBox, 22f, 22f, panelPaint);
         canvas.drawRoundRect(moonBox, 22f, 22f, subtleBorderPaint);
 
-        drawMoonPhaseDisc(canvas, leftX + 46f, curY + 46f, 27f, lunarIllumPercent / 100f, accentGold);
+        drawMoonPhaseDisc(canvas, leftX + 46f, curY + 46f, 27f, lunarIllumPercent / 100f, lunarPhaseKey, accentGold);
 
         float moonTextMaxW = moonBox.width() - 108f;
         titlePaint.setTextSize(24f);
@@ -987,25 +991,128 @@ public class DimenueveisAppWidgetProvider extends AppWidgetProvider {
         basePaint.setTextSize(originalSize);
     }
 
-    private static void drawMoonPhaseDisc(Canvas canvas, float cx, float cy, float radius, float illum, int goldColor) {
-        Paint darkDisc = new Paint(Paint.ANTI_ALIAS_FLAG);
-        darkDisc.setColor(Color.argb(210, 15, 23, 42));
-        canvas.drawCircle(cx, cy, radius, darkDisc);
+    private static void drawMoonPhaseDisc(Canvas canvas, float cx, float cy, float radius, float illum, String phaseKey, int goldColor) {
+        boolean isNew = (phaseKey != null && phaseKey.equalsIgnoreCase("New Moon")) || illum <= 0.03f;
+        boolean isFull = (phaseKey != null && phaseKey.equalsIgnoreCase("Full Moon")) || illum >= 0.97f;
+        boolean isWaxing = (phaseKey != null && (phaseKey.contains("Waxing") || phaseKey.contains("First Quarter")))
+                || (!isNew && !isFull && (phaseKey == null || !phaseKey.contains("Waning")));
 
-        Paint litPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        litPaint.setColor(goldColor);
-        canvas.save();
-        Path clipPath = new Path();
-        clipPath.addCircle(cx, cy, radius, Path.Direction.CW);
-        canvas.clipPath(clipPath);
-        float litWidth = radius * 2f * Math.max(0.08f, Math.min(1f, illum));
-        canvas.drawRect(cx + radius - litWidth, cy - radius, cx + radius, cy + radius, litPaint);
-        canvas.restore();
+        // 1. Outer Halo Ring Glow for New Moon
+        if (isNew) {
+            Paint glowPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+            glowPaint.setStyle(Paint.Style.STROKE);
+            glowPaint.setStrokeWidth(2.0f);
+            glowPaint.setColor(Color.argb(160, 217, 119, 6)); // #d97706 with opacity
+            canvas.drawCircle(cx, cy, radius + 2.0f, glowPaint);
+        }
 
-        Paint rim = new Paint(Paint.ANTI_ALIAS_FLAG);
-        rim.setStyle(Paint.Style.STROKE);
-        rim.setStrokeWidth(2.4f);
-        rim.setColor(goldColor);
-        canvas.drawCircle(cx, cy, radius, rim);
+        // 2. Base Dark Moon Sphere (Spherical 3D gradient from #1e293b to #090d16)
+        Paint darkBase = new Paint(Paint.ANTI_ALIAS_FLAG);
+        RadialGradient darkGrad = new RadialGradient(
+                cx - 0.20f * radius,
+                cy - 0.20f * radius,
+                radius * 1.35f,
+                new int[]{ Color.rgb(30, 41, 59), Color.rgb(9, 13, 22) },
+                new float[]{ 0.0f, 1.0f },
+                Shader.TileMode.CLAMP
+        );
+        darkBase.setShader(darkGrad);
+        canvas.drawCircle(cx, cy, radius, darkBase);
+
+        // Dark side surface crater accents
+        Paint craterPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        craterPaint.setColor(Color.argb(95, 15, 23, 42)); // #0f172a with opacity
+        canvas.drawCircle(cx - 0.36f * radius, cy - 0.24f * radius, 0.15f * radius, craterPaint);
+        canvas.drawCircle(cx + 0.22f * radius, cy + 0.32f * radius, 0.20f * radius, craterPaint);
+        canvas.drawCircle(cx + 0.39f * radius, cy - 0.30f * radius, 0.11f * radius, craterPaint);
+
+        // 3. Illuminated Face (Full Moon or Intermediate Phase with spherical terminator curves)
+        if (isFull) {
+            Paint fullPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+            RadialGradient fullGrad = new RadialGradient(
+                    cx - 0.30f * radius,
+                    cy - 0.30f * radius,
+                    radius * 1.35f,
+                    new int[]{ Color.rgb(254, 240, 138), Color.rgb(253, 224, 71), Color.rgb(202, 138, 4) },
+                    new float[]{ 0.0f, 0.60f, 1.0f },
+                    Shader.TileMode.CLAMP
+            );
+            fullPaint.setShader(fullGrad);
+            canvas.drawCircle(cx, cy, radius, fullPaint);
+
+            // Lunar Maria crater spots
+            Paint mariaPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+            mariaPaint.setColor(Color.argb(55, 202, 138, 4));
+            canvas.drawCircle(cx - 0.26f * radius, cy - 0.30f * radius, 0.17f * radius, mariaPaint);
+            canvas.drawCircle(cx + 0.22f * radius, cy + 0.11f * radius, 0.22f * radius, mariaPaint);
+            canvas.drawCircle(cx - 0.04f * radius, cy + 0.39f * radius, 0.13f * radius, mariaPaint);
+        } else if (!isNew) {
+            float clampedFraction = Math.max(0.01f, Math.min(0.99f, illum));
+            float rx = Math.max(0.1f, Math.abs(1.0f - 2.0f * clampedFraction) * radius);
+
+            Path litPath = new Path();
+            RectF outerOval = new RectF(cx - radius, cy - radius, cx + radius, cy + radius);
+            RectF innerOval = new RectF(cx - rx, cy - radius, cx + rx, cy + radius);
+
+            if (isWaxing) {
+                // Outer right semicircle from top (-90°) to bottom (+90°) clockwise (+180°)
+                litPath.arcTo(outerOval, -90f, 180f, true);
+                if (clampedFraction <= 0.5f) {
+                    // Crescent: inner terminator curves to the right (sweep counter-clockwise -180°)
+                    litPath.arcTo(innerOval, 90f, -180f, false);
+                } else {
+                    // Gibbous: inner terminator curves to the left (sweep clockwise +180°)
+                    litPath.arcTo(innerOval, 90f, 180f, false);
+                }
+                litPath.close();
+            } else {
+                // Waning: outer left semicircle from top (-90°) to bottom (+90°) counter-clockwise (-180°)
+                litPath.arcTo(outerOval, -90f, -180f, true);
+                if (clampedFraction <= 0.5f) {
+                    // Crescent: inner terminator curves to the left (sweep clockwise +180°)
+                    litPath.arcTo(innerOval, 90f, 180f, false);
+                } else {
+                    // Gibbous: inner terminator curves to the right (sweep counter-clockwise -180°)
+                    litPath.arcTo(innerOval, 90f, -180f, false);
+                }
+                litPath.close();
+            }
+
+            Paint litPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+            RadialGradient litGrad = new RadialGradient(
+                    cx - 0.30f * radius,
+                    cy - 0.30f * radius,
+                    radius * 1.35f,
+                    new int[]{ Color.rgb(254, 240, 138), Color.rgb(253, 224, 71), Color.rgb(202, 138, 4) },
+                    new float[]{ 0.0f, 0.60f, 1.0f },
+                    Shader.TileMode.CLAMP
+            );
+            litPaint.setShader(litGrad);
+            canvas.drawPath(litPath, litPaint);
+
+            // Draw lunar maria on illuminated portion
+            canvas.save();
+            canvas.clipPath(litPath);
+            Paint mariaPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+            mariaPaint.setColor(Color.argb(55, 202, 138, 4));
+            canvas.drawCircle(cx - 0.26f * radius, cy - 0.30f * radius, 0.17f * radius, mariaPaint);
+            canvas.drawCircle(cx + 0.22f * radius, cy + 0.11f * radius, 0.22f * radius, mariaPaint);
+            canvas.drawCircle(cx - 0.04f * radius, cy + 0.39f * radius, 0.13f * radius, mariaPaint);
+            canvas.restore();
+
+            // Subtle illuminated edge stroke
+            Paint litRim = new Paint(Paint.ANTI_ALIAS_FLAG);
+            litRim.setStyle(Paint.Style.STROKE);
+            litRim.setStrokeWidth(1.0f);
+            litRim.setColor(Color.argb(190, 254, 240, 138));
+            canvas.drawPath(litPath, litRim);
+        }
+
+        // 4. Outer Rim Ring
+        Paint outerRim = new Paint(Paint.ANTI_ALIAS_FLAG);
+        outerRim.setStyle(Paint.Style.STROKE);
+        outerRim.setStrokeWidth(1.5f);
+        outerRim.setColor(isNew ? Color.argb(160, 217, 119, 6) : Color.argb(140, 71, 85, 105)); // #334155 / #475569
+        canvas.drawCircle(cx, cy, radius, outerRim);
     }
 }

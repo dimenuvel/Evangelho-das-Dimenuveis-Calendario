@@ -66,16 +66,6 @@ export default function App() {
   const handleCloseTour = () => {
     setIsTourOpen(false);
     localStorage.setItem(TOUR_STORAGE_KEY, 'true');
-    if (
-      !hasUserDecidedGpsPrompt() &&
-      isUsingDefaultJerusalem(
-        config.userLocation?.cityName,
-        config.userLocation?.latitude,
-        config.userLocation?.longitude
-      )
-    ) {
-      setIsGpsModalOpen(true);
-    }
   };
 
   // Language state ('en' | 'pt')
@@ -371,7 +361,7 @@ export default function App() {
               </a>
               <span className="text-slate-500">·</span>
               <span className="text-amber-300 tabular-nums">
-                {language === 'pt' ? 'Versão 2.6' : 'Version 2.6'}
+                {language === 'pt' ? 'Versão 2.7' : 'Version 2.7'}
               </span>
             </div>
           </div>

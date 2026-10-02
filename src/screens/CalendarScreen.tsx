@@ -642,8 +642,8 @@ export const CalendarScreen: React.FC<CalendarScreenProps> = ({
                             </td>
                             <td>{sDate === eDate ? sDate : `${sDate} → ${eDate}`}</td>
                             <td>
-                              {getLocalizedPhaseName(occ.lunarPhaseAtStart.phaseName, language)} (
-                              {Math.round(occ.lunarPhaseAtStart.fraction * 100)}%)
+                              {getLocalizedPhaseName(occ.lunarPhaseAtStart, language)} (
+                              {Math.round((occ.lunarIlluminationAtStart ?? 0) * 100)}%)
                             </td>
                             <td>{occ.feast.biblicalReferences.slice(0, 2).join(', ')}</td>
                           </tr>

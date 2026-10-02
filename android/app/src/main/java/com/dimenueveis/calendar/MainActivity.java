@@ -47,6 +47,8 @@ import androidx.webkit.WebViewAssetLoader;
 
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
@@ -72,6 +74,7 @@ public class MainActivity extends AppCompatActivity {
     private byte[] pendingPngBytes;
     private ActivityResultLauncher<String[]> locationPermissionLauncher;
     private ActivityResultLauncher<String> notificationPermissionLauncher;
+    private ActivityResultLauncher<String[]> tourPermissionsLauncher;
     private ActivityResultLauncher<Intent> saveIcsDocumentLauncher;
     private ActivityResultLauncher<Intent> savePngDocumentLauncher;
 
@@ -151,6 +154,30 @@ public class MainActivity extends AppCompatActivity {
                 granted -> {
                     if (webView != null) {
                         final String js = "window.dispatchEvent(new CustomEvent('androidNotificationPermissionResult', { detail: { granted: " + granted + " } }));";
+                        webView.post(() -> webView.evaluateJavascript(js, null));
+                    }
+                }
+        );
+
+        tourPermissionsLauncher = registerForActivityResult(
+                new ActivityResultContracts.RequestMultiplePermissions(),
+                result -> {
+                    Boolean notifResult = result.get("android.permission.POST_NOTIFICATIONS");
+                    boolean notifGranted = Build.VERSION.SDK_INT < 33 || (notifResult != null ? notifResult : isNotificationPermissionGranted());
+                    Boolean fineGranted = result.get(Manifest.permission.ACCESS_FINE_LOCATION);
+                    Boolean coarseGranted = result.get(Manifest.permission.ACCESS_COARSE_LOCATION);
+                    boolean gpsGranted = (fineGranted != null && fineGranted) || (coarseGranted != null && coarseGranted) || isLocationPermissionGranted();
+
+                    if (pendingGeolocationCallback != null && pendingGeolocationOrigin != null) {
+                        pendingGeolocationCallback.invoke(pendingGeolocationOrigin, gpsGranted, false);
+                        pendingGeolocationCallback = null;
+                        pendingGeolocationOrigin = null;
+                    }
+
+                    if (webView != null) {
+                        final String js = "window.dispatchEvent(new CustomEvent('androidTourPermissionsResult', { detail: { notificationGranted: " + notifGranted + ", gpsGranted: " + gpsGranted + " } }));"
+                                + "window.dispatchEvent(new CustomEvent('androidNotificationPermissionResult', { detail: { granted: " + notifGranted + " } }));"
+                                + "window.dispatchEvent(new CustomEvent('androidGpsPermissionResult', { detail: { granted: " + gpsGranted + " } }));";
                         webView.post(() -> webView.evaluateJavascript(js, null));
                     }
                 }
@@ -578,6 +605,57 @@ public class MainActivity extends AppCompatActivity {
             } catch (Exception ignored) {
             }
             return "";
+        }
+
+        @JavascriptInterface
+        public void requestTourPermissions() {
+            runOnUiThread(() -> {
+                boolean needNotif = Build.VERSION.SDK_INT >= 33 && !isNotificationPermissionGranted();
+                boolean needGps = !isLocationPermissionGranted();
+
+                if (!needNotif && !needGps) {
+                    if (webView != null) {
+                        webView.evaluateJavascript(
+                                "window.dispatchEvent(new CustomEvent('androidTourPermissionsResult', { detail: { notificationGranted: true, gpsGranted: true } }));",
+                                null
+                        );
+                    }
+                    return;
+                }
+
+                List<String> perms = new ArrayList<>();
+                if (needNotif) {
+                    perms.add("android.permission.POST_NOTIFICATIONS");
+                }
+                if (needGps) {
+                    perms.add(Manifest.permission.ACCESS_FINE_LOCATION);
+                    perms.add(Manifest.permission.ACCESS_COARSE_LOCATION);
+                }
+
+                if (!perms.isEmpty()) {
+                    tourPermissionsLauncher.launch(perms.toArray(new String[0]));
+                }
+            });
+        }
+
+        @JavascriptInterface
+        public void shareText(String title, String text) {
+            runOnUiThread(() -> {
+                try {
+                    Intent sendIntent = new Intent();
+                    sendIntent.setAction(Intent.ACTION_SEND);
+                    sendIntent.putExtra(Intent.EXTRA_TEXT, text);
+                    if (title != null && !title.isEmpty()) {
+                        sendIntent.putExtra(Intent.EXTRA_SUBJECT, title);
+                        sendIntent.putExtra(Intent.EXTRA_TITLE, title);
+                    }
+                    sendIntent.setType("text/plain");
+                    Intent chooser = Intent.createChooser(sendIntent, title != null && !title.isEmpty() ? title : "Compartilhar");
+                    chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(chooser);
+                } catch (Exception ignored) {
+                }
+            });
         }
 
         @JavascriptInterface
