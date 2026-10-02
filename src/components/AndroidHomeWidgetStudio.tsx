@@ -176,9 +176,13 @@ function drawMoonPhaseDiscCanvas(
   const isNew = phaseKey === 'New Moon' || illum <= 0.03;
   const isFull = phaseKey === 'Full Moon' || illum >= 0.97;
   const isWaxing =
-    phaseKey.includes('Waxing') ||
-    phaseKey.includes('First Quarter') ||
-    (!isNew && !isFull && !phaseKey.includes('Waning'));
+    !isNew &&
+    !isFull &&
+    (phaseKey.includes('Waxing') || phaseKey === 'First Quarter');
+  const isWaning =
+    !isNew &&
+    !isFull &&
+    (phaseKey.includes('Waning') || phaseKey === 'Last Quarter' || !isWaxing);
 
   ctx.save();
 
@@ -262,21 +266,21 @@ function drawMoonPhaseDiscCanvas(
       // Outer right semicircle from top (-90°) to bottom (+90°) clockwise
       ctx.arc(cx, cy, radius, -Math.PI / 2, Math.PI / 2, false);
       if (clampedFraction <= 0.5) {
-        // Crescent: terminator curves right
-        ctx.ellipse(cx, cy, rx, radius, 0, Math.PI / 2, -Math.PI / 2, false);
-      } else {
-        // Gibbous: terminator curves left
+        // Waxing Crescent: terminator bows right (angle decreases: PI/2 -> 0 -> -PI/2)
         ctx.ellipse(cx, cy, rx, radius, 0, Math.PI / 2, -Math.PI / 2, true);
+      } else {
+        // Waxing Gibbous: terminator bows left (angle increases: PI/2 -> PI -> 3PI/2)
+        ctx.ellipse(cx, cy, rx, radius, 0, Math.PI / 2, -Math.PI / 2, false);
       }
     } else {
       // Waning: outer left semicircle from top (-90°) to bottom (+90°) counter-clockwise
       ctx.arc(cx, cy, radius, -Math.PI / 2, Math.PI / 2, true);
       if (clampedFraction <= 0.5) {
-        // Crescent: terminator curves left
-        ctx.ellipse(cx, cy, rx, radius, 0, Math.PI / 2, -Math.PI / 2, true);
-      } else {
-        // Gibbous: terminator curves right
+        // Waning Crescent: terminator bows left (angle increases: PI/2 -> PI -> 3PI/2)
         ctx.ellipse(cx, cy, rx, radius, 0, Math.PI / 2, -Math.PI / 2, false);
+      } else {
+        // Waning Gibbous: terminator bows right (angle decreases: PI/2 -> 0 -> -PI/2)
+        ctx.ellipse(cx, cy, rx, radius, 0, Math.PI / 2, -Math.PI / 2, true);
       }
     }
     ctx.closePath();

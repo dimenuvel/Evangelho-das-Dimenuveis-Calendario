@@ -284,8 +284,34 @@ public class DimenueveisAppWidgetProvider extends AppWidgetProvider {
         int lunarIllumPercent = (int) Math.round(illumFraction * 100.0);
         int enochLunarParts = (int) Math.round(illumFraction * 14.0);
         String lunarAgeDays = String.format(Locale.US, "%.1fd", synodicAge);
-        String lunarPhaseLocalized = lunarIllumPercent > 92 ? "Lua Cheia" : (synodicAge < 14.76 ? "Lua Crescente" : "Lua Minguante");
-        String lunarPhaseKey = lunarIllumPercent > 92 ? "Full Moon" : (synodicAge < 14.76 ? "Waxing Crescent" : "Waning Crescent");
+        double phaseValue = synodicAge / 29.530588;
+        String lunarPhaseLocalized;
+        String lunarPhaseKey;
+        if (phaseValue < 0.03 || phaseValue > 0.97) {
+            lunarPhaseLocalized = "Lua Nova";
+            lunarPhaseKey = "New Moon";
+        } else if (phaseValue < 0.22) {
+            lunarPhaseLocalized = "Lua Crescente";
+            lunarPhaseKey = "Waxing Crescent";
+        } else if (phaseValue < 0.28) {
+            lunarPhaseLocalized = "Quarto Crescente";
+            lunarPhaseKey = "First Quarter";
+        } else if (phaseValue < 0.47) {
+            lunarPhaseLocalized = "Lua Gibosa Crescente";
+            lunarPhaseKey = "Waxing Gibbous";
+        } else if (phaseValue < 0.53) {
+            lunarPhaseLocalized = "Lua Cheia";
+            lunarPhaseKey = "Full Moon";
+        } else if (phaseValue < 0.72) {
+            lunarPhaseLocalized = "Lua Gibosa Minguante";
+            lunarPhaseKey = "Waning Gibbous";
+        } else if (phaseValue < 0.78) {
+            lunarPhaseLocalized = "Quarto Minguante";
+            lunarPhaseKey = "Last Quarter";
+        } else {
+            lunarPhaseLocalized = "Lua Minguante";
+            lunarPhaseKey = "Waning Crescent";
+        }
         String enochLunarPartsLabel = "Luz de Enoque: " + enochLunarParts + "/14 Partes";
 
         String locationCity = "Jerusalém (Padrão)";
@@ -994,8 +1020,8 @@ public class DimenueveisAppWidgetProvider extends AppWidgetProvider {
     private static void drawMoonPhaseDisc(Canvas canvas, float cx, float cy, float radius, float illum, String phaseKey, int goldColor) {
         boolean isNew = (phaseKey != null && phaseKey.equalsIgnoreCase("New Moon")) || illum <= 0.03f;
         boolean isFull = (phaseKey != null && phaseKey.equalsIgnoreCase("Full Moon")) || illum >= 0.97f;
-        boolean isWaxing = (phaseKey != null && (phaseKey.contains("Waxing") || phaseKey.contains("First Quarter")))
-                || (!isNew && !isFull && (phaseKey == null || !phaseKey.contains("Waning")));
+        boolean isWaxing = !isNew && !isFull && phaseKey != null && (phaseKey.contains("Waxing") || phaseKey.contains("First Quarter"));
+        boolean isWaning = !isNew && !isFull && !isWaxing;
 
         // 1. Outer Halo Ring Glow for New Moon
         if (isNew) {
